@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CryptoPulse — Canlı Kripto Bazar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#070B14;
+      --bg2:#0B1220;
+      --panel:#101827;
+      --panel2:#111C2F;
+      --gold:#F0B90B;
+      --gold2:#FFD76A;
+      --text:#F8FAFC;
+      --muted:#94A3B8;
+      --line:rgba(255,255,255,.09);
+      --green:#16C784;
+      --red:#EA3943;
+      --blue:#3861FB;
+      --shadow:0 24px 80px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(240,185,11,.13),transparent 34%),radial-gradient(circle at top right,rgba(56,97,251,.14),transparent 30%),linear-gradient(180deg,var(--bg),#09111F 55%,#050812);color:var(--text);overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    .container{width:min(1180px,92%);margin:auto}
+    .nav{position:sticky;top:0;z-index:20;background:rgba(7,11,20,.78);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+    .logo{display:flex;align-items:center;gap:12px;font-weight:900;font-size:22px;letter-spacing:-.6px}.logo-mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--gold),#926E00);display:grid;place-items:center;color:#0B0F19;font-weight:900;box-shadow:0 0 35px rgba(240,185,11,.32)}
+    .menu{display:flex;gap:28px;color:#CBD5E1;font-weight:600;font-size:14px}.menu a:hover{color:var(--gold)}
+    .nav-actions{display:flex;gap:12px;align-items:center}.btn{border:none;border-radius:14px;padding:13px 18px;font-weight:800;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:8px}.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#070B14}.btn-gold:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(240,185,11,.25)}.btn-dark{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}.btn-dark:hover{border-color:rgba(240,185,11,.5);color:var(--gold)}
+    .hero{position:relative;padding:76px 0 50px;overflow:hidden}.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:64px 64px;mask-image:linear-gradient(to bottom,black,transparent);opacity:.55;pointer-events:none}.hero-wrap{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}.badge{display:inline-flex;align-items:center;gap:9px;color:var(--gold);background:rgba(240,185,11,.1);border:1px solid rgba(240,185,11,.25);padding:9px 13px;border-radius:999px;font-weight:800;font-size:13px;margin-bottom:18px}.pulse{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 0 8px rgba(22,199,132,.12)}
+    h1{font-size:clamp(40px,6vw,78px);line-height:.96;letter-spacing:-3px;margin-bottom:22px}.gold{color:var(--gold)}.hero p{color:#B6C2D3;font-size:18px;line-height:1.75;max-width:620px}.hero-buttons{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px}.stat{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:18px;padding:18px}.stat span{display:block;color:var(--muted);font-size:13px}.stat b{font-size:22px;margin-top:6px;display:block}.screen{background:linear-gradient(180deg,rgba(17,28,47,.95),rgba(8,13,24,.95));border:1px solid var(--line);border-radius:30px;padding:18px;box-shadow:var(--shadow);position:relative}.screen:before{content:"";position:absolute;inset:-1px;border-radius:30px;background:linear-gradient(135deg,rgba(240,185,11,.45),transparent 28%,rgba(56,97,251,.35));z-index:-1}.mini-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;color:var(--muted);font-size:13px}.chart{height:220px;border-radius:22px;background:linear-gradient(180deg,rgba(240,185,11,.12),transparent),#0A1020;position:relative;overflow:hidden;border:1px solid var(--line)}.chart svg{position:absolute;inset:0;width:100%;height:100%}.floating-card{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.small-coin{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:18px;padding:15px}.small-coin .row{display:flex;justify-content:space-between;align-items:center}.coin-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(240,185,11,.13);color:var(--gold);font-weight:900}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.muted{color:var(--muted)}
+    .ticker{border-block:1px solid var(--line);background:rgba(255,255,255,.03);overflow:hidden}.ticker-track{display:flex;gap:26px;white-space:nowrap;animation:move 30s linear infinite;padding:16px 0;color:#CBD5E1;font-weight:700}.ticker-track span{color:var(--gold)}@keyframes move{to{transform:translateX(-50%)}}
+    section{padding:70px 0}.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:24px}.section-head h2{font-size:36px;letter-spacing:-1.4px}.section-head p{color:var(--muted);max-width:560px;line-height:1.6}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.coin-card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--line);border-radius:24px;padding:20px;transition:.25s;position:relative;overflow:hidden}.coin-card:hover{transform:translateY(-6px);border-color:rgba(240,185,11,.42);box-shadow:0 22px 52px rgba(0,0,0,.26)}.coin-card:after{content:"";position:absolute;right:-30px;top:-30px;width:100px;height:100px;background:rgba(240,185,11,.09);border-radius:50%}.coin-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.symbol{color:var(--muted);font-size:13px}.price{font-size:26px;font-weight:900;letter-spacing:-.6px}.change{font-weight:900;margin-top:8px;display:inline-block}
+    .market-box{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:26px;overflow:hidden;box-shadow:var(--shadow)}.market-toolbar{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);gap:14px;flex-wrap:wrap}.search{background:#0A1020;border:1px solid var(--line);border-radius:14px;color:var(--text);padding:12px 14px;min-width:260px;outline:none}.tabs{display:flex;gap:10px}.tab{padding:10px 13px;border-radius:12px;background:rgba(255,255,255,.05);color:#CBD5E1;font-weight:800;font-size:13px}.tab.active{background:rgba(240,185,11,.14);color:var(--gold);border:1px solid rgba(240,185,11,.25)}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:17px 20px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}td{font-weight:700}.coin-name{display:flex;align-items:center;gap:12px}.rank{color:var(--muted);font-weight:700}.spark{width:90px;height:30px}.tag{padding:6px 10px;border-radius:999px;background:rgba(240,185,11,.1);color:var(--gold);font-size:12px;font-weight:900}.chart-frame{height:520px;border:1px solid var(--line);border-radius:26px;overflow:hidden;background:#0A1020}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.feature{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:24px;padding:24px}.feature .ico{width:46px;height:46px;border-radius:15px;background:rgba(240,185,11,.12);color:var(--gold);display:grid;place-items:center;font-weight:900;margin-bottom:18px}.feature h3{margin-bottom:10px}.feature p{color:var(--muted);line-height:1.65}.news{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.news-main,.news-side article{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:24px;padding:24px}.news-main h3{font-size:28px;margin:14px 0}.news-main p,.news-side p{color:var(--muted);line-height:1.65}.news-side{display:grid;gap:18px}.footer{border-top:1px solid var(--line);background:#050812;padding:34px 0;color:var(--muted)}.footer-inner{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.risk{color:#CBD5E1;background:rgba(234,57,67,.08);border:1px solid rgba(234,57,67,.22);padding:16px;border-radius:18px;margin-top:18px;line-height:1.55}
+    @media(max-width:980px){.hero-wrap,.news{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.features{grid-template-columns:1fr 1fr}.menu{display:none}.hero{padding-top:50px}th:nth-child(5),td:nth-child(5),th:nth-child(6),td:nth-child(6){display:none}}
+    @media(max-width:620px){.cards,.features,.stats{grid-template-columns:1fr}.nav-actions .btn-dark{display:none}h1{letter-spacing:-1.8px}.screen{padding:12px;border-radius:22px}.chart-frame{height:440px}th,td{padding:14px 10px;font-size:13px}.search{min-width:100%;width:100%}.section-head{display:block}.section-head h2{margin-bottom:10px}}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="logo" href="#"><span class="logo-mark">₿</span> CryptoPulse</a>
+      <div class="menu"><a href="#market">Bazar</a><a href="#chart">Qrafik</a><a href="#features">Xidmətlər</a><a href="#news">Xəbərlər</a></div>
+      <div class="nav-actions"><a class="btn btn-dark" href="#market">Bazar bax</a><a class="btn btn-gold" href="#chart">Live Chart</a></div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="grid-bg"></div>
+    <div class="container hero-wrap">
+      <div>
+        <div class="badge"><span class="pulse"></span> Canlı kripto qiymətləri</div>
+        <h1>Kripto bazarını <span class="gold">premium</span> paneldə izlə</h1>
+        <p>CoinMarketCap üslubunda bazar cədvəli, Binance havasında qızılı-tünd dizayn, canlı qiymət kartları və real qrafik — hamısı bir HTML faylda.</p>
+        <div class="hero-buttons"><a class="btn btn-gold" href="#market">Canlı bazara keç</a><a class="btn btn-dark" href="#features">Üstünlüklər</a></div>
+        <div class="stats"><div class="stat"><span>Market Cap</span><b id="globalCap">Yüklənir...</b></div><div class="stat"><span>24s Həcm</span><b id="globalVol">Yüklənir...</b></div><div class="stat"><span>BTC Dominance</span><b id="btcDom">Yüklənir...</b></div></div>
+      </div>
+      <div class="screen">
+        <div class="mini-top"><b>BTC/USDT</b><span id="updated">Yenilənir...</span></div>
+        <div class="chart">
+          <svg viewBox="0 0 600 260" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#F0B90B" stop-opacity=".45"/><stop offset="1" stop-color="#F0B90B" stop-opacity="0"/></linearGradient></defs><path d="M0,190 C60,160 80,165 120,120 C160,75 185,120 230,95 C280,65 310,120 350,85 C395,45 430,70 470,42 C520,8 555,36 600,20 L600,260 L0,260Z" fill="url(#g)"/><path d="M0,190 C60,160 80,165 120,120 C160,75 185,120 230,95 C280,65 310,120 350,85 C395,45 430,70 470,42 C520,8 555,36 600,20" fill="none" stroke="#F0B90B" stroke-width="5"/></svg>
+        </div>
+        <div class="floating-card"><div class="small-coin"><div class="row"><span class="coin-icon">B</span><span id="heroBtcChange" class="positive">...</span></div><h3 id="heroBtc">...</h3><span class="muted">Bitcoin</span></div><div class="small-coin"><div class="row"><span class="coin-icon">E</span><span id="heroEthChange" class="positive">...</span></div><h3 id="heroEth">...</h3><span class="muted">Ethereum</span></div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="ticker"><div class="ticker-track" id="ticker"><div>BTC <span>...</span> · ETH <span>...</span> · BNB <span>...</span> · SOL <span>...</span> · XRP <span>...</span> · ADA <span>...</span> · DOGE <span>...</span></div><div>BTC <span>...</span> · ETH <span>...</span> · BNB <span>...</span> · SOL <span>...</span> · XRP <span>...</span> · ADA <span>...</span> · DOGE <span>...</span></div></div></div>
+
+  <section class="container">
+    <div class="section-head"><h2>Seçilmiş coinlər</h2><p>Əsas coinlərin qiyməti CoinGecko API ilə canlı çəkilir. API limitinə görə bəzən gecikmə ola bilər.</p></div>
+    <div class="cards" id="coinCards"></div>
+  </section>
+
+  <section class="container" id="market">
+    <div class="section-head"><h2>Canlı bazar</h2><p>CoinMarketCap tipli cədvəl: qiymət, 24 saatlıq dəyişmə, market cap və həcm.</p></div>
+    <div class="market-box">
+      <div class="market-toolbar"><div class="tabs"><span class="tab active">Top Coins</span><span class="tab">Gainers</span><span class="tab">Watchlist</span></div><input id="search" class="search" placeholder="Coin axtar: BTC, Ethereum..." /></div>
+      <table><thead><tr><th>#</th><th>Coin</th><th>Qiymət</th><th>24s</th><th>Market Cap</th><th>Həcm</th><th>Trend</th></tr></thead><tbody id="marketBody"><tr><td colspan="7">Yüklənir...</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <section class="container" id="chart">
+    <div class="section-head"><h2>TradingView qrafiki</h2><p>BTC/USDT üçün canlı qrafik. İstəsən bunu ETH, BNB və ya başqa cütlüklə də dəyişmək olar.</p></div>
+    <div class="chart-frame"><iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_123&symbol=BINANCE%3ABTCUSDT&interval=60&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0B1220&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&hideideas=1" style="width:100%;height:100%;border:0"></iframe></div>
+  </section>
+
+  <section class="container" id="features">
+    <div class="section-head"><h2>Platform üstünlükləri</h2><p>Kripto saytını portfel, xəbər saytı, analiz platforması və ya affiliate layihə kimi istifadə edə bilərsən.</p></div>
+    <div class="features"><div class="feature"><div class="ico">01</div><h3>Canlı qiymətlər</h3><p>BTC, ETH, BNB, SOL və digər coinlər avtomatik yenilənir.</p></div><div class="feature"><div class="ico">02</div><h3>Premium görünüş</h3><p>Tünd göy, qara və qızılı rənglərlə Binance + CoinMarketCap qarışığı.</p></div><div class="feature"><div class="ico">03</div><h3>Mobil uyğun</h3><p>Telefon, planşet və kompüterdə səliqəli görünən responsive dizayn.</p></div></div>
+  </section>
+
+  <section class="container" id="news">
+    <div class="section-head"><h2>Kripto xəbərləri</h2><p>Bu hissə statikdir. İstəsən sonradan xəbər API-si ilə canlı edə bilərik.</p></div>
+    <div class="news"><article class="news-main"><span class="tag">Market Update</span><h3>Bitcoin bazarda əsas istiqaməti müəyyən edir</h3><p>BTC dominansı, ETF xəbərləri və makroiqtisadi göstəricilər kripto bazarında gündəlik hərəkətləri formalaşdırır.</p><div class="risk">Risk xəbərdarlığı: Kripto aktivlər yüksək risklidir. Bu sayt investisiya məsləhəti deyil.</div></article><div class="news-side"><article><span class="tag">Altcoins</span><h3>Altcoin mövsümü nə vaxt başlaya bilər?</h3><p>Likvidlik, BTC dominansı və bazar həcmində artım əsas göstəricilərdir.</p></article><article><span class="tag">Analysis</span><h3>Futures ticarətində risk idarəsi</h3><p>Stop-loss, aşağı leverage və kapital bölgüsü ən vacib qaydalardandır.</p></article></div></div>
+  </section>
+
+  <footer class="footer"><div class="container footer-inner"><div><b class="logo"><span class="logo-mark">₿</span> CryptoPulse</b><p style="margin-top:12px">Canlı kripto bazar paneli.</p></div><p>© 2026 CryptoPulse. Demo HTML sayt.</p></div></footer>
+
+  <script>
+    const ids=['bitcoin','ethereum','binancecoin','solana','ripple','cardano','dogecoin','toncoin'];
+    const symbols={bitcoin:'BTC',ethereum:'ETH',binancecoin:'BNB',solana:'SOL',ripple:'XRP',cardano:'ADA',dogecoin:'DOGE',toncoin:'TON'};
+    let coins=[];
+    const fmt=n=> n>=1e12?'$'+(n/1e12).toFixed(2)+'T': n>=1e9?'$'+(n/1e9).toFixed(2)+'B': n>=1e6?'$'+(n/1e6).toFixed(2)+'M':'$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
+    const price=n=> '$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:n<1?5:2});
+    function cls(v){return v>=0?'positive':'negative'}
+    function spark(v){const color=v>=0?'#16C784':'#EA3943';return `<svg class="spark" viewBox="0 0 100 30"><path d="M0 ${v>=0?22:8} C20 5 28 25 45 12 S75 8 100 ${v>=0?5:24}" fill="none" stroke="${color}" stroke-width="3"/></svg>`}
+    async function load(){
+      try{
+        const url='https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids='+ids.join(',')+'&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h';
+        const res=await fetch(url); coins=await res.json(); render(coins);
+        const g=await fetch('https://api.coingecko.com/api/v3/global'); const gj=await g.json(); const d=gj.data;
+        document.getElementById('globalCap').textContent=fmt(d.total_market_cap.usd); document.getElementById('globalVol').textContent=fmt(d.total_volume.usd); document.getElementById('btcDom').textContent=d.market_cap_percentage.btc.toFixed(1)+'%';
+        document.getElementById('updated').textContent='Son yenilənmə: '+new Date().toLocaleTimeString('az-AZ');
+      }catch(e){document.getElementById('marketBody').innerHTML='<tr><td colspan="7">API yüklənmədi. Bir az sonra yenilə.</td></tr>'}
+    }
+    function render(list){
+      const btc=list.find(c=>c.id==='bitcoin'), eth=list.find(c=>c.id==='ethereum');
+      if(btc){heroBtc.textContent=price(btc.current_price); heroBtcChange.textContent=(btc.price_change_percentage_24h||0).toFixed(2)+'%'; heroBtcChange.className=cls(btc.price_change_percentage_24h)}
+      if(eth){heroEth.textContent=price(eth.current_price); heroEthChange.textContent=(eth.price_change_percentage_24h||0).toFixed(2)+'%'; heroEthChange.className=cls(eth.price_change_percentage_24h)}
+      coinCards.innerHTML=list.slice(0,4).map(c=>`<div class="coin-card"><div class="coin-head"><div class="coin-name"><img src="${c.image}" width="38" height="38"><div><b>${c.name}</b><div class="symbol">${symbols[c.id]}</div></div></div><span class="tag">Live</span></div><div class="price">${price(c.current_price)}</div><span class="change ${cls(c.price_change_percentage_24h)}">${(c.price_change_percentage_24h||0).toFixed(2)}%</span></div>`).join('');
+      marketBody.innerHTML=list.map((c,i)=>`<tr><td class="rank">${i+1}</td><td><div class="coin-name"><img src="${c.image}" width="30" height="30"><div>${c.name}<div class="symbol">${symbols[c.id]}</div></div></div></td><td>${price(c.current_price)}</td><td class="${cls(c.price_change_percentage_24h)}">${(c.price_change_percentage_24h||0).toFixed(2)}%</td><td>${fmt(c.market_cap)}</td><td>${fmt(c.total_volume)}</td><td>${spark(c.price_change_percentage_24h)}</td></tr>`).join('');
+      const t=list.map(c=>`${symbols[c.id]} <span>${price(c.current_price)}</span> <b class="${cls(c.price_change_percentage_24h)}">${(c.price_change_percentage_24h||0).toFixed(2)}%</b>`).join(' · ');
+      ticker.innerHTML='<div>'+t+'</div><div>'+t+'</div>';
+    }
+    search.addEventListener('input',e=>{const q=e.target.value.toLowerCase();render(coins.filter(c=>c.name.toLowerCase().includes(q)||symbols[c.id].toLowerCase().includes(q)))});
+    load(); setInterval(load,60000);
+  </script>
+</body>
+</html>
