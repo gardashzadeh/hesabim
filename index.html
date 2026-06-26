@@ -51,11 +51,39 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .cart b{position:absolute;right:7px;top:-7px;background:#ff6a00;border-radius:50%;width:18px;height:18px;font-size:10px;display:grid;place-items:center;color:#fff}
 .notify-btn{width:48px;height:48px;border:1px solid #292b2b;border-radius:8px;background:#101111;display:grid;place-items:center;font-size:22px;position:relative;color:#fff}
 .notify-btn b{position:absolute;right:6px;top:-7px;background:#ef4444;border-radius:50%;min-width:18px;height:18px;padding:0 5px;font-size:10px;display:grid;place-items:center;color:#fff}
-.nav{height:60px;background:#101111;border-bottom:1px solid #252727}
-.nav .shell{height:100%;display:flex;gap:1px;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.nav{height:64px;background:#080909;border-bottom:1px solid #1e2020}
+.nav .shell{height:100%;display:flex;gap:3px;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 4px}
 .nav .shell::-webkit-scrollbar{display:none}
-.nav button, .nav a{height:52px;background:#151616;border-right:1px solid #282a2a;display:flex;align-items:center;gap:8px;padding:0 19px;font-size:13px;font-weight:600;letter-spacing:.2px;white-space:nowrap;color:inherit}
-.nav button:first-child, .nav a:first-child{height:52px;background:linear-gradient(#ff7a18,#ff5a00);border:0;border-radius:6px;margin-right:8px;padding:0 24px}
+/* ANA SƏHİFƏ - ağ button */
+.nav button, .nav a{height:40px;background:transparent;border:none;display:flex;align-items:center;gap:7px;padding:0 14px;font-size:12.5px;font-weight:700;letter-spacing:.25px;white-space:nowrap;color:#9ca3af;border-radius:8px;transition:all .18s ease;flex-shrink:0}
+.nav button:first-child{background:#ffffff;color:#111;padding:0 18px;margin-right:6px;gap:7px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.nav button:first-child:hover{background:#f0f0f0;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.nav button:first-child svg{color:#333}
+/* Kateqoriya buttonları ümumi */
+.nav-cat{position:relative;overflow:hidden}
+.nav-cat svg{flex-shrink:0;transition:transform .15s ease}
+.nav-cat:hover{transform:translateY(-1px)}
+.nav-cat:hover svg{transform:scale(1.1)}
+/* BÜTÜN KATEQORİYALAR */
+.nav button:nth-child(2){background:#1a1c1e;color:#e5e7eb;border:1px solid #2d3035;margin-right:4px}
+.nav button:nth-child(2):hover{background:#252729;border-color:#444;color:#fff}
+/* Hər kateqoriya üçün öz rəngi */
+.nav-hesab   {background:rgba(251,146,60,.08);color:#fb923c;border:1px solid rgba(251,146,60,.2)}
+.nav-hesab:hover{border-color:#ea580c;box-shadow:0 4px 18px rgba(234,88,12,.25)}
+.nav-skin    {background:rgba(167,139,250,.08);color:#a78bfa;border:1px solid rgba(167,139,250,.2)}
+.nav-skin:hover{border-color:#7c3aed;box-shadow:0 4px 18px rgba(124,58,237,.25)}
+.nav-oyunpulu{background:rgba(52,211,153,.08);color:#34d399;border:1px solid rgba(52,211,153,.2)}
+.nav-oyunpulu:hover{border-color:#059669;box-shadow:0 4px 18px rgba(5,150,105,.25)}
+.nav-giftcard{background:rgba(244,114,182,.08);color:#f472b6;border:1px solid rgba(244,114,182,.2)}
+.nav-giftcard:hover{border-color:#db2777;box-shadow:0 4px 18px rgba(219,39,119,.25)}
+.nav-boost   {background:rgba(96,165,250,.08);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+.nav-boost:hover{border-color:#2563eb;box-shadow:0 4px 18px rgba(37,99,235,.25)}
+.nav-kiraye  {background:rgba(251,191,36,.08);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+.nav-kiraye:hover{border-color:#d97706;box-shadow:0 4px 18px rgba(217,119,6,.25)}
+.nav-sosial  {background:rgba(56,189,248,.08);color:#38bdf8;border:1px solid rgba(56,189,248,.2)}
+.nav-sosial:hover{border-color:#0284c7;box-shadow:0 4px 18px rgba(2,132,199,.25)}
+.nav-konsol  {background:rgba(192,132,252,.08);color:#c084fc;border:1px solid rgba(192,132,252,.2)}
+.nav-konsol:hover{border-color:#9333ea;box-shadow:0 4px 18px rgba(147,51,234,.25)}
 .nav small{font-size:10px;color:#aaa;background:#262828;padding:2px 4px;border-radius:3px;margin-left:4px}
 .nav .new{background:#ff6a00;color:#fff;font-size:9px;padding:2px 4px;border-radius:3px;margin-left:4px}
 .main{padding-top:16px}
@@ -76,20 +104,38 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .feature b{font-size:13px}.feature small{display:block;color:#c4c4c4;margin-top:4px;font-size:12px}
 .side{display:grid;gap:12px;align-content:flex-start}
 .box{background:linear-gradient(180deg,#181919,#111212);border:1px solid #2b2d2d;border-radius:9px;padding:18px}
-.box h3{margin:0 0 12px;font-size:17px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;letter-spacing:.3px;text-transform:uppercase}.box p{margin:0 0 18px;color:#ddd;font-size:13px}
+.box h3{margin:0 0 12px;font-size:16px;font-family:'DM Sans',Arial,sans-serif;font-weight:900;letter-spacing:.2px;text-transform:uppercase}.box p{margin:0 0 18px;color:#ddd;font-size:13px}
 .benefit{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:center;margin:14px 0;font-size:13px;color:#e4e4e4}
 .benefit i{font-style:normal;color:#ff7a18;display:flex;align-items:center;justify-content:center}
 .fullbtn{width:100%;height:41px;background:linear-gradient(#ff7a18,#ff5a00);color:#fff;border:0;border-radius:5px;font-weight:700;letter-spacing:.2px;margin-top:6px;display:flex;align-items:center;justify-content:center}
 .panel{background:#101111;border:1px solid #2b2d2d;border-radius:9px;margin-top:12px;overflow:hidden}
 .panel-head{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #202222}
-.panel h2{font-size:18px;margin:0;font-weight:900;font-family:'Barlow Condensed',Arial,sans-serif;letter-spacing:.4px;text-transform:uppercase}.panel a,.box a{font-size:12px;color:#ff7a18;font-weight:700}
+.panel h2{font-size:16px;margin:0;font-weight:900;font-family:'DM Sans',Arial,sans-serif;letter-spacing:.2px;text-transform:uppercase}.panel a,.box a{font-size:12px;color:#ff7a18;font-weight:700}
 .games{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px}
 @media(min-width:1400px){.games{grid-template-columns:repeat(10,1fr)}}
-.game{background:#171818;border:1px solid #2c2e2e;border-radius:9px;text-align:center;padding:8px;display:flex;flex-direction:column;justify-content:space-between;transition:border-color 0.2s}
-.game:hover{border-color:var(--orange)}
-.game-img{height:76px;border-radius:8px;display:grid;place-items:center;background:radial-gradient(circle at top,#1a222d,#0d0e0e 90%);overflow:hidden;padding:8px}
+.game{background:#171818;border:1px solid #2c2e2e;border-radius:9px;text-align:center;padding:8px;display:flex;flex-direction:column;justify-content:space-between;transition:border-color 0.2s,box-shadow 0.2s}
+.game[data-game="pubg"]:hover      {border-color:#F2A900;box-shadow:0 4px 18px #F2A90020}
+.game[data-game="valorant"]:hover  {border-color:#FF4655;box-shadow:0 4px 18px #FF465520}
+.game[data-game="lol"]:hover       {border-color:#C89B3C;box-shadow:0 4px 18px #C89B3C20}
+.game[data-game="freefire"]:hover  {border-color:#FF6B00;box-shadow:0 4px 18px #FF6B0020}
+.game[data-game="csgo"]:hover      {border-color:#DE9B35;box-shadow:0 4px 18px #DE9B3520}
+.game[data-game="fortnite"]:hover  {border-color:#00D4FF;box-shadow:0 4px 18px #00D4FF20}
+.game[data-game="roblox"]:hover    {border-color:#E8392A;box-shadow:0 4px 18px #E8392A20}
+.game[data-game="minecraft"]:hover {border-color:#62B47A;box-shadow:0 4px 18px #62B47A20}
+.game:not([data-game]):hover       {border-color:var(--orange2);box-shadow:0 4px 18px rgba(255,122,24,.13)}
+.game-img{height:76px;border-radius:8px;display:grid;place-items:center;overflow:hidden;padding:10px;position:relative}
+/* Hər oyunun orijinal brand rənginə uyğun tünd fon */
+.game-img[data-game="pubg"]      {background:radial-gradient(circle at 60% 40%,#2a1f00,#0e0a00);border-bottom:2px solid #F2A90030}
+.game-img[data-game="valorant"]  {background:radial-gradient(circle at 60% 40%,#2d0008,#0f0003);border-bottom:2px solid #FF465530}
+.game-img[data-game="lol"]       {background:radial-gradient(circle at 60% 40%,#241a00,#0c0800);border-bottom:2px solid #C89B3C30}
+.game-img[data-game="freefire"]  {background:radial-gradient(circle at 60% 40%,#2d1400,#0f0700);border-bottom:2px solid #FF6B0030}
+.game-img[data-game="csgo"]      {background:radial-gradient(circle at 60% 40%,#261b00,#0d0900);border-bottom:2px solid #DE9B3530}
+.game-img[data-game="fortnite"]  {background:radial-gradient(circle at 60% 40%,#002a2d,#000c0e);border-bottom:2px solid #00D4FF30}
+.game-img[data-game="roblox"]    {background:radial-gradient(circle at 60% 40%,#2d0800,#0f0300);border-bottom:2px solid #E8392A30}
+.game-img[data-game="minecraft"] {background:radial-gradient(circle at 60% 40%,#0d2010,#030a04);border-bottom:2px solid #62B47A30}
+.game-img:not([data-game])       {background:radial-gradient(circle at top,#1a222d,#0d0e0e 90%)}
 .game-img svg{width:100%;height:100%;max-height:50px}
-.game b{font-size:12px;display:block;margin-top:6px}.game small{font-size:11px;color:#d2d2d2;display:block;margin-top:2px}
+.game b{font-size:12px;display:block;margin-top:6px}.game small{display:none}
 .epins{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:16px}
 @media(min-width:900px){.epins{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:1400px){.epins{grid-template-columns:repeat(8,1fr)}}
@@ -108,18 +154,27 @@ button{background:none;border:none;font-family:inherit;padding:0}
 @media(min-width:1400px){.ads{grid-template-columns:repeat(3,1fr)}}
 .ad{background:#181919;border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:11px;border:1px solid transparent;transition:border-color 0.2s}
 .ad:hover{border-color:var(--orange)}
-.ad-img{width:64px;height:72px;border-radius:6px;background:radial-gradient(circle,#3a2419,#0c0d0d 90%);display:grid;place-items:center;padding:6px}
+.ad-img{width:64px;height:72px;border-radius:6px;background:radial-gradient(circle,#2a1a0e,#0c0d0d 90%);display:grid;place-items:center;padding:6px}
+/* Kateqoriyaya görə brand uyğun ad-img fonları */
+.ad-img[data-cat="Hesab"]            {background:radial-gradient(circle at 60% 40%,#1e1000,#080400)}
+.ad-img[data-cat="Skin"]             {background:radial-gradient(circle at 60% 40%,#150d24,#060210)}
+.ad-img[data-cat="Oyun Pulu"]        {background:radial-gradient(circle at 60% 40%,#082010,#020a04)}
+.ad-img[data-cat="Gift Card & E-Pin"]{background:radial-gradient(circle at 60% 40%,#1a0510,#070208)}
+.ad-img[data-cat="Oyun Boost"]       {background:radial-gradient(circle at 60% 40%,#001a2d,#00080f)}
+.ad-img[data-cat="Hesab Kirayəsi"]   {background:radial-gradient(circle at 60% 40%,#1e0f00,#080400)}
+.ad-img[data-cat="Sosial Media"]     {background:radial-gradient(circle at 60% 40%,#001220,#00060f)}
+.ad-img[data-cat="Oyun Konsolu"]     {background:radial-gradient(circle at 60% 40%,#10062a,#050012)}
 .ad-img svg{width:100%;height:100%}
 .ad-img img{width:100%;height:100%;object-fit:cover;border-radius:6px}
 .game-img img,.epin-img img,.ad-img img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
-.brand-logo{width:100%;height:100%;object-fit:contain}
+.brand-logo{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
 .logo-fallback{font-size:18px;font-weight:900;color:#fff;letter-spacing:.5px}
 .ad b{font-size:13px}.ad p{font-size:12px;color:#d0d0d0;margin:5px 0}.ad .aprice{color:#ff7a18;font-weight:700;font-size:13px;font-family:'Space Grotesk',monospace}
 .user{font-size:12px;color:#d0d0d0;margin-top:14px}.user span{color:#24c35a}
 .ad-views{display:inline-flex;align-items:center;gap:4px;margin-top:6px;color:#9ca3af;font-size:11.5px;font-weight:600}
 .pd-views{display:inline-flex;align-items:center;gap:5px;color:#cbd5e1}
 .seller-head{display:flex;justify-content:space-between;margin-bottom:13px}
-.seller-head h3{margin:0}
+.seller-head h3{margin:0;font-size:13px;font-family:'DM Sans',Arial,sans-serif;font-weight:900;letter-spacing:.2px;text-transform:uppercase;color:#f1f5f9}
 .seller{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #252727;width:100%;text-align:left}
 .seller:last-child{border-bottom:0}.sicon{width:42px;height:42px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,#ffa04c,#64270b);padding:4px}
 .sicon svg{width:100%;height:100%}
@@ -177,11 +232,11 @@ button{background:none;border:none;font-family:inherit;padding:0}
   .ad b{font-size:12px}
   .ad p{font-size:12px;margin:3px 0}
   .panel-head{padding:0 10px}
-  .panel h2{font-size:14px}
+  .panel h2{font-size:14px;font-weight:900}
   .tabs{padding:10px;gap:6px}
   .tab{padding:7px 12px;font-size:12px}
   .box{padding:14px}
-  .box h3{font-size:14px}
+  .box h3{font-size:14px;font-weight:900}
   .seller{grid-template-columns:36px 1fr auto;gap:8px;padding:8px 0}
   .sicon{width:36px;height:36px}
   .seller b{font-size:12px}
@@ -206,8 +261,8 @@ button{background:none;border:none;font-family:inherit;padding:0}
   .modal{padding:10px}
   .modal-box{padding:14px;border-radius:10px}
   .nav{position:relative;top:auto}
-  .nav button,.nav a{height:44px;padding:0 14px;font-size:12px}
-  .nav button:first-child,.nav a:first-child{padding:0 18px}
+  .nav button,.nav a{height:38px;padding:0 11px;font-size:11.5px}
+  .nav button:first-child,.nav a:first-child{padding:0 14px}
   .main{padding-top:10px}
   .layout{gap:10px}
   .panel{margin-top:10px}
@@ -231,7 +286,7 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;align-items:center;justify-content:center;padding:16px}
 .modal.show{display:flex}
 .modal-box{width:100%;max-width:430px;background:#121313;border:1px solid #333636;border-radius:10px;padding:18px;color:#fff}
-.modal-box h3{margin:0 0 12px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:900;font-size:20px;letter-spacing:.3px;text-transform:uppercase}
+.modal-box h3{margin:0 0 12px;font-family:'DM Sans',Arial,sans-serif;font-weight:900;font-size:18px;letter-spacing:.2px;text-transform:uppercase}
 .modal-box input,.modal-box select{width:100%;height:42px;background:#0c0d0d;border:1px solid #333636;border-radius:7px;color:#fff;padding:0 12px;margin:7px 0 11px;outline:0;font-family:inherit}
 .modal-actions{display:flex;gap:10px;margin-top:8px}
 .modal-actions button{flex:1}
@@ -249,7 +304,7 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .cabinet-modal.show{display:flex!important}
 .cabinet-box{width:100%;max-width:980px;max-height:90vh;overflow:auto;background:#101111;border:1px solid #333636;border-radius:12px;color:#fff;box-shadow:0 20px 80px #000}
 .cabinet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #292b2b}
-.cabinet-head h3{margin:0;font-size:18px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#e8eaed}
+.cabinet-head h3{margin:0;font-size:13px;font-family:'DM Sans',Arial,sans-serif;font-weight:900;letter-spacing:.2px;text-transform:uppercase;color:#f1f5f9}
 .cabinet-body{display:grid;grid-template-columns:220px 1fr;min-height:500px}
 .cabinet-menu{background:#0b0c0c;border-right:1px solid #292b2b;padding:14px}
 .cabinet-menu button{width:100%;height:42px;margin-bottom:6px;background:#151616;border:1px solid #2d2f2f;color:#c8ccd0;border-radius:8px;font-weight:400;font-size:13px;letter-spacing:.4px;text-align:left;padding:0 12px;cursor:pointer;display:block;font-family:'DM Sans',Arial,sans-serif;transition:.16s ease}
@@ -379,23 +434,12 @@ body{
 .notify-btn b{background:#ef4444;color:#fff}
 
 .nav{
-  background:#0b0d0f;
-  border-bottom:1px solid rgba(255,255,255,.06);
+  background:#060707;
+  border-bottom:1px solid #181a1a;
   position:sticky;
   top:84px;
   z-index:800;
-}
-.nav button,.nav a{
-  background:#101317;
-  border-right:1px solid #242a31;
-  color:#d1d5db;
-  font-size:12.5px;
-  letter-spacing:.05px;
-  transition:.16s ease;
-}
-.nav button:hover,.nav a:hover{
-  background:#171b20;
-  color:#fff;
+  box-shadow:0 4px 24px rgba(0,0,0,.4);
 }
 .nav small{
   background:#1f252c;
@@ -436,12 +480,20 @@ body{
   border-radius:14px;
   box-shadow:0 14px 44px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.035);
 }
-.box h3,.panel h2,.cabinet-head h3,.modal-box h3{
-  font-size:17px;
-  letter-spacing:.3px;
+.box h3,.panel h2,.cabinet-head h3{
+  font-size:16px;
+  letter-spacing:.2px;
+  color:#f1f5f9;
+  font-family:'DM Sans',Arial,sans-serif;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.modal-box h3{
+  font-size:18px;
+  letter-spacing:.2px;
   color:#f8fafc;
-  font-family:'Barlow Condensed',Arial,sans-serif;
-  font-weight:800;
+  font-family:'DM Sans',Arial,sans-serif;
+  font-weight:900;
   text-transform:uppercase;
 }
 .box p,.benefit,.seller small,.follow small,.ad p,.game small,.epin small{
@@ -618,7 +670,7 @@ body{
   .hero-title h1{font-size:19px}
   .hero-title p{font-size:12px}
   .cabinet-menu button{min-width:90px;font-size:12px;font-weight:400;letter-spacing:.25px}
-  .nav button,.nav a{padding:0 11px;font-size:11px}
+  .nav button,.nav a{padding:0 9px;font-size:11px;gap:5px}
   .epin-img{height:70px}
   .epin-img .brand-logo{max-height:40px}
   .game-img{height:52px}
@@ -681,30 +733,91 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .product-detail-head .pd-close-btn{background:#1a1f28;border:1px solid #2d3748;color:#9ca3af;border-radius:10px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .18s}
 .product-detail-head .pd-close-btn:hover{background:#252b38;color:#e2e8f0}
 .product-detail-head .pd-close-btn svg{width:14px;height:14px}
-.product-detail-grid{display:grid;grid-template-columns:210px 1fr;gap:0}
-.product-detail-image{min-height:210px;background:linear-gradient(145deg,#0d1117,#111827);border-right:1px solid #1a1f28;display:grid;place-items:center;padding:28px;position:relative;overflow:hidden}
-.product-detail-image::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 80%,rgba(251,146,60,.08),transparent 70%)}
-.product-detail-image svg,.product-detail-image img{max-width:100%;max-height:140px;object-fit:contain;position:relative;z-index:1}
-.pd-platform-badge{position:absolute;right:10px;bottom:10px;width:38px;height:38px;border-radius:10px;background:#0c0e11;border:1px solid #2c333d;display:grid;place-items:center;padding:6px;box-shadow:0 8px 18px rgba(0,0,0,.4)}
+.product-detail-grid{display:grid;grid-template-columns:220px 1fr;gap:0}
+/* Sol şəkil paneli */
+.product-detail-image{
+  min-height:220px;
+  background:linear-gradient(160deg,#0d1117 0%,#111827 100%);
+  border-right:1px solid #1a1f28;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 24px;
+  position:relative;overflow:hidden;gap:14px
+}
+.product-detail-image::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 100%,rgba(251,146,60,.1),transparent 65%);
+  pointer-events:none
+}
+.product-detail-image svg,.product-detail-image img{
+  max-width:130px;max-height:130px;
+  object-fit:contain;position:relative;z-index:1;
+  filter:drop-shadow(0 8px 24px rgba(0,0,0,.5))
+}
+/* Kateqoriya etiketi şəklin altında */
+.pd-img-cat-label{
+  position:relative;z-index:1;
+  font-size:10px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:#64748b;
+  font-family:'DM Sans',Arial,sans-serif;
+  background:#0c0f14;border:1px solid #1e2535;
+  padding:3px 10px;border-radius:20px;
+  white-space:nowrap;max-width:170px;
+  overflow:hidden;text-overflow:ellipsis;text-align:center
+}
+.pd-platform-badge{position:absolute;right:10px;bottom:10px;width:34px;height:34px;border-radius:9px;background:#0c0e11;border:1px solid #2c333d;display:grid;place-items:center;padding:5px;box-shadow:0 6px 14px rgba(0,0,0,.5)}
 .pd-platform-badge img{width:100%;height:100%;object-fit:contain;display:block}
-.product-detail-info p{color:#8b95a8;line-height:1.65;margin:10px 0 14px;font-size:13.5px}
-.pd-price{font-size:32px;font-weight:800;color:#fb923c;margin:14px 0 4px;font-family:'Space Grotesk',monospace;letter-spacing:-.5px;display:flex;align-items:baseline;gap:8px}
-.pd-price-old{font-size:15px;font-weight:500;color:#4b5563;text-decoration:line-through;margin-left:2px}
-.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
-.badge{border:1px solid #1e2d40;background:#0d1520;color:#94a3b8;border-radius:8px;padding:5px 11px 5px 8px;font-size:11px;font-weight:700;letter-spacing:.25px;font-family:'DM Sans',Arial,sans-serif;display:inline-flex;align-items:center;gap:5px;line-height:1}
-.badge svg{width:13px;height:13px;flex:none;color:#ff7a18}
-.seller-card{background:#0c0e14;border:1px solid #1a2030;border-radius:14px;padding:14px 16px;margin:16px 0 14px;color:#cbd5e1;display:flex;align-items:center;gap:13px}
-.seller-card-icon{width:42px;height:42px;flex:none;border-radius:12px;background:linear-gradient(135deg,#ff8c2a,#e84400);display:grid;place-items:center;color:#fff;font-weight:900;font-size:16px;font-family:'Barlow Condensed',Arial,sans-serif;letter-spacing:.3px;box-shadow:0 4px 16px rgba(255,100,0,.3)}
-.seller-card-body{display:flex;flex-direction:column;gap:3px;min-width:0}
-.seller-card-body b{font-size:14.5px;font-weight:800;letter-spacing:.15px;font-family:'Barlow Condensed',Arial,sans-serif;color:#f1f5f9}
-.rating{color:#f59e0b;font-weight:800;font-size:12.5px}
-.product-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
-.product-actions .fullbtn{grid-column:1/-1;font-size:14px;letter-spacing:.3px;font-weight:700;height:46px;border-radius:12px}
-.product-actions .pd-action-btn{height:40px;border-radius:10px;font-size:12.5px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;border:1px solid #1e2a3a;background:#0d1520;color:#94a3b8;transition:all .18s}
-.product-actions .pd-action-btn:hover{background:#141d2e;border-color:#2d3f55;color:#e2e8f0}
+/* Sağ info paneli */
+.product-detail-info{padding:22px 24px 20px}
+.product-detail-info p{
+  color:#8b95a8;line-height:1.7;
+  margin:0 0 16px;font-size:13.5px;
+  background:#080b10;border:1px solid #151d28;
+  border-radius:10px;padding:10px 14px
+}
+.pd-price{font-size:30px;font-weight:800;color:#fb923c;margin:0 0 16px;font-family:'Space Grotesk',monospace;letter-spacing:-.5px;display:flex;align-items:baseline;gap:8px}
+.pd-price-old{font-size:14px;font-weight:500;color:#4b5563;text-decoration:line-through}
+.badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.badge{border:1px solid #1e2d40;background:#0a1118;color:#7a8fa8;border-radius:7px;padding:5px 10px 5px 7px;font-size:10.5px;font-weight:700;letter-spacing:.2px;font-family:'DM Sans',Arial,sans-serif;display:inline-flex;align-items:center;gap:5px;line-height:1}
+.badge svg{width:12px;height:12px;flex:none;color:#ff7a18}
+/* Satıcı kartı — tam yeniləndi */
+.seller-card{
+  background:#080b10;
+  border:1px solid #1a2535;
+  border-radius:14px;
+  padding:14px 16px;
+  margin:0 0 16px;
+  display:flex;align-items:center;gap:14px;
+  transition:border-color .18s
+}
+.seller-card:hover{border-color:#2a3a50}
+.seller-card-icon{
+  width:46px;height:46px;flex:none;
+  border-radius:13px;
+  background:linear-gradient(135deg,#ff8c2a,#e84400);
+  display:grid;place-items:center;
+  color:#fff;font-weight:900;font-size:18px;
+  font-family:'DM Sans',Arial,sans-serif;
+  box-shadow:0 4px 14px rgba(255,100,0,.28)
+}
+.seller-card-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.seller-card-name{
+  font-size:14px;font-weight:700;
+  font-family:'DM Sans',Arial,sans-serif;
+  color:#e8edf5;letter-spacing:.1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.seller-card-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rating{color:#f59e0b;font-weight:700;font-size:12px;letter-spacing:.1px}
+.seller-sales-count{color:#475569;font-size:11.5px;font-weight:600}
+/* Action butonları */
+.product-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:0}
+.product-actions .fullbtn{grid-column:1/-1;font-size:14px;letter-spacing:.2px;font-weight:700;height:46px;border-radius:12px}
+.product-actions .pd-action-btn{height:40px;border-radius:10px;font-size:12.5px;font-weight:700;letter-spacing:.15px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;border:1px solid #1e2535;background:#080b10;color:#7a8fa8;transition:all .18s}
+.product-actions .pd-action-btn:hover{background:#0e1520;border-color:#2d3f55;color:#e2e8f0}
 .product-actions .pd-action-btn svg{width:15px;height:15px;flex:none}
-.product-actions .pd-wa-btn{background:#0d2318;border:1px solid #1a4030;color:#22c55e}
-.product-actions .pd-wa-btn:hover{background:#122b20;border-color:#25d366;color:#4ade80}
+.product-actions .pd-wa-btn{background:#071810;border:1px solid #163826;color:#22c55e}
+.product-actions .pd-wa-btn:hover{background:#0c2018;border-color:#25d366;color:#4ade80}
 .product-actions .pd-wa-btn svg{color:#25d366}
 .reviews-box{border-top:1px solid #141b26;margin-top:0;padding:20px 24px 24px;background:#080a0e}
 .reviews-box h4{margin:0 0 14px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;font-size:15px;letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;gap:8px;color:#64748b}
@@ -726,12 +839,13 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 @media(max-width:700px){
   .product-detail-box{max-width:100%!important;max-height:94vh;overflow-y:auto;border-radius:16px!important}
   .product-detail-grid{grid-template-columns:1fr}
-  .product-detail-image{min-height:160px;border-right:none;border-bottom:1px solid #1a1f28}
-  .product-detail-info{padding:16px}
+  .product-detail-image{min-height:180px;border-right:none;border-bottom:1px solid #1a1f28;flex-direction:row;justify-content:center;gap:20px;padding:20px}
+  .product-detail-image svg,.product-detail-image img{max-width:90px;max-height:90px}
+  .pd-img-cat-label{font-size:9px}
+  .product-detail-info{padding:16px 16px 14px}
   .reviews-box{padding:16px}
   .product-actions{grid-template-columns:1fr 1fr}
   .product-actions .fullbtn{grid-column:1/-1}
-  .product-actions{flex-direction:column}
   .review-text{padding-left:0;margin-top:6px}
 }
 
@@ -873,10 +987,16 @@ body.light-mode .cart{background:#ffffff;border:1px solid #c8cdd8}
 body.light-mode .cart:hover{border-color:#e55a00}
 body.light-mode .notify-btn{background:#ffffff;border:1px solid #c8cdd8;color:#2d3748}
 body.light-mode .notify-btn:hover{border-color:#e55a00}
-body.light-mode .nav{background:#f5f7fa;border-bottom:1px solid #dde1e7}
-body.light-mode .nav button,body.light-mode .nav a{background:#eef0f5;border-right:1px solid #dde1e7;color:#4a5568}
-body.light-mode .nav button:hover,body.light-mode .nav a:hover{background:#fff;color:#e55a00}
-body.light-mode .nav button:first-child,body.light-mode .nav a:first-child{background:linear-gradient(135deg,#f06a10,#c94800);color:#fff;border:0}
+body.light-mode .nav{background:#f8f9fb;border-bottom:1px solid #e2e5ea;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+body.light-mode .nav button:first-child{background:#111 !important;color:#fff !important;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+body.light-mode .nav-hesab{background:rgba(234,88,12,.07);border-color:rgba(234,88,12,.25)}
+body.light-mode .nav-skin{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.25)}
+body.light-mode .nav-oyunpulu{background:rgba(5,150,105,.07);border-color:rgba(5,150,105,.25)}
+body.light-mode .nav-giftcard{background:rgba(219,39,119,.07);border-color:rgba(219,39,119,.25)}
+body.light-mode .nav-boost{background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.25)}
+body.light-mode .nav-kiraye{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.25)}
+body.light-mode .nav-sosial{background:rgba(2,132,199,.07);border-color:rgba(2,132,199,.25)}
+body.light-mode .nav-konsol{background:rgba(147,51,234,.07);border-color:rgba(147,51,234,.25)}
 body.light-mode .nav small{background:#dde1e7;color:#7a8599}
 body.light-mode .hero{
   border:1px solid #dde1e7;
@@ -1159,11 +1279,14 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <select id="searchCategory" onchange="syncSearchCategory()">
         <option value="Hamısı">Bütün Kateqoriyalar</option>
-        <option value="E-Pin">E-Pin</option>
-        <option value="Oyun">Oyunçu Bazarı</option>
         <option value="Hesab">Hesab</option>
         <option value="Skin">Skin</option>
         <option value="Oyun Pulu">Oyun Pulu</option>
+        <option value="Gift Card &amp; E-Pin">Gift Card &amp; E-Pin</option>
+        <option value="Oyun Boost">Oyun Boost</option>
+        <option value="Hesab Kirayəsi">Hesab Kirayəsi</option>
+        <option value="Sosial Media">Sosial Media</option>
+        <option value="Oyun Konsolu">Oyun Konsolu</option>
       </select>
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
     </form>
@@ -1185,18 +1308,46 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 
 <nav class="nav">
   <div class="shell">
-    <button id="homeResetBtn" onclick="goHome(event)">🏠 ANA SƏHİFƏ</button>
-    <button onclick="filterCategory('Hamısı')">☰ BÜTÜN KATEQORİYALAR</button>
-    <button onclick="filterCategory('E-Pin')">🎟 E-Pin <small>44508</small></button>
-    <button onclick="filterCategory('Oyun Pulu')">🎮 Oyun Pulu <small>37925</small></button>
-    <button onclick="filterCategory('Skin')">✨ Skin <small>207938</small></button>
-    <button onclick="filterCategory('Hesab')">👤 Hesab <small>125537</small></button>
-    <button onclick="filterCategory('Gift Card')">🎁 Gift Card <small>12508</small></button>
-    <button onclick="filterCategory('Oyunçu Bazarı')">🏪 Oyunçu Bazarı <small>12495</small></button>
-    <button onclick="filterCategory('Yayımçılar')">📺 Yayımçılar <small>2456</small></button>
-    <button onclick="filterCategory('Boosting')">⚡ Boosting <small>8421</small></button>
-    <button onclick="filterCategory('Program')">💾 Program <small>2421</small></button>
-    <button onclick="filterCategory('Elan Bazarı')">📢 Elan Bazarı <span class="new">YENİ</span></button>
+    <button id="homeResetBtn" onclick="goHome(event)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      ANA SƏHİFƏ
+    </button>
+    <button onclick="filterCategory('Hamısı')" class="nav-cat">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      BÜTÜN KATEQORİYALAR
+    </button>
+    <button onclick="filterCategory('Hesab')" class="nav-cat nav-hesab">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+      Hesab
+    </button>
+    <button onclick="filterCategory('Skin')" class="nav-cat nav-skin">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17.3l-6.2 4-2.4-7.4L2 9.4h7.6z"/></svg>
+      Skin
+    </button>
+    <button onclick="filterCategory('Oyun Pulu')" class="nav-cat nav-oyunpulu">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 6v1.5M12 16.5V18M9.5 9.5C9.5 8.4 10.6 7.5 12 7.5s2.5.9 2.5 2-1.1 1.7-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2"/></svg>
+      Oyun Pulu
+    </button>
+    <button onclick="filterCategory('Gift Card &amp; E-Pin')" class="nav-cat nav-giftcard">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="8" width="20" height="13" rx="2"/><path d="M2 12h20M12 8V21M9 5c0-1.66 1.34-2 3-2s3 .34 3 2c0 1.1-.9 2.5-3 3-2.1-.5-3-1.9-3-3z"/></svg>
+      Gift Card &amp; E-Pin
+    </button>
+    <button onclick="filterCategory('Oyun Boost')" class="nav-cat nav-boost">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>
+      Oyun Boost
+    </button>
+    <button onclick="filterCategory('Hesab Kirayəsi')" class="nav-cat nav-kiraye">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+      Hesab Kirayəsi
+    </button>
+    <button onclick="filterCategory('Sosial Media')" class="nav-cat nav-sosial">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.5 10.6l7-4M8.5 13.4l7 4"/></svg>
+      Sosial Media
+    </button>
+    <button onclick="filterCategory('Oyun Konsolu')" class="nav-cat nav-konsol">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="12" rx="3"/><path d="M6 13h4M8 11v4"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="17.5" cy="14" r="1" fill="currentColor"/></svg>
+      Oyun Konsolu
+    </button>
   </div>
 </nav>
 
@@ -1233,9 +1384,9 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
       <div class="panel-head"><h2>POPULYAR OYUNLAR</h2><button onclick="filterCategory('Oyun')">Hamısına Bax</button></div>
       <div class="games" id="games"></div>
     </section>
-    
+
     <section class="panel">
-      <div class="panel-head"><h2>E-PİN MƏHSULLARI</h2><button onclick="filterCategory('E-Pin')">Hamısına Bax</button></div>
+      <div class="panel-head"><h2>E-PİN MƏHSULLARI</h2><button onclick="filterCategory('Gift Card &amp; E-Pin')">Hamısına Bax</button></div>
       <div class="epins" id="epins"></div>
     </section>
     
@@ -1258,8 +1409,12 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
         <button class="tab active" onclick="filterCategory('Hamısı')">Hamısı</button>
         <button class="tab" onclick="filterCategory('Hesab')">Hesab</button>
         <button class="tab" onclick="filterCategory('Skin')">Skin</button>
-        <button class="tab" onclick="filterCategory('E-Pin')">E-Pin</button>
         <button class="tab" onclick="filterCategory('Oyun Pulu')">Oyun Pulu</button>
+        <button class="tab" onclick="filterCategory('Gift Card &amp; E-Pin')">Gift Card &amp; E-Pin</button>
+        <button class="tab" onclick="filterCategory('Oyun Boost')">Oyun Boost</button>
+        <button class="tab" onclick="filterCategory('Hesab Kirayəsi')">Hesab Kirayəsi</button>
+        <button class="tab" onclick="filterCategory('Sosial Media')">Sosial Media</button>
+        <button class="tab" onclick="filterCategory('Oyun Konsolu')">Oyun Konsolu</button>
       </div>
       <div class="ads" id="ads"></div>
     </section>
@@ -1603,7 +1758,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
     </div>
     <div class="product-detail-grid">
       <div class="product-detail-image" id="pdImage"></div>
-      <div class="product-detail-info">
+      <div class="product-detail-info" style="padding:22px 24px 20px;">
         <div class="badge-row">
           <span class="badge" id="pdCategory">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -1637,16 +1792,19 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
         <div class="seller-card">
           <div style="position:relative;flex:none;">
             <div class="seller-card-icon" id="pdSellerIcon">G</div>
-            <span id="pdSellerOnline" style="display:none;position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid #0c0e14;"></span>
+            <span id="pdSellerOnline" style="display:none;position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #080b10;"></span>
           </div>
           <div class="seller-card-body">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <b id="pdSeller">GameSatış</b>
-              <span id="pdSellerOnlineText" style="display:none;font-size:10.5px;color:#22c55e;font-weight:700;letter-spacing:.2px;">● Onlayn</span>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <span class="seller-card-name" id="pdSeller">GameSatış</span>
+              <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
             </div>
-            <span class="rating">★★★★★ 98%</span>
-            <small id="pdSellerSales"> • 0 satış</small>
+            <div class="seller-card-meta">
+              <span class="rating">★★★★★ 100%</span>
+              <span class="seller-sales-count" id="pdSellerSales">0 satış</span>
+            </div>
           </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
         </div>
 
         <div class="product-actions">
@@ -1704,19 +1862,19 @@ let currentSort = "newest";
 window.approvedFirestoreAds = [];
 
 const LOGO_URLS = {
-  pubg: "https://cdn.simpleicons.org/pubg/F2A900",
-  valorant: "https://cdn.simpleicons.org/valorant/FF4655",
-  lol: "https://cdn.simpleicons.org/leagueoflegends/C8AA6E",
-  freefire: "https://upload.wikimedia.org/wikipedia/en/c/c5/Logo_of_Garena_Free_Fire.png",
-  csgo: "https://cdn.simpleicons.org/counterstrike/F5A623",
+  pubg:       "https://cdn.simpleicons.org/pubg/F2A900",
+  valorant:   "https://cdn.simpleicons.org/valorant/FF4655",
+  lol:        "https://cdn.simpleicons.org/leagueoflegends/C89B3C",
+  freefire:  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjgwMCIgdmlld0JveD0iMCAwIDQ4IDQ4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI4IiBmaWxsPSIjRkY2QjAwIi8+CjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIKICBkPSJNMTkuOTI5OSwyOS44NTQxbC0yLjI2MTEsLjc1OTJNMTkuOTg3OSwyNy40MDIxbC0yLjI2MTEsLjc1OTJNMTkuODA2OSwyNC45ODQxbC0yLjI2MTEsLjc1OTJNMTkuNzc4OSwyMi41NjcybC0yLjI2MTEsLjc1OTJNMjAuMTE1OSw0My4zMjU5di05LjA1MzVjLTEuMzk1My0uMjg3Ny0yLjU2MDQtLjg2MjYtMy4zMzY1LTEuOTIyOWgzLjMzNjV2LTEyLjUyNzhjLS43NzE4LC41MDE5LTEuMTEyNywuNzE2Mi0yLjU3MzEsLjk0MzEtLjI2OTgtNi4zNjQ3LS4yNzQzLTEyLjE3MTgsNS44Mjg5LTE2LjI2NDgsLjYwNzcsMi44MzQzLDIuMTQ2Nyw2LjM1Niw0LjM2MDQsOS4xNjk2djE4Ljc0NThoMy40ODg0Yy0uNDkzMSwuODE1OC0xLjUyMjgsMi4wNTMxLTMuNTA0MiwyLjAxOTV2OS4wNjUyIi8+Cjwvc3ZnPg==",
+  csgo:       "https://cdn.simpleicons.org/counterstrike/DE9B35",
   googleplay: "https://cdn.simpleicons.org/googleplay/34A853",
-  apple: "https://cdn.simpleicons.org/appstore/0D96F6",
-  steam: "https://cdn.simpleicons.org/steam/FFFFFF",
-  riot: "https://cdn.simpleicons.org/riotgames/D32936",
-  fortnite: "https://cdn.simpleicons.org/fortnite/FFFFFF",
-  epicgames: "https://cdn.simpleicons.org/epicgames/FFFFFF",
-  roblox: "https://cdn.simpleicons.org/roblox/FFFFFF",
-  minecraft: "https://cdn.simpleicons.org/minecraft/62B47A"
+  apple:      "https://cdn.simpleicons.org/appstore/007AFF",
+  steam:      "https://cdn.simpleicons.org/steam/66C0F4",
+  riot:       "https://cdn.simpleicons.org/riotgames/D32936",
+  fortnite:  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjAiIGZpbGw9IiMwMDBEMUEiLz4KPHBhdGggZD0iTTEyMS42MiA1Ni4xNUg5OC44NXYxNy4wOGw1LjY5IDUuNjloMTcuMDh2MjguNDZIOTguODV2NTEuMjRsLTI4LjQ3IDUuNjlWMjcuNjloNTYuOTNaIgogIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwRDRGRiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxMiIvPgo8cGF0aCBkPSJtMjIgMzMuMzggOC41NCAyOC40N0wyMiAxNTIuOTJsNDguMzktOC4wOFYzMy4zOEgyMnptMTQyLjMxIDI4LjQ3TDE3MCAzMy4zOGgtNDMuODNsLTQuNTYgMjIuNzdIOTguODV2MTcuMDhsNS42OSA1LjY5aDE3LjA3djI4LjQ3SDk4Ljg1djM0Ljc3bDcxLjE1IDUuMDctNS42OS04NS4zOHoiCiAgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBENEZGIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEyIi8+Cjwvc3ZnPg==",
+  epicgames:  "https://cdn.simpleicons.org/epicgames/2ECC71",
+  roblox:     "https://cdn.simpleicons.org/roblox/E8392A",
+  minecraft:  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTUlIiBmaWxsPSIjMWExYTFhIi8+CjxnIGlkPSJhIiB0cmFuc2Zvcm09Im1hdHJpeCgxOSAxMSAwIDIyIDc2IDE0MikiPgo8cGF0aCBmaWxsPSIjNDMyIiBkPSJNLjUuNWg5djloLTkiLz4KPHBhdGggc3Ryb2tlPSIjODY0IiBkPSJNMiA4djFoMlY4aDVWNyBIN1Y1Ii8+CjxwYXRoIHN0cm9rZT0iI2M4YTA2MCIgZD0iTTEgNXpNMiA5ek0xIDhWN2gyVjZoMU01IDloMlY4SDZWNE03IDZoMXYxTTkgOXpNOSA0djEiLz4KPHBhdGggc3Ryb2tlPSIjZDRhODcwIiBkPSJNMSA3aDFNNCA3aDFNOSA2eiIvPgo8cGF0aCBzdHJva2U9IiM4ODgiIGQ9Ik01IDV6Ii8+CjxwYXRoIHN0cm9rZT0iIzZkYjMzZiIgZD0iTTQgNFYxaDR2Mkg3VjJINHYxSDJ2MSIvPgo8cGF0aCBzdHJva2U9IiM4MGMwNTAiIGQ9Ik0yIDFoMU02IDF6TTcgMnpNOSAxdjEiLz4KPHBhdGggc3Ryb2tlPSIjOTBkMDYwIiBkPSJNNSAzek0zIDJoMSIvPgo8cGF0aCBzdHJva2U9IiNhMGUwNzAiIGQ9Ik0xIDF2MWgxTTggMXoiLz4KPC9nPgo8dXNlIHhsaW5rOmhyZWY9IiNhIiB0cmFuc2Zvcm09Im1hdHJpeCgtMSAwIDAgMSA1MTMgMCkiIG9wYWNpdHk9Ii42Ii8+CjxnIHRyYW5zZm9ybT0ibWF0cml4KC0xOSAxMS0xOS0xMSA0NDcgMTU5KSI+CjxwYXRoIGZpbGw9IiM3YjQiIGQ9Ik0uNS41aDl2OWgtOSIvPgo8cGF0aCBzdHJva2U9IiM4YzUiIGQ9Ik0xIDF6TTMgMXpNNCA3ek0zIDR2MkgxdjJoM3YxaDJWN00yIDNoNFYxSDV2MWgzTTcgNHYxSDRNOSA0djJIOHYzIi8+CjxwYXRoIHN0cm9rZT0iI2FhZDc3MCIgZD0iTTEgM3YyTTEgN3pNMSA5ek0zIDN6TTQgNHpNNSAxek01IDN6TTUgNXYxTTUgOHYxTTcgMnYxTTggN2gxIi8+CjwvZz4KPC9zdmc+"
 };
 const logoImg = (key, alt) => `<img class="brand-logo" src="${LOGO_URLS[key]}" alt="${alt || key} loqosu" loading="lazy" decoding="async" onerror="this.outerHTML='<span class=&quot;logo-fallback&quot;>${(alt || key).slice(0,3).toUpperCase()}</span>'">`;
 // Kateqoriyaya görə default ikon
@@ -1739,14 +1897,14 @@ function getCategoryDefaultIcon(category, game){
   if(gm.includes("riot"))     return '<img src="'+LOGO_URLS.riot+'" style="width:72px;height:72px;object-fit:contain;" alt="Riot">';
   // Kateqoriyaya görə fallback SVG ikonlar
   const icons = {
-    "hesab":       '<svg viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.5" style="width:64px;height:64px;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>',
-    "skin":        '<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" style="width:64px;height:64px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
-    "oyun pulu":   '<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.5" style="width:64px;height:64px;"><circle cx="12" cy="12" r="9"/><path d="M9.5 9c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.6-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2 2.5-.8 2.5-2"/><path d="M12 5v1m0 12v1"/></svg>',
-    "gift card":   '<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.5" style="width:64px;height:64px;"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 7V5a2 2 0 014 0"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14.5" x2="15" y2="14.5"/></svg>',
-    "oyun boost":  '<svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.5" style="width:64px;height:64px;"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
-    "hesab kirayəsi": '<svg viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.5" style="width:64px;height:64px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
-    "sosial media":'<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5" style="width:64px;height:64px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
-    "oyun konsolu":'<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5" style="width:64px;height:64px;"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 11h2M15 13h2"/></svg>'
+    "hesab":       '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><circle cx="12" cy="8" r="3.5" stroke="#fb923c" stroke-width="1.6"/><path d="M5 19.5C5 16.46 8.13 14 12 14s7 2.46 7 5.5" stroke="#fb923c" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="8" r="6" stroke="#fb923c" stroke-width=".4" stroke-dasharray="2 2" opacity=".4"/></svg>',
+    "skin":        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 7l1.2 3.7H17l-3.1 2.3 1.2 3.7L12 14.5l-3.1 2.2 1.2-3.7L7 10.7h3.8L12 7z" fill="#a78bfa" opacity=".25"/></svg>',
+    "oyun pulu":   '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.5"/><path d="M12 6v1.5M12 16.5V18M9 9.75C9 8.51 10.34 7.5 12 7.5s3 1.01 3 2.25c0 1.24-1.34 1.88-3 2.25S9 13.26 9 14.25C9 15.49 10.34 16.5 12 16.5s3-1.01 3-2.25" stroke="#34d399" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    "gift card":   '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="2" y="8" width="20" height="13" rx="2" stroke="#f472b6" stroke-width="1.5"/><path d="M2 12h20" stroke="#f472b6" stroke-width="1.5"/><path d="M12 8V21M9 5c0-1.66 1.34-3 3-3s3 1.34 3 3c0 1.1-.6 2.05-1.5 2.6" stroke="#f472b6" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="5" r="1" fill="#f472b6" opacity=".5"/></svg>',
+    "oyun boost":  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#60a5fa" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#60a5fa" opacity=".12"/></svg>',
+    "hesab kirayəsi": '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="3" y="11" width="18" height="10" rx="2" stroke="#fb923c" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#fb923c"/><path d="M12 17.5v1.5" stroke="#fb923c" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    "sosial media":'<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><circle cx="18" cy="5" r="2.5" stroke="#38bdf8" stroke-width="1.5"/><circle cx="6" cy="12" r="2.5" stroke="#38bdf8" stroke-width="1.5"/><circle cx="18" cy="19" r="2.5" stroke="#38bdf8" stroke-width="1.5"/><path d="M8.5 10.5l7-4M8.5 13.5l7 4" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    "oyun konsolu":'<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="2" y="7" width="20" height="12" rx="3" stroke="#c084fc" stroke-width="1.5"/><path d="M6 13h4M8 11v4" stroke="#c084fc" stroke-width="1.6" stroke-linecap="round"/><circle cx="15" cy="12" r="1" fill="#c084fc"/><circle cx="17.5" cy="14" r="1" fill="#c084fc"/></svg>'
   };
   for(const key of Object.keys(icons)){
     if(cat.includes(key)) return icons[key];
@@ -1805,14 +1963,14 @@ function renderPdPlatformBadge(product){
 }
 
 const games=[
-  [SVGS.pubg,"PUBG Mobile","4521 elan","Oyun"],
-  [SVGS.valorant,"Valorant","3921 elan","Oyun"],
-  [SVGS.lol,"League of Legends","8123 elan","Oyun"],
-  [SVGS.freefire,"Free Fire","2561 elan","Oyun"],
-  [SVGS.csgo,"Counter-Strike 2","5879 elan","Oyun"],
-  [SVGS.fortnite,"Fortnite","3180 elan","Oyun"],
-  [SVGS.roblox,"Roblox","2915 elan","Oyun"],
-  [SVGS.minecraft,"Minecraft","1784 elan","Oyun"]
+  [SVGS.pubg,"PUBG Mobile","0 elan","Oyun","pubg"],
+  [SVGS.valorant,"Valorant","0 elan","Oyun","valorant"],
+  [SVGS.lol,"League of Legends","0 elan","Oyun","lol"],
+  [SVGS.freefire,"Free Fire","0 elan","Oyun","freefire"],
+  [SVGS.csgo,"Counter-Strike 2","0 elan","Oyun","csgo"],
+  [SVGS.fortnite,"Fortnite","0 elan","Oyun","fortnite"],
+  [SVGS.roblox,"Roblox","0 elan","Oyun","roblox"],
+  [SVGS.minecraft,"Minecraft","0 elan","Oyun","minecraft"]
 ];
 
 const epins=[
@@ -1833,7 +1991,7 @@ const baseAds=[
 
 const sellers=[
   [`<svg viewBox="0 0 24 24" style="width:24px" fill="#ffa04c"><circle cx="12" cy="12" r="10"/></svg>`,"GameSatış","100%","0 satış"],
-  [`<svg viewBox="0 0 24 24" style="width:24px" fill="#20c45a"><circle cx="12" cy="12" r="10"/></svg>`,"Yeni satıcılar","Yoxlanılır","0 satış"]
+  [`<svg viewBox="0 0 24 24" style="width:24px" fill="#20c45a"><circle cx="12" cy="12" r="10"/></svg>`,"Yeni satıcılar","100%","0 satış"]
 ];
 
 function moneyToNumber(v){
@@ -1983,14 +2141,14 @@ function render(){
 
   if(gamesEl) {
     gamesEl.innerHTML=games.map(x=>`
-      <button class="game searchable" data-category="Oyun" onclick="openProductDetail({title:x[1],price:'Elanlara bax',category:x[3],desc:x[2],seller:'GameSatış',icon:x[0]})">
-        <div class="game-img">${x[0]}</div><b>${safeText(x[1])}</b><small>${safeText(x[2])}</small>
+      <button class="game searchable" data-game="${x[4]||''}" data-category="Oyun" onclick="openProductDetail({title:'${x[1]}',price:'Elanlara bax',category:'${x[3]}',desc:'${x[2]}',seller:'GameSatış',icon:x[0]})">
+        <div class="game-img" data-game="${x[4]||''}">${x[0]}</div><b>${safeText(x[1])}</b>
       </button>`).join("");
   }
 
   if(epinsEl) {
     epinsEl.innerHTML=epins.map(x=>`
-      <button class="epin searchable" data-category="E-Pin" onclick="openProductDetail({title:x[1],price:x[2],category:'E-Pin',desc:'Rəqəmsal kod. Ödənişdən sonra çatdırılır.',seller:'GameSatış',icon:x[0]})">
+      <button class="epin searchable" data-category="Gift Card & E-Pin" onclick="openProductDetail({title:'${x[1]}',price:x[2],category:'Gift Card & E-Pin',desc:'Rəqəmsal kod. Ödənişdən sonra çatdırılır.',seller:'GameSatış',icon:x[0]})">
         <div class="epin-img">${x[0]}</div>
         <div class="epin-body"><b>${safeText(x[1])}</b><div class="price">${safeText(x[2])}</div><div class="old">${safeText(x[3])}</div></div>
       </button>`).join("");
@@ -2012,7 +2170,7 @@ window.renderMarketAds = function renderMarketAds(){
   if(!adsEl) return;
 
   const approved = (window.approvedFirestoreAds || []).map(a => ({
-    icon: a.imageUrl ? `<img src="${safeText(a.imageUrl)}" alt="${safeText(a.title)}">` : `<svg viewBox="0 0 24 24" fill="#ff6a00" style="width:32px"><circle cx="12" cy="12" r="8"/></svg>`,
+    icon: (()=>{ try{ const imgSrc=(a.imageUrls&&a.imageUrls.length)?a.imageUrls[0]:a.imageUrl; if(imgSrc) return '<img src="'+String(imgSrc).replace(/"/g,'%22')+'" alt="'+safeText(a.title)+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">'; } catch(e){} return getCategoryDefaultIcon(a.category||"",a.platform||""); })(),
     title:safeText(a.title),
     desc:safeText(adFullDesc(a)),
     price: Number(a.price || 0).toFixed(2) + " ₼",
@@ -2041,6 +2199,18 @@ window.renderMarketAds = function renderMarketAds(){
   const base = baseAds.map(x => ({
     icon:x[0], title:safeText(x[1]), desc:safeText(x[2]), price:safeText(x[3]), priceValue:moneyToNumber(x[3]), createdAtMs:0, seller:safeText(x[4]), category:safeText(x[5]), platform:"", region:"", server:"", rank:"", level:"", views:0, approved:false
   }));
+
+  // Eyni satıcının contact field-ini sinxronlaşdır
+  // Əgər bir elanda contact boşdursa, həmin satıcının digər elanından götür
+  const contactByUid = {};
+  approved.forEach(a => {
+    if(a.contact && a.sellerUid) contactByUid[a.sellerUid] = a.contact;
+  });
+  approved.forEach(a => {
+    if(!a.contact && a.sellerUid && contactByUid[a.sellerUid]) {
+      a.contact = contactByUid[a.sellerUid];
+    }
+  });
 
   const combined = [...approved, ...base];
 
@@ -2080,51 +2250,63 @@ window.renderMarketAds = function renderMarketAds(){
       icon: btn.querySelector(".ad-img").innerHTML
     });
   };
+  // Təhlükəsiz base64 encode - crash etməsin
+  function safeB64(obj){
+    try{ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+    catch(e){ try{ return btoa(JSON.stringify(obj).replace(/[^\x00-\x7F]/g,'')); } catch(e2){ return 'W10='; } }
+  }
   adsEl.innerHTML=combined.map(function(a){
-    var tagsHtml = (a.tags && a.tags.length)
-      ? a.tags.slice(0,4).map(function(t){ return '<span style="font-size:10px;background:#1a2030;border:1px solid #2a3548;border-radius:999px;padding:1px 7px;color:#64748b;">#'+t+'</span>'; }).join("")
-      : "";
-    if(tagsHtml) tagsHtml = '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">'+tagsHtml+'</div>';
-    var oldHtml = a.originalPrice > 0
-      ? '<div class="old" style="font-size:11px;text-decoration:line-through;color:#6b7280;">'+Number(a.originalPrice).toFixed(2)+' ₼</div>'
-      : "";
-    var waHtml = a.contact ? '<span style="color:#25d366;font-size:10.5px;margin-left:5px;">&#128241; WhatsApp</span>' : "";
-    var aprvHtml = a.approved ? '<div class="public-ad-note">Təsdiqli Elan</div>' : "";
-    var tagsB64 = btoa(unescape(encodeURIComponent(JSON.stringify(a.tags||[]))));
-    var imgsB64 = btoa(unescape(encodeURIComponent(JSON.stringify(a.imageUrls||[]))));
-    return '<button class="ad searchable" '
-      + 'data-category="'+a.category+'" '
-      + 'data-title="'+a.title+'" '
-      + 'data-price="'+a.price+'" '
-      + 'data-desc="'+a.desc+'" '
-      + 'data-seller="'+a.seller+'" '
-      + 'data-adid="'+( a.adId||"")+'" '
-      + 'data-selleruid="'+( a.sellerUid||"")+'" '
-      + 'data-selleremail="'+( a.sellerEmail||"")+'" '
-      + 'data-platform="'+( a.platform||"")+'" '
-      + 'data-region="'+( a.region||"")+'" '
-      + 'data-server="'+( a.server||"")+'" '
-      + 'data-rank="'+( a.rank||"")+'" '
-      + 'data-level="'+( a.level||"")+'" '
-      + 'data-views="'+( a.views||0)+'" '
-      + 'data-originalprice="'+( a.originalPrice||0)+'" '
-      + 'data-contact="'+( a.contact||"")+'" '
-      + 'data-tags="'+tagsB64+'" '
-      + 'data-imgs="'+imgsB64+'" '
-      + 'onclick="window._openAdDetail(this)">'
-      + '<div class="ad-img">'+a.icon+'</div>'
-      + '<div style="text-align:left;width:100%">'
-        + '<b>'+a.title+'</b>'
-        + '<p>'+a.desc+'</p>'
-        + '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">'
-          + '<div class="aprice">'+a.price+'</div>'
-          + oldHtml
+    try {
+      var tagsHtml = (a.tags && a.tags.length)
+        ? a.tags.slice(0,4).map(function(t){ return '<span style="font-size:10px;background:#1a2030;border:1px solid #2a3548;border-radius:999px;padding:1px 7px;color:#64748b;">#'+t+'</span>'; }).join("")
+        : "";
+      if(tagsHtml) tagsHtml = '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">'+tagsHtml+'</div>';
+      var oldHtml = a.originalPrice > 0
+        ? '<div class="old" style="font-size:11px;text-decoration:line-through;color:#6b7280;">'+Number(a.originalPrice).toFixed(2)+' ₼</div>'
+        : "";
+      var waHtml = a.contact ? '<span style="color:#25d366;font-size:10.5px;margin-left:5px;">&#128241; WhatsApp</span>' : "";
+      var aprvHtml = a.approved ? '<div class="public-ad-note">Təsdiqli Elan</div>' : "";
+      var tagsB64 = safeB64(a.tags||[]);
+      var imgsB64 = safeB64(a.imageUrls||[]);
+      // Atribut daxilindəki dırnaqları təhlükəsizləşdir
+      function attr(v){ return String(v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+      return '<button class="ad searchable" '
+        + 'data-category="'+attr(a.category)+'" '
+        + 'data-title="'+attr(a.title)+'" '
+        + 'data-price="'+attr(a.price)+'" '
+        + 'data-desc="'+attr(a.desc)+'" '
+        + 'data-seller="'+attr(a.seller)+'" '
+        + 'data-adid="'+attr(a.adId)+'" '
+        + 'data-selleruid="'+attr(a.sellerUid)+'" '
+        + 'data-selleremail="'+attr(a.sellerEmail)+'" '
+        + 'data-platform="'+attr(a.platform)+'" '
+        + 'data-region="'+attr(a.region)+'" '
+        + 'data-server="'+attr(a.server)+'" '
+        + 'data-rank="'+attr(a.rank)+'" '
+        + 'data-level="'+attr(a.level)+'" '
+        + 'data-views="'+Number(a.views||0)+'" '
+        + 'data-originalprice="'+Number(a.originalPrice||0)+'" '
+        + 'data-contact="'+attr(a.contact)+'" '
+        + 'data-tags="'+tagsB64+'" '
+        + 'data-imgs="'+imgsB64+'" '
+        + 'onclick="window._openAdDetail(this)">'
+        + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+a.icon+'</div>'
+        + '<div style="text-align:left;width:100%">'
+          + '<b>'+a.title+'</b>'
+          + '<p>'+a.desc+'</p>'
+          + '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">'
+            + '<div class="aprice">'+a.price+'</div>'
+            + oldHtml
+          + '</div>'
+          + tagsHtml
+          + '<div class="ad-views">&#128065; '+formatViewsCount(a.views)+' baxış</div>'
+          + '<div class="user">'+a.seller+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
         + '</div>'
-        + tagsHtml
-        + '<div class="ad-views">&#128065; '+formatViewsCount(a.views)+' baxış</div>'
-        + '<div class="user">'+a.seller+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
-      + '</div>'
-      + '</button>';
+        + '</button>';
+    } catch(e) {
+      console.warn('Ad render xətası:', a.adId, e);
+      return ''; // xətalı elanı atla, digərləri görünsün
+    }
   }).join("");
 
   filterCategory(currentCategory);
@@ -2171,14 +2353,17 @@ function openProductDetail(p){
   if(sellerSalesEl){
     const sellerKey = currentDetailProduct.sellerEmail || currentDetailProduct.seller || "GameSatış";
     const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
-    sellerSalesEl.textContent = " • " + (counts[sellerKey] || 0) + " satış";
+    sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
   }
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
   const _icon = currentDetailProduct.icon || "";
   const _hasImg = _icon.includes("<img") || _icon.includes("http");
-  document.getElementById("pdImage").innerHTML = _hasImg
+  const _catLabel = currentDetailProduct.category || "";
+  const _iconHtml = _hasImg
     ? _icon
     : getCategoryDefaultIcon(currentDetailProduct.category||"", currentDetailProduct.game||currentDetailProduct.platform||"");
+  document.getElementById("pdImage").innerHTML = _iconHtml
+    + (_catLabel ? '<div class="pd-img-cat-label">'+_catLabel+'</div>' : '');
   renderPdPlatformBadge(currentDetailProduct);
 
   // Stok badge
