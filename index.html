@@ -1177,214 +1177,6 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
   .sort-select{width:100%;font-size:12.5px}
 }
 
-
-
-/* === COMPLETE MOBILE OPTIMIZATION OVERRIDES === */
-html,body{width:100%;max-width:100%;overflow-x:hidden;scroll-behavior:smooth}
-img,svg,video,canvas{max-width:100%}
-button,input,select,textarea{-webkit-font-smoothing:antialiased}
-
-@media(max-width:1024px){
-  .shell{width:100%;padding-left:14px;padding-right:14px}
-  .header{position:relative;top:auto;min-height:auto;padding:10px 0}
-  .header .shell{gap:12px}
-  .logo svg{width:150px}
-  .toplinks{display:none}
-  .search{order:3;flex:0 0 100%;max-width:100%;min-width:0}
-  .actions{margin-left:auto;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-  .hbtn{height:42px;padding:0 16px;border-radius:11px;font-size:12.5px}
-  .cart,.notify-btn,.theme-toggle{width:42px!important;height:42px!important;min-width:42px;border-radius:11px;font-size:19px!important}
-  .nav{position:sticky;top:0;height:auto;min-height:56px;z-index:850}
-  .nav .shell{padding:8px 12px;gap:8px;scroll-padding-left:12px}
-  .nav button,.nav a{height:40px;padding:0 13px;font-size:12px;border-radius:10px}
-  .main{padding-top:12px}
-  .layout{grid-template-columns:1fr;gap:14px}
-  .side{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-  .side .box:last-child{grid-column:auto}
-  .hero{height:auto;min-height:190px;padding:26px 64px;border-radius:14px}
-  .hero-title{position:static;max-width:520px}
-  .hero-title h1{font-size:clamp(28px,5vw,38px)}
-  .hero-features{display:none!important}
-  .arr.l{left:14px}.arr.r{right:14px}
-  .games{grid-template-columns:repeat(5,minmax(0,1fr))}
-  .epins{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .ads{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-
-@media(max-width:700px){
-  body{font-size:13.5px;line-height:1.5}
-  .shell{padding-left:10px;padding-right:10px}
-  .header{padding:8px 0;background:#030404}
-  .header .shell{display:grid;grid-template-columns:1fr;gap:9px;padding:8px 10px}
-  .logo{justify-content:center;min-height:42px}
-  .logo svg{width:138px}
-  .search{order:2;height:46px;border-radius:12px;box-shadow:none}
-  .search input{min-width:0;font-size:16px;padding:0 12px}
-  .search select{width:102px;min-width:102px;font-size:13px;padding:0 6px;text-overflow:ellipsis}
-  .search button{width:46px;min-width:46px;font-size:18px}
-  .actions{order:3;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;width:100%;justify-content:stretch}
-  .actions .hbtn{width:100%;height:42px;padding:0 8px;font-size:12px;white-space:nowrap}
-  #cabinetBtn{grid-column:1/-1}
-  .notify-btn,.theme-toggle,.cart{width:100%!important;min-width:0!important;height:42px!important}
-  .nav{position:sticky!important;top:0!important;min-height:52px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
-  .nav .shell{height:auto;padding:7px 10px;gap:7px;align-items:center}
-  .nav button,.nav a{height:38px;padding:0 11px;font-size:11.5px;gap:6px;border-radius:10px;letter-spacing:.15px}
-  .nav button:first-child,.nav a:first-child{padding:0 13px;margin-right:0}
-  .main{padding-top:10px}
-  .layout{gap:10px}
-  .hero{min-height:150px;padding:20px 46px 20px 18px;border-radius:13px}
-  .hero:before{display:none}
-  .hero-title h1{font-size:24px;line-height:1.08;letter-spacing:.35px}
-  .hero-title .line{width:150px;margin:7px 0 10px}
-  .hero-title p{font-size:12.5px;line-height:1.45;max-width:245px}
-  .arr{width:34px;height:34px;opacity:.9}
-  .arr svg{width:22px;height:22px}
-  .arr.l{left:8px;display:none}.arr.r{right:8px}
-  .panel,.box{border-radius:13px;margin-top:10px}
-  .panel-head{min-height:44px;height:auto;padding:10px 12px;gap:8px;align-items:flex-start;flex-wrap:wrap}
-  .panel h2,.box h3{font-size:14px;line-height:1.2}
-  .panel a,.box a,.panel button,.seller-head button{font-size:11.5px;white-space:nowrap}
-  .panel-head-actions{width:100%;justify-content:space-between;gap:8px;flex-wrap:wrap}
-  .sort-control{flex:1;min-width:160px}
-  .sort-select{width:100%;height:36px;font-size:12px}
-  .sort-control-label{display:none}
-  .games{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:9px}
-  .game{padding:7px;border-radius:11px;min-width:0}
-  .game-img{height:60px;padding:8px;border-radius:9px}
-  .game b{font-size:10.8px;line-height:1.18;min-height:26px;display:flex;align-items:center;justify-content:center;text-align:center;word-break:break-word}
-  .epins{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px}
-  .epin{border-radius:12px}
-  .epin-img{height:78px;padding:12px;border-radius:10px 10px 0 0}
-  .epin-body{padding:9px}
-  .epin b{font-size:12px;line-height:1.25;min-height:30px}
-  .epin small{font-size:11px;line-height:1.3}
-  .price{font-size:14px;margin-top:9px}
-  .old{font-size:10.5px}
-  .tabs{padding:10px;gap:7px;overflow-x:auto;scroll-padding-left:10px}
-  .tab{min-height:38px;padding:8px 13px;font-size:12px;border-radius:999px}
-  .ads{grid-template-columns:1fr;gap:9px;padding:0 10px 10px}
-  .ad{grid-template-columns:58px minmax(0,1fr);gap:9px;padding:9px;border-radius:12px;align-items:start}
-  .ad-img{width:58px;height:66px;border-radius:9px;padding:6px}
-  .ad b{font-size:12.5px;line-height:1.28;display:block;word-break:break-word}
-  .ad p{font-size:11.5px;line-height:1.35;margin:4px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .ad .aprice{font-size:12.8px}
-  .user,.ad-views{font-size:11px;margin-top:7px}
-  .side{grid-template-columns:1fr;gap:10px}
-  .box{padding:13px}
-  .box p{font-size:12.5px;margin-bottom:12px}
-  .benefit{grid-template-columns:20px 1fr;font-size:12.2px;margin:10px 0;gap:8px}
-  .fullbtn{min-height:44px;height:44px;border-radius:11px;font-size:12.5px}
-  .seller-head{margin-bottom:8px;gap:8px;align-items:center}
-  .seller{grid-template-columns:38px minmax(0,1fr) auto;gap:9px;padding:9px 0;border-radius:0;background:transparent;box-shadow:none;transform:none!important}
-  .sicon,.ficon{width:38px;height:38px;border-radius:10px}
-  .seller b,.follow b{font-size:12.2px}
-  .seller small,.follow small{font-size:11.2px}
-  .seller strong{font-size:11.5px}
-  .follow{grid-template-columns:38px minmax(0,1fr) 72px;gap:9px;padding:10px 0}
-  .follow button{height:38px;min-height:38px;font-size:11.5px}
-  .whats{right:10px;bottom:10px;padding:8px;border-radius:999px;gap:8px;max-width:calc(100vw - 20px)}
-  .whats i{width:42px;height:42px;padding:10px}
-  .whats div{display:none}
-  .modal{padding:10px;align-items:flex-end}
-  .modal-box{max-width:100%;max-height:92vh;overflow-y:auto;border-radius:16px;padding:14px}
-  .modal-box h3{font-size:16px}
-  .provider-grid{grid-template-columns:1fr;gap:8px}
-  .provider-card{height:50px;flex-direction:row;border-radius:11px}
-  .auth-tabs{gap:7px}
-  .auth-tabs button{height:42px;font-size:12px}
-  .modal-actions{gap:8px}
-  .cart-panel{left:10px;right:10px;top:auto;bottom:64px;width:auto;max-width:none;max-height:72vh;overflow-y:auto;border-radius:14px;padding:12px}
-  .cabinet-modal{padding:8px;align-items:flex-end}
-  .cabinet-box{max-height:94vh;border-radius:16px;overflow:auto}
-  .cabinet-head{padding:12px 14px;position:sticky;top:0;z-index:3}
-  .cabinet-head h3{font-size:13px}
-  .cabinet-body{grid-template-columns:1fr;min-height:auto}
-  .cabinet-menu{display:flex;gap:7px;overflow-x:auto;flex-wrap:nowrap;padding:10px;border-right:0;border-bottom:1px solid #252b32;scrollbar-width:none}
-  .cabinet-menu::-webkit-scrollbar{display:none}
-  .cabinet-menu button{flex:0 0 auto;width:auto;min-width:118px;height:38px;margin:0;text-align:center;padding:0 10px;font-size:12px;white-space:nowrap}
-  .cabinet-content{padding:12px}
-  .cabinet-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
-  .cabinet-table th,.cabinet-table td{font-size:11.5px;padding:8px 7px}
-  .wallet-grid,.admin-mini-grid{grid-template-columns:1fr;gap:8px}
-  .wallet-card{padding:12px}
-  .wallet-card b{font-size:20px}
-  .wallet-actions,.request-form,.pay-info{grid-template-columns:1fr}
-  .request-form .full,.request-form button{grid-column:auto}
-  .chat-layout{grid-template-columns:1fr;gap:9px;min-height:auto}
-  .chat-list{max-height:200px;border-radius:12px}
-  .chat-box{min-height:350px;border-radius:12px}
-  .chat-messages{max-height:300px}
-  .chat-msg{max-width:92%;font-size:12.5px}
-  .chat-form{grid-template-columns:1fr;gap:7px}
-  .chat-form input{height:44px;font-size:16px}
-  .product-detail-box{width:100%;max-height:94vh;border-radius:16px!important}
-  .product-detail-head{padding:14px 16px;gap:10px}
-  .product-detail-head h3{font-size:17px;line-height:1.15}
-  .product-detail-grid{grid-template-columns:1fr}
-  .product-detail-image{min-height:150px;padding:18px;border-right:0;border-bottom:1px solid #1a1f28;flex-direction:column;gap:10px}
-  .product-detail-image svg,.product-detail-image img{max-width:84px;max-height:84px}
-  .product-detail-info{padding:14px}
-  .product-detail-info p{font-size:12.5px;line-height:1.55;padding:9px 10px}
-  .pd-price{font-size:24px;margin-bottom:12px}
-  .badge-row{gap:6px;margin-bottom:12px}
-  .badge{font-size:10px;padding:5px 8px}
-  .seller-card{padding:12px;gap:10px;border-radius:12px}
-  .seller-card-icon{width:40px;height:40px;border-radius:11px;font-size:16px}
-  .seller-card-name{font-size:13px}
-  .seller-card-meta{gap:8px}
-  .product-actions{grid-template-columns:1fr;gap:8px}
-  .product-actions .fullbtn{grid-column:auto;height:44px}
-  .product-actions .pd-action-btn{height:42px}
-  .reviews-box{padding:14px}
-  .review-form{grid-template-columns:1fr;gap:8px}
-  .review-form select,.review-form input,.review-form button{height:42px;font-size:16px}
-  .toast{left:10px;right:10px;bottom:18px;transform:none;border-radius:12px;text-align:center;font-size:12.5px;padding:11px 12px}
-}
-
-@media(max-width:430px){
-  .logo svg{width:126px}
-  .actions{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .actions .hbtn{font-size:11.5px;padding:0 6px}
-  #registerBtn,#loginBtn{grid-column:auto}
-  .search select{width:88px;min-width:88px;font-size:12px}
-  .nav button,.nav a{font-size:10.8px;height:36px;padding:0 9px}
-  .hero{padding:18px 38px 18px 14px;min-height:138px}
-  .hero-title h1{font-size:21px}
-  .hero-title p{font-size:11.5px;max-width:210px}
-  .arr.r{right:5px;width:30px;height:30px}
-  .games{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px}
-  .game-img{height:54px;padding:7px}
-  .game b{font-size:10px;min-height:24px}
-  .epins{gap:8px;padding:8px}
-  .epin-img{height:70px;padding:10px}
-  .epin-body{padding:8px}
-  .epin b{font-size:11.2px;min-height:28px}
-  .price{font-size:13px}
-  .panel-head{padding:9px 10px}
-  .panel h2,.box h3{font-size:13.2px}
-  .ad{grid-template-columns:52px minmax(0,1fr);gap:8px;padding:8px}
-  .ad-img{width:52px;height:60px}
-  .ad b{font-size:11.8px}
-  .ad p{font-size:11px}
-  .sort-control{min-width:100%;flex-basis:100%}
-}
-
-@media(max-width:360px){
-  .shell{padding-left:8px;padding-right:8px}
-  .header .shell{padding-left:8px;padding-right:8px}
-  .actions{gap:6px}
-  .actions .hbtn{height:40px;font-size:10.8px}
-  .notify-btn,.theme-toggle,.cart{height:40px!important}
-  .search{height:44px}
-  .search select{display:none}
-  .games{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .epins{grid-template-columns:1fr 1fr}
-  .hero-title h1{font-size:19px}
-  .hero-title p{font-size:11px;max-width:190px}
-  .tab{font-size:11px;padding:7px 11px}
-  .cabinet-menu button{min-width:104px;font-size:11.3px}
-}
-
 </style>
 
 <style>
@@ -1469,19 +1261,6 @@ button,input,select,textarea{-webkit-font-smoothing:antialiased}
 }
 </style>
 
-
-<style>
-/* === FINAL MOBILE TOUCH FIXES (highest priority) === */
-@media(max-width:700px){
-  .cabinet-menu button{justify-content:center!important;align-items:center!important;gap:7px!important;min-height:38px!important}
-  .cabinet-menu button::before{width:24px!important;height:24px!important;min-width:24px!important;border-radius:8px!important;background-size:15px 15px!important}
-  .actions button{min-height:42px}
-  input,select,textarea{max-width:100%}
-}
-@media(max-width:430px){
-  .cabinet-menu button{justify-content:flex-start!important;min-width:112px!important}
-}
-</style>
 </head>
 <body>
 
@@ -2010,24 +1789,6 @@ button,input,select,textarea{-webkit-font-smoothing:antialiased}
 
         <p id="pdDesc">Məhsul haqqında məlumat.</p>
 
-        <div class="seller-card">
-          <div style="position:relative;flex:none;">
-            <div class="seller-card-icon" id="pdSellerIcon">G</div>
-            <span id="pdSellerOnline" style="display:none;position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #080b10;"></span>
-          </div>
-          <div class="seller-card-body">
-            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-              <span class="seller-card-name" id="pdSeller">GameSatış</span>
-              <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
-            </div>
-            <div class="seller-card-meta">
-              <span class="rating">★★★★★ 100%</span>
-              <span class="seller-sales-count" id="pdSellerSales">0 satış</span>
-            </div>
-          </div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-
         <div class="product-actions">
           <button class="fullbtn" type="button" id="pdAddCart">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:17px;height:17px;margin-right:7px;vertical-align:middle"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
@@ -2046,6 +1807,25 @@ button,input,select,textarea{-webkit-font-smoothing:antialiased}
             WhatsApp
           </a>
         </div>
+      </div>
+    </div>
+    <div style="padding:0 24px 4px;background:#080a0e;">
+      <div class="seller-card">
+        <div style="position:relative;flex:none;">
+          <div class="seller-card-icon" id="pdSellerIcon">G</div>
+          <span id="pdSellerOnline" style="display:none;position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #080b10;"></span>
+        </div>
+        <div class="seller-card-body">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+            <span class="seller-card-name" id="pdSeller">GameSatış</span>
+            <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
+          </div>
+          <div class="seller-card-meta">
+            <span class="rating">★★★★★ 100%</span>
+            <span class="seller-sales-count" id="pdSellerSales">0 satış</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
       </div>
     </div>
     <div class="reviews-box">
@@ -2486,7 +2266,7 @@ window.renderMarketAds = function renderMarketAds(){
         ? '<div class="old" style="font-size:11px;text-decoration:line-through;color:#6b7280;">'+Number(a.originalPrice).toFixed(2)+' ₼</div>'
         : "";
       var waHtml = a.contact ? '<span style="color:#25d366;font-size:10.5px;margin-left:5px;">&#128241; WhatsApp</span>' : "";
-      var aprvHtml = a.approved ? '<div class="public-ad-note">Təsdiqli Elan</div>' : "";
+      var aprvHtml = "";
       var tagsB64 = safeB64(a.tags||[]);
       var imgsB64 = safeB64(a.imageUrls||[]);
       // Atribut daxilindəki dırnaqları təhlükəsizləşdir
@@ -3280,6 +3060,24 @@ window.saveCurrentProductToAccount = async function(){
     return;
   }
 
+  const localKey = p.adId || p.title;
+  const local = JSON.parse(localStorage.getItem("gs_saved_fallback") || "[]");
+  const alreadySaved = local.some(x => (x.adId || x.title) === localKey);
+
+  if(alreadySaved){
+    // Toggle: yadda saxlananlardan sil
+    const updated = local.filter(x => (x.adId || x.title) !== localKey);
+    localStorage.setItem("gs_saved_fallback", JSON.stringify(updated));
+    if(currentUser){
+      try{
+        const rawKey = (p.adId || p.title || String(Date.now())).replace(/[^\w-]/g,"_").slice(0,80) || String(Date.now());
+        await deleteDoc(doc(db,"users",currentUser.uid,"saved",rawKey)).catch(()=>{});
+      }catch(e){ console.warn("Firestore saved delete:", e); }
+    }
+    toast("Yadda saxlananlardan silindi");
+    return;
+  }
+
   const item = {
     title: p.title || "Məhsul",
     price: p.price || "0.00 ₼",
@@ -3294,12 +3092,8 @@ window.saveCurrentProductToAccount = async function(){
   };
 
   // Həmişə local-da da saxlayırıq ki, kabinet dərhal göstərsin
-  const local = JSON.parse(localStorage.getItem("gs_saved_fallback") || "[]");
-  const localKey = item.adId || item.title;
-  if(!local.some(x => (x.adId || x.title) === localKey)){
-    local.push(item);
-    localStorage.setItem("gs_saved_fallback", JSON.stringify(local));
-  }
+  local.push(item);
+  localStorage.setItem("gs_saved_fallback", JSON.stringify(local));
 
   // Giriş varsa Firestore-a da yazırıq
   if(currentUser && currentUser.emailVerified){
@@ -3307,9 +3101,8 @@ window.saveCurrentProductToAccount = async function(){
       item.userUid = currentUser.uid;
       item.userEmail = currentUser.email;
       item.createdAt = serverTimestamp();
-      const rawKey = item.adId || item.title || String(Date.now());
-      const key = rawKey.replace(/[^\w-]/g, "_").slice(0,80) || String(Date.now());
-      await setDoc(doc(db,"users",currentUser.uid,"saved",key), item, {merge:true});
+      const rawKey = (item.adId || item.title || String(Date.now())).replace(/[^\w-]/g,"_").slice(0,80) || String(Date.now());
+      await setDoc(doc(db,"users",currentUser.uid,"saved",rawKey), item, {merge:true});
     }catch(e){
       console.warn("Firestore saved write failed:", e);
     }
