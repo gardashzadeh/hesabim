@@ -35,11 +35,11 @@ a, button{text-decoration:none;color:inherit;cursor:pointer}
 button{background:none;border:none;font-family:inherit;padding:0}
 .shell{width:1600px;max-width:100%;margin:0 auto;padding:0 14px}
 .header{height:auto;min-height:84px;background:#040505;border-bottom:1px solid #141515;display:flex;align-items:center;padding:10px 0}
-.header .shell{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.header .shell{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:12px}
 .logo svg{width:150px;height:auto}
 .logo-sub{font-size:9.5px;color:#dedede;margin-top:4px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
-.search{flex:1;max-width:590px;min-width:0;height:48px;background:#101111;border:1px solid #343636;border-radius:10px;display:flex;overflow:hidden}
+.search{flex:1;max-width:590px;min-width:280px;height:48px;background:#101111;border:1px solid #343636;border-radius:10px;display:flex;overflow:hidden}
 .search input{flex:1;background:transparent;border:0;color:#d8d8d8;font-size:14px;padding:0 16px;outline:0}
 .search select{width:145px;background:#171818;color:#d8d8d8;border:0;border-left:1px solid #2d2f2f;padding:0 10px;outline:0}
 .search button{width:58px;background:linear-gradient(#ff7a18,#ff5a00);border:0;color:#fff;font-size:23px;display:grid;place-items:center}
@@ -196,91 +196,58 @@ button{background:none;border:none;font-family:inherit;padding:0}
   .side .box:last-child{grid-column:1/3}
 }
 @media(max-width:700px){
-  /* HEADER — 1 sıra, horizontal */
-  .header{padding:6px 0;min-height:unset}
-  .header .shell{gap:8px;padding:0 10px}
-  .logo svg{width:100px}
-  .logo-sub{display:none}
-  .search{height:40px}
-  .search input{font-size:16px;padding:0 10px}
-  .search select{display:none}
-  .search button{width:42px;font-size:18px}
+  .header .shell{flex-direction:column;align-items:stretch;gap:10px;padding:10px 14px}
+  .logo{justify-content:center}
+  .search{max-width:100%;width:100%;min-width:unset;height:44px}
+  .search input{font-size:16px;padding:0 12px}
+  .search select{width:110px;font-size:16px;padding:0 6px}
+  .search button{width:48px;font-size:20px}
   .toplinks{display:none}
-  .actions{gap:6px;flex-shrink:0;flex-wrap:nowrap}
-  #loginBtn,#registerBtn{display:none!important}
-  #cabinetBtn{display:none!important}
-  .cart{width:38px;height:38px;font-size:17px}
-  .notify-btn{width:38px;height:38px;font-size:16px}
-  .theme-toggle{width:38px;height:38px;font-size:16px}
-  /* NAV */
-  .nav button,.nav a{height:36px;padding:0 10px;font-size:11px}
-  .nav button:first-child{padding:0 12px}
-  /* HERO */
-  .hero{height:auto;min-height:130px;padding:16px 12px}
+  .actions{justify-content:center;order:2;gap:8px;flex-wrap:wrap}
+  .hbtn{height:38px;padding:0 14px;font-size:12px}
+  .cart{width:42px;height:42px;font-size:20px}
+  .notify-btn{width:42px;height:42px;font-size:19px}
+  .hero{height:auto;min-height:160px;padding:20px 16px}
   .hero-title{position:static;padding:0}
-  .hero-title h1{font-size:21px;line-height:1.2}
-  .hero-title p{font-size:12.5px}
+  .hero-title h1{font-size:22px;line-height:1.2}
+  .hero-title p{font-size:13px}
   .hero-features{display:none}
-  .arr{width:36px;height:36px}
-  .arr.l{left:8px}.arr.r{right:8px}
-  /* LAYOUT */
-  .main{padding-top:10px;padding-bottom:72px}
-  .layout{gap:10px}
-  .panel{margin-top:10px}
+  .arr{width:38px;height:38px;display:flex;}
+  .logo svg{width:130px}
+  .arr.l{left:14px}
+  .arr.r{right:10px}
   .side{grid-template-columns:1fr}
   .side .box:last-child{grid-column:auto}
-  /* GAMES */
   .games{grid-template-columns:repeat(4,1fr);gap:6px;padding:8px}
-  .game-img{height:60px}
+  .game-img{height:62px}
   .game b{font-size:11px}
   .game small{font-size:11px}
-  .epin-img .brand-logo{max-height:46px;width:auto;max-width:80%}
-  .game-img .brand-logo{max-height:38px;width:auto;max-width:80%}
-  /* EPINS */
   .epins{grid-template-columns:repeat(2,1fr);gap:8px;padding:10px}
-  .epin-img{height:78px}
+  .epin-img{height:80px}
   .epin b{font-size:12px}
   .epin small,.epin .price,.epin .old{font-size:12px}
-  /* ADS */
   .ads{grid-template-columns:1fr;gap:10px;padding:0 10px 10px}
   .ad{grid-template-columns:56px 1fr;gap:8px;padding:9px}
   .ad-img{width:56px;height:64px}
   .ad b{font-size:12px}
   .ad p{font-size:12px;margin:3px 0}
-  /* PANELS */
-  .panel-head{padding:0 10px;flex-wrap:wrap;height:auto;min-height:42px;row-gap:6px}
+  .panel-head{padding:0 10px}
   .panel h2{font-size:14px;font-weight:900}
-  .panel-head-actions{flex-wrap:wrap;width:100%;justify-content:space-between;gap:6px}
-  .sort-control{flex:1;min-width:0}
-  .sort-control-label{display:none}
-  .sort-select{width:100%;font-size:12.5px}
-  /* TABS */
   .tabs{padding:10px;gap:6px}
-  .tab{padding:7px 12px;font-size:12px;min-height:40px;display:inline-flex;align-items:center}
-  /* BOX */
+  .tab{padding:7px 12px;font-size:12px}
   .box{padding:14px}
   .box h3{font-size:14px;font-weight:900}
-  .benefit{gap:8px;font-size:12px;margin:10px 0}
-  .fullbtn{height:44px;font-size:13px}
-  /* SELLERS */
   .seller{grid-template-columns:36px 1fr auto;gap:8px;padding:8px 0}
   .sicon{width:36px;height:36px}
   .seller b{font-size:12px}
   .follow{grid-template-columns:36px 1fr 70px;gap:8px}
-  .follow button{min-height:40px}
   .ficon{width:36px;height:36px;padding:7px}
-  /* WHATSAPP — sadəcə ikon */
-  .whats{right:12px;bottom:68px;padding:0;width:50px;height:50px;border-radius:50%;border:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
-  .whats i{width:50px;height:50px;border-radius:50%;padding:12px;margin:0}
-  .whats div{display:none}
-  /* CART PANEL */
-  .cart-panel{right:10px;top:auto;bottom:68px;width:calc(100vw - 20px);max-height:70vh;overflow-y:auto}
-  /* MODALS */
-  .modal{padding:10px}
-  .modal-box{padding:14px;border-radius:12px;max-height:92vh;overflow-y:auto}
-  .modal-box,.cabinet-box,.cart-panel{overscroll-behavior:contain}
-  /* CABINET */
-  .cabinet-box{border-radius:12px;max-height:95vh}
+  .whats{right:12px;bottom:12px;padding:9px 16px 9px 9px;gap:10px}
+  .whats i{width:44px;height:44px;padding:10px}
+  .whats b{font-size:12px}
+  .whats span{font-size:11px}
+  .cart-panel{right:10px;top:auto;bottom:70px;width:calc(100vw - 20px);max-height:70vh;overflow-y:auto}
+  .cabinet-box{border-radius:10px;max-height:95vh}
   .cabinet-head{padding:12px 14px}
   .cabinet-head h3{font-size:14px;letter-spacing:1.5px}
   .cabinet-body{grid-template-columns:1fr;min-height:auto}
@@ -289,19 +256,31 @@ button{background:none;border:none;font-family:inherit;padding:0}
   .cabinet-content{padding:12px}
   .cabinet-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .cabinet-table th,.cabinet-table td{font-size:12px;padding:8px 6px;white-space:nowrap}
-  /* iOS ZOOM ÖNLƏ */
-  .modal-box input,.modal-box select,
-  .cabinet-form input,.cabinet-form select,.cabinet-form textarea,
-  .request-form input,.request-form select,
-  .profile-form input,.review-form select,.review-form input,
-  .chat-form input,#q{font-size:16px}
+  .modal-box input,.modal-box select,.cabinet-form input,.cabinet-form select,.cabinet-form textarea,.request-form input,.request-form select,.profile-form input,.review-form select,.review-form input{font-size:16px}
   select{font-size:16px}
-  /* MISC */
-  .wallet-card b{font-size:18px}
+  .modal{padding:10px}
+  .modal-box{padding:14px;border-radius:10px}
+  .nav{position:relative;top:auto}
+  .nav button,.nav a{height:38px;padding:0 11px;font-size:11.5px}
+  .nav button:first-child,.nav a:first-child{padding:0 14px}
+  .main{padding-top:10px}
+  .layout{gap:10px}
+  .panel{margin-top:10px}
+  .side{gap:10px}
+  .benefit{gap:8px;font-size:12px;margin:10px 0}
+  .fullbtn{height:44px;font-size:13px}
   .admin-actions{flex-direction:column;gap:4px}
   .admin-actions button{height:34px;font-size:12px}
+  /* Touch targets min 44px */
   .tab{min-height:44px;display:inline-flex;align-items:center}
   .follow button{min-height:44px}
+  /* Modal scroll isolation */
+  .modal-box,.cabinet-box,.cart-panel{overscroll-behavior:contain}
+  /* Wallet font mobil */
+  .wallet-card b{font-size:18px}
+  /* Brand logoların epin/game kartlarında düzgün ölçüsü */
+  .epin-img .brand-logo{max-height:48px;width:auto;max-width:80%}
+  .game-img .brand-logo{max-height:42px;width:auto;max-width:80%}
 }
 
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;align-items:center;justify-content:center;padding:16px}
@@ -686,27 +665,23 @@ body{
 @media(max-width:380px){
   .games{grid-template-columns:repeat(3,1fr)}
   .epins{grid-template-columns:repeat(2,1fr)}
-  .logo svg{width:86px}
-  .cart{width:34px;height:34px;font-size:15px}
-  .notify-btn{width:34px;height:34px;font-size:14px}
-  .theme-toggle{width:34px;height:34px;font-size:14px}
-  .actions{gap:4px}
-  .hero-title h1{font-size:18px}
+  .hbtn{height:36px;padding:0 10px;font-size:11px}
+  .actions{gap:6px}
+  .hero-title h1{font-size:19px}
   .hero-title p{font-size:12px}
-  .cabinet-menu button{min-width:90px;font-size:12px}
-  .nav button,.nav a{padding:0 8px;font-size:10.5px;gap:4px}
-  .epin-img{height:68px}
-  .epin-img .brand-logo{max-height:36px}
-  .game-img{height:50px}
+  .cabinet-menu button{min-width:90px;font-size:12px;font-weight:400;letter-spacing:.25px}
+  .nav button,.nav a{padding:0 9px;font-size:11px;gap:5px}
+  .epin-img{height:70px}
+  .epin-img .brand-logo{max-height:40px}
+  .game-img{height:52px}
   .wallet-card b{font-size:16px}
 }
 
-/* Safe area — notch/home bar */
+/* Safe area for notched phones */
 @supports(padding-bottom:env(safe-area-inset-bottom)){
-  .whats{bottom:calc(64px + env(safe-area-inset-bottom))}
-  .toast{bottom:calc(64px + env(safe-area-inset-bottom))}
-  .cart-panel{bottom:calc(64px + env(safe-area-inset-bottom))}
-  .mobile-bottom-bar{padding-bottom:env(safe-area-inset-bottom)}
+  .whats{bottom:calc(12px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(28px + env(safe-area-inset-bottom))}
+  .cart-panel{bottom:calc(70px + env(safe-area-inset-bottom))}
 }
 
 /* ADMIN PANEL EXTENSION */
@@ -1194,43 +1169,221 @@ body.light-mode .theme-toggle{background:#ffffff;border:1px solid #c8cdd8;color:
 body.light-mode .theme-toggle:hover{border-color:#e55a00}
 /* ===================== END LIGHT MODE ===================== */
 
-/* MOBILE BOTTOM NAV BAR */
-.mobile-bottom-bar{display:none}
 @media(max-width:700px){
-  .mobile-bottom-bar{
-    display:flex;
-    position:fixed;bottom:0;left:0;right:0;
-    height:56px;
-    background:#070808;
-    border-top:1px solid #1e2020;
-    z-index:960;
-    align-items:stretch;
-    box-shadow:0 -4px 20px rgba(0,0,0,.5);
-  }
-  .mobile-bottom-bar button{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:3px;flex:1;height:100%;
-    background:none;border:none;padding:5px 4px 4px;
-    color:#545e70;font-size:9.5px;font-weight:700;letter-spacing:.15px;
-    font-family:'DM Sans',Arial,sans-serif;cursor:pointer;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .mobile-bottom-bar button svg{width:22px;height:22px;flex-shrink:0;stroke:#545e70;fill:none}
-  .mobile-bottom-bar button.mbb-active{color:#fb923c}
-  .mobile-bottom-bar button.mbb-active svg{stroke:#fb923c}
-  .mobile-bottom-bar button.mbb-orange{color:#fb923c}
-  .mobile-bottom-bar button.mbb-orange svg{stroke:#fb923c}
+  .panel-head{flex-wrap:wrap;height:auto;min-height:46px;row-gap:8px;padding:10px}
+  .panel-head-actions{flex-wrap:wrap;width:100%;justify-content:space-between;gap:8px}
+  .sort-control{flex:1;min-width:0}
+  .sort-control-label{display:none}
+  .sort-select{width:100%;font-size:12.5px}
 }
-body.light-mode .mobile-bottom-bar{
-  background:#fff;border-top:1px solid #dde1e7;
-  box-shadow:0 -2px 12px rgba(0,0,0,.08);
+
+
+
+/* === COMPLETE MOBILE OPTIMIZATION OVERRIDES === */
+html,body{width:100%;max-width:100%;overflow-x:hidden;scroll-behavior:smooth}
+img,svg,video,canvas{max-width:100%}
+button,input,select,textarea{-webkit-font-smoothing:antialiased}
+
+@media(max-width:1024px){
+  .shell{width:100%;padding-left:14px;padding-right:14px}
+  .header{position:relative;top:auto;min-height:auto;padding:10px 0}
+  .header .shell{gap:12px}
+  .logo svg{width:150px}
+  .toplinks{display:none}
+  .search{order:3;flex:0 0 100%;max-width:100%;min-width:0}
+  .actions{margin-left:auto;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .hbtn{height:42px;padding:0 16px;border-radius:11px;font-size:12.5px}
+  .cart,.notify-btn,.theme-toggle{width:42px!important;height:42px!important;min-width:42px;border-radius:11px;font-size:19px!important}
+  .nav{position:sticky;top:0;height:auto;min-height:56px;z-index:850}
+  .nav .shell{padding:8px 12px;gap:8px;scroll-padding-left:12px}
+  .nav button,.nav a{height:40px;padding:0 13px;font-size:12px;border-radius:10px}
+  .main{padding-top:12px}
+  .layout{grid-template-columns:1fr;gap:14px}
+  .side{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .side .box:last-child{grid-column:auto}
+  .hero{height:auto;min-height:190px;padding:26px 64px;border-radius:14px}
+  .hero-title{position:static;max-width:520px}
+  .hero-title h1{font-size:clamp(28px,5vw,38px)}
+  .hero-features{display:none!important}
+  .arr.l{left:14px}.arr.r{right:14px}
+  .games{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .epins{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .ads{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-body.light-mode .mobile-bottom-bar button{color:#8a94a6}
-body.light-mode .mobile-bottom-bar button svg{stroke:#8a94a6}
-body.light-mode .mobile-bottom-bar button.mbb-active{color:#e55a00}
-body.light-mode .mobile-bottom-bar button.mbb-active svg{stroke:#e55a00}
-body.light-mode .mobile-bottom-bar button.mbb-orange{color:#e55a00}
-body.light-mode .mobile-bottom-bar button.mbb-orange svg{stroke:#e55a00}
+
+@media(max-width:700px){
+  body{font-size:13.5px;line-height:1.5}
+  .shell{padding-left:10px;padding-right:10px}
+  .header{padding:8px 0;background:#030404}
+  .header .shell{display:grid;grid-template-columns:1fr;gap:9px;padding:8px 10px}
+  .logo{justify-content:center;min-height:42px}
+  .logo svg{width:138px}
+  .search{order:2;height:46px;border-radius:12px;box-shadow:none}
+  .search input{min-width:0;font-size:16px;padding:0 12px}
+  .search select{width:102px;min-width:102px;font-size:13px;padding:0 6px;text-overflow:ellipsis}
+  .search button{width:46px;min-width:46px;font-size:18px}
+  .actions{order:3;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;width:100%;justify-content:stretch}
+  .actions .hbtn{width:100%;height:42px;padding:0 8px;font-size:12px;white-space:nowrap}
+  #cabinetBtn{grid-column:1/-1}
+  .notify-btn,.theme-toggle,.cart{width:100%!important;min-width:0!important;height:42px!important}
+  .nav{position:sticky!important;top:0!important;min-height:52px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+  .nav .shell{height:auto;padding:7px 10px;gap:7px;align-items:center}
+  .nav button,.nav a{height:38px;padding:0 11px;font-size:11.5px;gap:6px;border-radius:10px;letter-spacing:.15px}
+  .nav button:first-child,.nav a:first-child{padding:0 13px;margin-right:0}
+  .main{padding-top:10px}
+  .layout{gap:10px}
+  .hero{min-height:150px;padding:20px 46px 20px 18px;border-radius:13px}
+  .hero:before{display:none}
+  .hero-title h1{font-size:24px;line-height:1.08;letter-spacing:.35px}
+  .hero-title .line{width:150px;margin:7px 0 10px}
+  .hero-title p{font-size:12.5px;line-height:1.45;max-width:245px}
+  .arr{width:34px;height:34px;opacity:.9}
+  .arr svg{width:22px;height:22px}
+  .arr.l{left:8px;display:none}.arr.r{right:8px}
+  .panel,.box{border-radius:13px;margin-top:10px}
+  .panel-head{min-height:44px;height:auto;padding:10px 12px;gap:8px;align-items:flex-start;flex-wrap:wrap}
+  .panel h2,.box h3{font-size:14px;line-height:1.2}
+  .panel a,.box a,.panel button,.seller-head button{font-size:11.5px;white-space:nowrap}
+  .panel-head-actions{width:100%;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .sort-control{flex:1;min-width:160px}
+  .sort-select{width:100%;height:36px;font-size:12px}
+  .sort-control-label{display:none}
+  .games{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:9px}
+  .game{padding:7px;border-radius:11px;min-width:0}
+  .game-img{height:60px;padding:8px;border-radius:9px}
+  .game b{font-size:10.8px;line-height:1.18;min-height:26px;display:flex;align-items:center;justify-content:center;text-align:center;word-break:break-word}
+  .epins{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px}
+  .epin{border-radius:12px}
+  .epin-img{height:78px;padding:12px;border-radius:10px 10px 0 0}
+  .epin-body{padding:9px}
+  .epin b{font-size:12px;line-height:1.25;min-height:30px}
+  .epin small{font-size:11px;line-height:1.3}
+  .price{font-size:14px;margin-top:9px}
+  .old{font-size:10.5px}
+  .tabs{padding:10px;gap:7px;overflow-x:auto;scroll-padding-left:10px}
+  .tab{min-height:38px;padding:8px 13px;font-size:12px;border-radius:999px}
+  .ads{grid-template-columns:1fr;gap:9px;padding:0 10px 10px}
+  .ad{grid-template-columns:58px minmax(0,1fr);gap:9px;padding:9px;border-radius:12px;align-items:start}
+  .ad-img{width:58px;height:66px;border-radius:9px;padding:6px}
+  .ad b{font-size:12.5px;line-height:1.28;display:block;word-break:break-word}
+  .ad p{font-size:11.5px;line-height:1.35;margin:4px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .ad .aprice{font-size:12.8px}
+  .user,.ad-views{font-size:11px;margin-top:7px}
+  .side{grid-template-columns:1fr;gap:10px}
+  .box{padding:13px}
+  .box p{font-size:12.5px;margin-bottom:12px}
+  .benefit{grid-template-columns:20px 1fr;font-size:12.2px;margin:10px 0;gap:8px}
+  .fullbtn{min-height:44px;height:44px;border-radius:11px;font-size:12.5px}
+  .seller-head{margin-bottom:8px;gap:8px;align-items:center}
+  .seller{grid-template-columns:38px minmax(0,1fr) auto;gap:9px;padding:9px 0;border-radius:0;background:transparent;box-shadow:none;transform:none!important}
+  .sicon,.ficon{width:38px;height:38px;border-radius:10px}
+  .seller b,.follow b{font-size:12.2px}
+  .seller small,.follow small{font-size:11.2px}
+  .seller strong{font-size:11.5px}
+  .follow{grid-template-columns:38px minmax(0,1fr) 72px;gap:9px;padding:10px 0}
+  .follow button{height:38px;min-height:38px;font-size:11.5px}
+  .whats{right:10px;bottom:10px;padding:8px;border-radius:999px;gap:8px;max-width:calc(100vw - 20px)}
+  .whats i{width:42px;height:42px;padding:10px}
+  .whats div{display:none}
+  .modal{padding:10px;align-items:flex-end}
+  .modal-box{max-width:100%;max-height:92vh;overflow-y:auto;border-radius:16px;padding:14px}
+  .modal-box h3{font-size:16px}
+  .provider-grid{grid-template-columns:1fr;gap:8px}
+  .provider-card{height:50px;flex-direction:row;border-radius:11px}
+  .auth-tabs{gap:7px}
+  .auth-tabs button{height:42px;font-size:12px}
+  .modal-actions{gap:8px}
+  .cart-panel{left:10px;right:10px;top:auto;bottom:64px;width:auto;max-width:none;max-height:72vh;overflow-y:auto;border-radius:14px;padding:12px}
+  .cabinet-modal{padding:8px;align-items:flex-end}
+  .cabinet-box{max-height:94vh;border-radius:16px;overflow:auto}
+  .cabinet-head{padding:12px 14px;position:sticky;top:0;z-index:3}
+  .cabinet-head h3{font-size:13px}
+  .cabinet-body{grid-template-columns:1fr;min-height:auto}
+  .cabinet-menu{display:flex;gap:7px;overflow-x:auto;flex-wrap:nowrap;padding:10px;border-right:0;border-bottom:1px solid #252b32;scrollbar-width:none}
+  .cabinet-menu::-webkit-scrollbar{display:none}
+  .cabinet-menu button{flex:0 0 auto;width:auto;min-width:118px;height:38px;margin:0;text-align:center;padding:0 10px;font-size:12px;white-space:nowrap}
+  .cabinet-content{padding:12px}
+  .cabinet-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+  .cabinet-table th,.cabinet-table td{font-size:11.5px;padding:8px 7px}
+  .wallet-grid,.admin-mini-grid{grid-template-columns:1fr;gap:8px}
+  .wallet-card{padding:12px}
+  .wallet-card b{font-size:20px}
+  .wallet-actions,.request-form,.pay-info{grid-template-columns:1fr}
+  .request-form .full,.request-form button{grid-column:auto}
+  .chat-layout{grid-template-columns:1fr;gap:9px;min-height:auto}
+  .chat-list{max-height:200px;border-radius:12px}
+  .chat-box{min-height:350px;border-radius:12px}
+  .chat-messages{max-height:300px}
+  .chat-msg{max-width:92%;font-size:12.5px}
+  .chat-form{grid-template-columns:1fr;gap:7px}
+  .chat-form input{height:44px;font-size:16px}
+  .product-detail-box{width:100%;max-height:94vh;border-radius:16px!important}
+  .product-detail-head{padding:14px 16px;gap:10px}
+  .product-detail-head h3{font-size:17px;line-height:1.15}
+  .product-detail-grid{grid-template-columns:1fr}
+  .product-detail-image{min-height:150px;padding:18px;border-right:0;border-bottom:1px solid #1a1f28;flex-direction:column;gap:10px}
+  .product-detail-image svg,.product-detail-image img{max-width:84px;max-height:84px}
+  .product-detail-info{padding:14px}
+  .product-detail-info p{font-size:12.5px;line-height:1.55;padding:9px 10px}
+  .pd-price{font-size:24px;margin-bottom:12px}
+  .badge-row{gap:6px;margin-bottom:12px}
+  .badge{font-size:10px;padding:5px 8px}
+  .seller-card{padding:12px;gap:10px;border-radius:12px}
+  .seller-card-icon{width:40px;height:40px;border-radius:11px;font-size:16px}
+  .seller-card-name{font-size:13px}
+  .seller-card-meta{gap:8px}
+  .product-actions{grid-template-columns:1fr;gap:8px}
+  .product-actions .fullbtn{grid-column:auto;height:44px}
+  .product-actions .pd-action-btn{height:42px}
+  .reviews-box{padding:14px}
+  .review-form{grid-template-columns:1fr;gap:8px}
+  .review-form select,.review-form input,.review-form button{height:42px;font-size:16px}
+  .toast{left:10px;right:10px;bottom:18px;transform:none;border-radius:12px;text-align:center;font-size:12.5px;padding:11px 12px}
+}
+
+@media(max-width:430px){
+  .logo svg{width:126px}
+  .actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .actions .hbtn{font-size:11.5px;padding:0 6px}
+  #registerBtn,#loginBtn{grid-column:auto}
+  .search select{width:88px;min-width:88px;font-size:12px}
+  .nav button,.nav a{font-size:10.8px;height:36px;padding:0 9px}
+  .hero{padding:18px 38px 18px 14px;min-height:138px}
+  .hero-title h1{font-size:21px}
+  .hero-title p{font-size:11.5px;max-width:210px}
+  .arr.r{right:5px;width:30px;height:30px}
+  .games{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px}
+  .game-img{height:54px;padding:7px}
+  .game b{font-size:10px;min-height:24px}
+  .epins{gap:8px;padding:8px}
+  .epin-img{height:70px;padding:10px}
+  .epin-body{padding:8px}
+  .epin b{font-size:11.2px;min-height:28px}
+  .price{font-size:13px}
+  .panel-head{padding:9px 10px}
+  .panel h2,.box h3{font-size:13.2px}
+  .ad{grid-template-columns:52px minmax(0,1fr);gap:8px;padding:8px}
+  .ad-img{width:52px;height:60px}
+  .ad b{font-size:11.8px}
+  .ad p{font-size:11px}
+  .sort-control{min-width:100%;flex-basis:100%}
+}
+
+@media(max-width:360px){
+  .shell{padding-left:8px;padding-right:8px}
+  .header .shell{padding-left:8px;padding-right:8px}
+  .actions{gap:6px}
+  .actions .hbtn{height:40px;font-size:10.8px}
+  .notify-btn,.theme-toggle,.cart{height:40px!important}
+  .search{height:44px}
+  .search select{display:none}
+  .games{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .epins{grid-template-columns:1fr 1fr}
+  .hero-title h1{font-size:19px}
+  .hero-title p{font-size:11px;max-width:190px}
+  .tab{font-size:11px;padding:7px 11px}
+  .cabinet-menu button{min-width:104px;font-size:11.3px}
+}
 
 </style>
 
@@ -1316,6 +1469,19 @@ body.light-mode .mobile-bottom-bar button.mbb-orange svg{stroke:#e55a00}
 }
 </style>
 
+
+<style>
+/* === FINAL MOBILE TOUCH FIXES (highest priority) === */
+@media(max-width:700px){
+  .cabinet-menu button{justify-content:center!important;align-items:center!important;gap:7px!important;min-height:38px!important}
+  .cabinet-menu button::before{width:24px!important;height:24px!important;min-width:24px!important;border-radius:8px!important;background-size:15px 15px!important}
+  .actions button{min-height:42px}
+  input,select,textarea{max-width:100%}
+}
+@media(max-width:430px){
+  .cabinet-menu button{justify-content:flex-start!important;min-width:112px!important}
+}
+</style>
 </head>
 <body>
 
@@ -4475,62 +4641,6 @@ function toggleTheme(){
     }
   }catch(e){}
 })();
-</script>
-
-<nav class="mobile-bottom-bar">
-  <button id="mbbHome" class="mbb-active" onclick="goHome(event);mbbSet(this)">
-    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    Ana Səhifə
-  </button>
-  <button onclick="filterCategory('Hamısı');mbbSet(this)">
-    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    Kateqoriyalar
-  </button>
-  <button onclick="document.getElementById('cartToggleBtn').click();mbbSet(this)">
-    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-    Səbət
-  </button>
-  <button id="mbbAuth" class="mbb-orange" onclick="mbbAuth()">
-    <svg id="mbbAuthSvg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-    <span id="mbbAuthLabel">Giriş</span>
-  </button>
-</nav>
-
-<script>
-function mbbSet(el){
-  document.querySelectorAll('.mobile-bottom-bar button').forEach(b=>b.classList.remove('mbb-active'));
-  if(el) el.classList.add('mbb-active');
-}
-function mbbAuth(){
-  var btn=document.getElementById('mbbAuth');
-  mbbSet(btn);
-  if(typeof currentUser!=='undefined'&&currentUser){
-    if(typeof openCabinet==='function') openCabinet();
-    else openModal('cabinetModal');
-  } else {
-    openModal('loginModal');
-    if(typeof window.setAuthMode==='function') window.setAuthMode('login');
-  }
-}
-function mbbSync(user){
-  var lbl=document.getElementById('mbbAuthLabel');
-  var btn=document.getElementById('mbbAuth');
-  if(!lbl||!btn) return;
-  if(user){
-    lbl.textContent='Kabinet';
-    btn.className='mbb-active';
-  } else {
-    lbl.textContent='Giriş';
-    btn.className='mbb-orange';
-  }
-}
-// onAuthStateChanged-dən çağrılacaq — əgər mövcuddursa
-if(typeof onAuthStateChanged!=='undefined'){
-  // already bound in main script — hook via interval check
-  setInterval(function(){
-    if(typeof currentUser!=='undefined') mbbSync(currentUser);
-  },1000);
-}
 </script>
 
 </body>
