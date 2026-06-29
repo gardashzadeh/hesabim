@@ -4904,15 +4904,15 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
     const adsHtml = ads.length ? `
       <h4 style="margin:0 0 10px;color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:.05em">Aktiv elanlar (${ads.length})</h4>
       <div class="seller-ads-grid">
-        ${ads.slice(0,6).map(a=>`
-          <div class="seller-ad-card" onclick="closeModal('sellerProfileModal');openProductDetail(${JSON.stringify({
-            title:a.title||"", price:a.priceText||a.price+"₼", desc:a.desc||"",
-            seller:displayName, sellerUid:a.sellerUid||"", sellerEmail:a.sellerEmail||"",
-            adId:a.id, views:a.views||0, icon:""
-          }).replace(/"/g,'&quot;')})">
+        ${ads.slice(0,6).map((a,i)=>{
+          // window.__spAds-a saxlayırıq, onclick-də yalnız index işlədirik
+          if(!window.__spAds) window.__spAds = {};
+          window.__spAds[a.id||i] = {title:a.title||"", price:a.priceText||(String(a.price||"")+" ₼"), desc:a.desc||"", seller:displayName, sellerUid:a.sellerUid||"", sellerEmail:a.sellerEmail||"", adId:a.id||"", views:a.views||0, icon:""};
+          return `<div class="seller-ad-card" onclick="closeModal('sellerProfileModal');openProductDetail(window.__spAds['${esc(a.id||String(i))}'])">
             <div style="font-size:13px;font-weight:600;margin-bottom:4px">${esc(a.title||"Elan")}</div>
             <div class="ad-price">${esc(a.priceText||String(a.price||"")+" ₼")}</div>
-          </div>`).join("")}
+          </div>`;
+        }).join("")}
       </div>` : '<p style="color:#64748b;font-size:13px">Bu satıcının aktiv elanı yoxdur.</p>';
 
     el.innerHTML = `
