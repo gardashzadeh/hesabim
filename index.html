@@ -5121,6 +5121,7 @@ window.deleteCoupon = async function(id){
   try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
   catch(e){ toast("Xəta."); }
 };
+</script>
 
 <script>
 (function(){
