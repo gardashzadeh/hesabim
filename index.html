@@ -2905,6 +2905,7 @@ function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg)
 function authStatus(msg){ const e=document.getElementById("authStatus"); if(e) e.textContent=msg||""; }
 function validEmail(email){ return /^\S+@\S+\.\S+$/.test(email); }
 function esc(v){ return String(v||"").replace(/[<>&"]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[s])); }
+window.esc = esc; // non-module script-lər üçün export
 // XSS qoruması: icon sahəsi Firestore-dan gəlir, raw HTML kimi render edilir.
 // Yalnız Cloudinary img teqləri və SVG-lər icazəlidir, başqa hər şey fallback ilə əvəzlənir.
 const _SAFE_ICON_FALLBACK = '<svg viewBox="0 0 24 24" fill="#fb923c" style="width:30px"><circle cx="12" cy="12" r="8"/></svg>';
