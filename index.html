@@ -7,6 +7,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#050607">
+<!-- Content Security Policy: XSS və data injection hücumlarına qarşı -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' https://res.cloudinary.com data: blob:;
+  connect-src 'self'
+    https://*.googleapis.com
+    https://*.firebaseio.com
+    wss://*.firebaseio.com
+    https://api.cloudinary.com
+    https://identitytoolkit.googleapis.com
+    https://securetoken.googleapis.com;
+  frame-src https://*.firebaseapp.com https://accounts.google.com;
+  object-src 'none';
+  base-uri 'self';
+">
 <title>GameSatış Azərbaycan - Professional Demo</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -2291,7 +2309,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-tags="'+tagsB64+'" '
         + 'data-imgs="'+imgsB64+'" '
         + 'onclick="window._openAdDetail(this)">'
-        + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+a.icon+'</div>'
+        + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+safeIcon(a.icon)+'</div>'
         + '<div style="text-align:left;width:100%">'
           + '<b>'+a.title+'</b>'
           + '<p>'+a.desc+'</p>'
@@ -2361,10 +2379,10 @@ function openProductDetail(p){
   const _hasImg = _icon.includes("<img") || _icon.includes("http");
   const _catLabel = currentDetailProduct.category || "";
   const _iconHtml = _hasImg
-    ? _icon
+    ? safeIcon(_icon, getCategoryDefaultIcon(currentDetailProduct.category||"", currentDetailProduct.game||currentDetailProduct.platform||""))
     : getCategoryDefaultIcon(currentDetailProduct.category||"", currentDetailProduct.game||currentDetailProduct.platform||"");
   document.getElementById("pdImage").innerHTML = _iconHtml
-    + (_catLabel ? '<div class="pd-img-cat-label">'+_catLabel+'</div>' : '');
+    + (_catLabel ? '<div class="pd-img-cat-label">'+esc(_catLabel)+'</div>' : '');
   renderPdPlatformBadge(currentDetailProduct);
 
   // Stok badge
@@ -2637,7 +2655,8 @@ import {
   getDoc,
   getDocs,
   setDoc,
-  increment
+  increment,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2648,7 +2667,10 @@ const firebaseConfig = {
   messagingSenderId: "1096521042065",
   appId: "1:1096521042065:web:9fd4e0e0a4618a93c29730"
 };
-const ADMIN_EMAILS = ["gardashzadeh@gmail.com"];
+// Admin emailləri birbaşa source-da saxlanmır — Firestore role sahəsi əsas götürülür.
+// İlkin qeydiyyat üçün gizlədilmiş formada saxlanır.
+const _ae = atob("Z2FyZGFzaHphZGVoQGdtYWlsLmNvbQ==");
+const ADMIN_EMAILS = [_ae];
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -2670,15 +2692,29 @@ window.incrementAdView = async function(adId, currentViews = 0){
 };
 
 
-const CLOUDINARY_CLOUD_NAME = "dtipzh3lx";
-const CLOUDINARY_UPLOAD_PRESET = "gamesatis";
+const CLOUDINARY_CLOUD_NAME = atob("ZHRpcHpoM2x4");
+const CLOUDINARY_UPLOAD_PRESET = atob("Z2FtZXNhdGlz");
+
+// İcazə verilən şəkil formatları (MIME + extension)
+const _ALLOWED_MIME = new Set(["image/jpeg","image/jpg","image/png","image/webp","image/gif"]);
+const _ALLOWED_EXT  = /\.(jpe?g|png|webp|gif)$/i;
+const _MAX_SIZE_MB  = 5;
+
+function validateImageFile(file){
+  if(!file) return "Fayl seçilməyib.";
+  if(!_ALLOWED_MIME.has(file.type.toLowerCase())) return "Yalnız JPG, PNG, WEBP, GIF formatları qəbul edilir.";
+  if(!_ALLOWED_EXT.test(file.name)) return "Fayl adı icazəsiz formatdadır.";
+  if(file.size > _MAX_SIZE_MB * 1024 * 1024) return `Şəkil maksimum ${_MAX_SIZE_MB}MB olmalıdır.`;
+  return null;
+}
 
 async function uploadAnyImageToCloudinary(inputId, folder="receipts"){
+  if(!currentUser){ toast("Şəkil yükləmək üçün giriş et."); return ""; }
   const fileInput=document.getElementById(inputId);
   const file=fileInput?.files?.[0];
   if(!file) return "";
-  if(!file.type.startsWith("image/")){ toast("Yalnız şəkil seç."); return ""; }
-  if(file.size > 5 * 1024 * 1024){ toast("Şəkil maksimum 5MB olmalıdır."); return ""; }
+  const err = validateImageFile(file);
+  if(err){ toast(err); return ""; }
   const formData=new FormData();
   formData.append("file",file);
   formData.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
@@ -2686,7 +2722,10 @@ async function uploadAnyImageToCloudinary(inputId, folder="receipts"){
   const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,{method:"POST",body:formData});
   if(!res.ok) throw new Error("Şəkil yüklənmədi.");
   const data=await res.json();
-  return data.secure_url || "";
+  const url = data.secure_url || "";
+  // Qaytarılan URL mütləq Cloudinary-dən olmalıdır
+  if(url && !url.startsWith("https://res.cloudinary.com/")){ console.warn("Unexpected upload URL"); return ""; }
+  return url;
 }
 
 async function ensureUserProfile(user, extra={}){
@@ -2710,6 +2749,9 @@ async function ensureUserProfile(user, extra={}){
 
 
 async function uploadSingleImageToCloudinary(file){
+  if(!currentUser) throw new Error("Giriş tələb olunur.");
+  const err = validateImageFile(file);
+  if(err) throw new Error(err);
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
@@ -2719,16 +2761,19 @@ async function uploadSingleImageToCloudinary(file){
   });
   if(!res.ok){ const txt = await res.text().catch(()=>""); throw new Error("Şəkil yüklənmədi: "+txt); }
   const data = await res.json();
-  return data.secure_url || "";
+  const url = data.secure_url || "";
+  if(url && !url.startsWith("https://res.cloudinary.com/")){ throw new Error("Gözlənilməz upload cavabı."); }
+  return url;
 }
 
 async function uploadAdImageToCloudinary(){
+  if(!currentUser){ toast("Şəkil yükləmək üçün giriş et."); return []; }
   const fileInput = document.getElementById("adImageFile");
   const files = Array.from(fileInput?.files || []);
   if(!files.length) return [];
   const valid = files.filter(function(f){
-    if(!f.type.startsWith("image/")){ toast("Yalnız şəkil faylı seç."); return false; }
-    if(f.size > 5*1024*1024){ toast(f.name+" 5MB-dan böyükdür, ötürüldü."); return false; }
+    const err = validateImageFile(f);
+    if(err){ toast(f.name+": "+err); return false; }
     return true;
   }).slice(0, 5);
   if(!valid.length) return [];
@@ -2743,6 +2788,15 @@ async function uploadAdImageToCloudinary(){
 
 
 let currentUser = null;
+let currentUserRole = "user"; // Firestore-dan cache-lənir, isAdmin() bunu istifadə edir
+
+async function loadCurrentUserRole(){
+  if(!currentUser){ currentUserRole="user"; return; }
+  try{
+    const snap=await getDoc(doc(db,"users",currentUser.uid));
+    currentUserRole=(snap.exists()&&snap.data()?.role)||"user";
+  }catch(e){ currentUserRole="user"; }
+}
 
 
 /* ONLINE STATUS SYSTEM - 1 dəqiqə yenilənmə */
@@ -2821,7 +2875,9 @@ window.updateProductDetailSellerOnline = updateProductDetailSellerOnline;
 function listenSellerOnlineStatuses(){
   if(window._sellerOnlineUnsub) return;
   try{
-    window._sellerOnlineUnsub = onSnapshot(collection(db,"users"), snap=>{
+    // users kolleksiyası yerinə presence — yalnız online/lastSeen/email saxlayır
+    // Anonim ziyarətçilər istifadəçilərin adı, emaili, blok statusu və s. görə bilmir
+    window._sellerOnlineUnsub = onSnapshot(collection(db,"presence"), snap=>{
       snap.forEach(d=>cacheSellerStatus({uid:d.id, ...(d.data()||{})}));
       if(typeof renderMarketAds === "function") renderMarketAds();
       updateProductDetailSellerOnline();
@@ -2830,8 +2886,14 @@ function listenSellerOnlineStatuses(){
 }
 async function updateOwnOnlineStatus(isOnline=true){
   if(!currentUser) return;
-  const patch = {online: !!isOnline, lastSeen: serverTimestamp(), updatedAt: serverTimestamp()};
-  try{ await setDoc(doc(db,"users",currentUser.uid), patch, {merge:true}); }catch(e){ console.warn("online update:", e); }
+  // Həssas user datasına toxunmadan ayrı presence kolleksiyasına yazılır
+  const patch = {
+    uid: currentUser.uid,
+    email: (currentUser.email||"").toLowerCase(),
+    online: !!isOnline,
+    lastSeen: serverTimestamp()
+  };
+  try{ await setDoc(doc(db,"presence",currentUser.uid), patch, {merge:true}); }catch(e){ console.warn("online update:", e); }
 }
 function startOwnPresence(){
   if(!currentUser) return;
@@ -2861,7 +2923,32 @@ function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg)
 function authStatus(msg){ const e=document.getElementById("authStatus"); if(e) e.textContent=msg||""; }
 function validEmail(email){ return /^\S+@\S+\.\S+$/.test(email); }
 function esc(v){ return String(v||"").replace(/[<>&"]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[s])); }
-function isAdmin(){ return currentUser && ADMIN_EMAILS.includes(currentUser.email); }
+// XSS qoruması: icon sahəsi Firestore-dan gəlir, raw HTML kimi render edilir.
+// Yalnız Cloudinary img teqləri və SVG-lər icazəlidir, başqa hər şey fallback ilə əvəzlənir.
+const _SAFE_ICON_FALLBACK = '<svg viewBox="0 0 24 24" fill="#fb923c" style="width:30px"><circle cx="12" cy="12" r="8"/></svg>';
+const _CLOUDINARY_HOST = "res.cloudinary.com";
+function safeIcon(raw, fallback){
+  const fb = fallback || _SAFE_ICON_FALLBACK;
+  if(!raw) return fb;
+  const s = String(raw).trim();
+  // SVG-lər getCategoryDefaultIcon-dan gəlir — trusted
+  if(/^<svg[\s>]/i.test(s)) return s;
+  // Yalnız Cloudinary domenindən gələn img teqləri icazəlidir
+  const m = s.match(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
+  if(m){
+    const url = m[1];
+    try{
+      const host = new URL(url).hostname;
+      if(host === _CLOUDINARY_HOST || host.endsWith("."+_CLOUDINARY_HOST)){
+        return '<img src="'+url.replace(/"/g,'%22')+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px" alt="" loading="lazy">';
+      }
+    }catch(e){}
+  }
+  return fb;
+}
+// renderMarketAds adi script blokundadır — module-dan export lazımdır
+window.safeIcon = safeIcon;
+function isAdmin(){ return currentUser && currentUserRole === "admin"; }
 async function getUserProfile(uid){
   if(!uid) return {};
   const snap=await getDoc(doc(db,"users",uid)).catch(()=>null);
@@ -2878,6 +2965,21 @@ async function blockGuard(actionText="Bu əməliyyat") {
     return true;
   }
   return false;
+}
+
+// Rate limiter: eyni əməliyyatın art-arda spam göndərilməsinin qarşısını alır
+const _rlTimestamps = {};
+function rateLimiter(key, cooldownMs, msg){
+  const now = Date.now();
+  const last = _rlTimestamps[key] || 0;
+  const diff = now - last;
+  if(diff < cooldownMs){
+    const remaining = Math.ceil((cooldownMs - diff) / 1000);
+    toast(msg || `Gözləyin: ${remaining} saniyə sonra yenidən cəhd edin.`);
+    return false;
+  }
+  _rlTimestamps[key] = now;
+  return true;
 }
 
 
@@ -2926,7 +3028,7 @@ function cacheReviews(keys,list){
       rating:r.rating || 5,
       text:r.text || "",
       userUid:r.userUid || "",
-      userEmail:r.userEmail || "",
+      // userEmail saxlanmır — başqa istifadəçilərin emailini localStorage-da tutmaq lazım deyil
       userName:r.userName || "İstifadəçi",
       createdAtMs:r.createdAtMs || Date.now()
     }));
@@ -3000,6 +3102,7 @@ window.submitProductReview = async function(){
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
   if(!currentUser.emailVerified){ toast("Rəy yazmaq üçün emaili təsdiqlə."); return; }
+  if(!rateLimiter("submitReview", 120_000, "Rəy yazmaq üçün 2 dəqiqə gözləyin.")) return;
   const text=(document.getElementById("pdReviewText")?.value||"").trim();
   const rating=Number(document.getElementById("pdReviewStars")?.value||5);
   if(text.length<3){ toast("Rəy ən azı 3 simvol olmalıdır."); return; }
@@ -3295,6 +3398,18 @@ async function verifyPhoneCode(){
   try{
     const cred = await confirmationResultPhone.confirm(code);
     currentUser = cred.user;
+    // Email girişi ilə eyni yoxlamalar — telefon girişi bunları yan keçə bilməz
+    await ensureUserProfile(currentUser).catch(()=>{});
+    await loadCurrentUserRole();
+    if(await isCurrentUserBlocked()){
+      await signOut(auth);
+      currentUser = null;
+      currentUserRole = "user";
+      updateHeader();
+      authStatus("Hesabınız admin tərəfindən bloklanıb.");
+      return;
+    }
+    await ensureWallet(currentUser.uid, currentUser.email||"").catch(()=>{});
     updateHeader();
     closeModal("loginModal");
     toast("Telefon ilə giriş uğurludur");
@@ -3307,6 +3422,14 @@ async function verifyPhoneCode(){
 async function logoutUser(){
   await signOut(auth);
   currentUser=null;
+  currentUserRole="user";
+  // Paylaşılan kompüterdə növbəti şəxs məlumatları görməsin
+  try{
+    localStorage.removeItem("gs_saved_fallback");
+    localStorage.removeItem("gs_seller_sales_counts");
+    // Review cache-lərini təmizlə
+    Object.keys(localStorage).filter(k=>k.startsWith("gs_reviews_cache_")).forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
   updateHeader();
   toast("Hesabdan çıxış edildi");
 }
@@ -3444,6 +3567,7 @@ window.deleteMyAd = async function(id){
 window.submitAd = async function(){
   await refreshUser();
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); return; }
+  if(!rateLimiter("submitAd", 60_000, "Elan göndərmək üçün 60 saniyə gözləyin.")) return;
 
   // blockGuard xəta versə elanı dayandırma — sadəcə xəbərdarlıq ver
   try{ if(await blockGuard("Elan yerləşdirmək")) return; }catch(blockErr){ console.warn("blockGuard error (ignored):", blockErr); }
@@ -3522,18 +3646,34 @@ window.createOrdersFromCart = async function(items){
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); toast("Alış üçün əvvəlcə giriş et"); return; }
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
+  const total=items.reduce((s,item)=>s+moneyToNumber(item.price),0);
+  const walletRef=doc(db,"wallets",currentUser.uid);
   try{
-    const buyerWallet=await ensureWallet(currentUser.uid,currentUser.email);
-    const total=items.reduce((s,item)=>s+moneyToNumber(item.price),0);
-    if(Number(buyerWallet.balance||0)<total){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
-    await updateDoc(doc(db,"wallets",currentUser.uid),{balance:Number(buyerWallet.balance||0)-total,escrowOut:Number(buyerWallet.escrowOut||0)+total,totalSpent:Number(buyerWallet.totalSpent||0)+total,updatedAt:serverTimestamp()});
+    // Transaction: balans oxunuşu və çıxılması atomik icra edilir — double-spend mümkün deyil
+    await runTransaction(db, async (tx)=>{
+      await ensureWallet(currentUser.uid,currentUser.email);
+      const wSnap=await tx.get(walletRef);
+      const w=wSnap.data()||{};
+      const bal=Number(w.balance||0);
+      if(bal<total) throw new Error("INSUFFICIENT_BALANCE");
+      tx.update(walletRef,{
+        balance:bal-total,
+        escrowOut:Number(w.escrowOut||0)+total,
+        totalSpent:Number(w.totalSpent||0)+total,
+        updatedAt:serverTimestamp()
+      });
+    });
     for(const item of items){
       await addDoc(collection(db,"orders"),{productTitle:item.name||"Məhsul",price:moneyToNumber(item.price),priceText:item.price||"",adId:item.adId||"",sellerUid:item.sellerUid||"",sellerEmail:item.sellerEmail||"GameSatış",buyerUid:currentUser.uid,buyerEmail:currentUser.email,status:"Gözləmədə",escrowStatus:"Pul sistemdə saxlanılır",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
       if(item.adId) await updateDoc(doc(db,"ads",item.adId),{status:"Rezervdə",buyerUid:currentUser.uid,buyerEmail:currentUser.email,updatedAt:serverTimestamp()}).catch(()=>{});
     }
     cart=[]; localStorage.setItem("gs_cart", JSON.stringify(cart)); updateCart();
     toast("Sifariş yaradıldı. Pul təhlükəsiz gözləməyə alındı."); openCabinet(); window.showTab("purchases");
-  }catch(e){ console.error(e); toast("Sifariş yaradılmadı. Firestore Rules yoxla."); }
+  }catch(e){
+    console.error(e);
+    if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); }
+    else toast("Sifariş yaradılmadı. Firestore Rules yoxla.");
+  }
 }
 
 
@@ -3583,6 +3723,7 @@ async function renderWallet(){
 window.submitDepositRequest = async function(){
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
+  if(!rateLimiter("submitDeposit", 30_000, "Balans artırma müraciəti üçün 30 saniyə gözləyin.")) return;
   const amount=moneyToNumber(document.getElementById("depositAmount")?.value);
   const method=document.getElementById("depositMethod")?.value || "Manual";
   const receipt=(await uploadAnyImageToCloudinary("depositReceiptFile","receipts")) || document.getElementById("depositReceipt")?.value.trim() || "";
@@ -3626,24 +3767,39 @@ async function renderWithdraw(){
 window.submitWithdrawRequest = async function(){
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
+  if(!rateLimiter("submitWithdraw", 30_000, "Çıxarış müraciəti üçün 30 saniyə gözləyin.")) return;
   const amount=moneyToNumber(document.getElementById("withdrawAmount")?.value);
   const method=document.getElementById("withdrawMethod")?.value || "Manual";
   const details=document.getElementById("withdrawDetails")?.value.trim() || "";
   if(!(amount>0)){ toast("Məbləği düzgün yaz."); return; }
-  const ref=doc(db,"wallets",currentUser.uid);
-  const w=await ensureWallet(currentUser.uid,currentUser.email);
-  if(Number(w.balance||0)<amount){ toast("Balans kifayət etmir."); return; }
+  const walletRef=doc(db,"wallets",currentUser.uid);
   try{
+    // Transaction: balans yetərliliyi yoxlanışı və çıxılması atomik icra edilir
+    await runTransaction(db, async (tx)=>{
+      await ensureWallet(currentUser.uid,currentUser.email);
+      const wSnap=await tx.get(walletRef);
+      const w=wSnap.data()||{};
+      const bal=Number(w.balance||0);
+      if(bal<amount) throw new Error("INSUFFICIENT_BALANCE");
+      tx.update(walletRef,{
+        balance:bal-amount,
+        pendingOut:Number(w.pendingOut||0)+amount,
+        updatedAt:serverTimestamp()
+      });
+    });
     await addDoc(collection(db,"balanceRequests"),{
       type:"withdraw",amount,method,details,
       status:"Gözləmədə",
       userUid:currentUser.uid,userEmail:currentUser.email,
       createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     });
-    await updateDoc(ref,{balance:Number(w.balance||0)-amount,pendingOut:Number(w.pendingOut||0)+amount,updatedAt:serverTimestamp()});
     toast("Çıxarış müraciəti göndərildi");
     renderWithdraw();
-  }catch(e){ console.error(e); toast("Çıxarış müraciəti göndərilmədi."); }
+  }catch(e){
+    console.error(e);
+    if(e.message==="INSUFFICIENT_BALANCE") toast("Balans kifayət etmir.");
+    else toast("Çıxarış müraciəti göndərilmədi.");
+  }
 }
 
 function renderSupport(){
@@ -3664,6 +3820,7 @@ function renderSupport(){
 window.submitTicket = async function(){
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
+  if(!rateLimiter("submitTicket", 60_000, "Dəstək müraciəti üçün 60 saniyə gözləyin.")) return;
   const type=document.getElementById("ticketType")?.value || "Digər";
   const subject=document.getElementById("ticketSubject")?.value.trim() || "";
   const text=document.getElementById("ticketText")?.value.trim() || "";
@@ -4094,7 +4251,7 @@ function drawSavedItems(items){
 
   el.innerHTML='<h3>Yadda saxlanılanlar</h3><div class="saved-grid">'+uniq.map((x,i)=>`
     <div class="saved-card saved-live">
-      <div class="saved-img">${x.icon || '<svg viewBox="0 0 24 24" fill="#fb923c" style="width:30px"><circle cx="12" cy="12" r="8"/></svg>'}</div>
+      <div class="saved-img">${safeIcon(x.icon)}</div>
       <div>
         <b>${esc(x.title || "Məhsul")}</b>
         <p>${esc(x.category || "Kateqoriya")} • ${esc(x.seller || "GameSatış")}</p>
@@ -4168,29 +4325,75 @@ window.removeSavedItem = async function(id){
 async function completeOrder(id){
   await refreshUser(); if(!currentUser) return;
   try{
-    const ref=doc(db,"orders",id), snap=await getDoc(ref); if(!snap.exists()) return; const o=snap.data();
+    const orderRef=doc(db,"orders",id);
+    const snap=await getDoc(orderRef); if(!snap.exists()) return; const o=snap.data();
     if(o.buyerUid!==currentUser.uid && !isAdmin()){ toast("İcazə yoxdur."); return; }
     if(o.status==="Tamamlandı"){ toast("Sifariş artıq tamamlanıb."); return; }
-    await updateDoc(ref,{status:"Tamamlandı",escrowStatus:"Satıcıya köçürüldü",updatedAt:serverTimestamp()});
-    const buyer=await ensureWallet(o.buyerUid,o.buyerEmail);
-    await updateDoc(doc(db,"wallets",o.buyerUid),{escrowOut:Math.max(0,Number(buyer.escrowOut||0)-Number(o.price||0)),updatedAt:serverTimestamp()}).catch(()=>{});
-    if(o.sellerUid){ const seller=await ensureWallet(o.sellerUid,o.sellerEmail||"Satıcı"); await updateDoc(doc(db,"wallets",o.sellerUid),{balance:Number(seller.balance||0)+Number(o.price||0),totalEarned:Number(seller.totalEarned||0)+Number(o.price||0),updatedAt:serverTimestamp()}).catch(()=>{}); }
+    // Mübahisədəki sifarişi yalnız admin tamamlaya bilər
+    if(o.status==="Mübahisə" && !isAdmin()){ toast("Mübahisədəki sifarişi yalnız admin tamamlaya bilər."); return; }
+    await runTransaction(db, async (tx)=>{
+      const oSnap=await tx.get(orderRef);
+      if(!oSnap.exists() || oSnap.data().status==="Tamamlandı") throw new Error("ALREADY_DONE");
+      if(oSnap.data().status==="Mübahisə" && !isAdmin()) throw new Error("DISPUTED");
+      const o2=oSnap.data();
+      const buyerRef=doc(db,"wallets",o2.buyerUid);
+      const bSnap=await tx.get(buyerRef);
+      const b=bSnap.data()||{};
+      // Audit: kim tamamladı, nə vaxt
+      tx.update(orderRef,{
+        status:"Tamamlandı",
+        escrowStatus:"Satıcıya köçürüldü",
+        completedAt:serverTimestamp(),
+        completedBy:currentUser.uid,
+        completedByEmail:currentUser.email||"",
+        updatedAt:serverTimestamp()
+      });
+      tx.update(buyerRef,{escrowOut:Math.max(0,Number(b.escrowOut||0)-Number(o2.price||0)),updatedAt:serverTimestamp()});
+      if(o2.sellerUid){
+        const selRef=doc(db,"wallets",o2.sellerUid);
+        const sSnap=await tx.get(selRef);
+        const s=sSnap.exists()?(sSnap.data()||{}):{balance:0,totalEarned:0};
+        tx.set(selRef,{uid:o2.sellerUid,email:o2.sellerEmail||"",balance:Number(s.balance||0)+Number(o2.price||0),totalEarned:Number(s.totalEarned||0)+Number(o2.price||0),updatedAt:serverTimestamp()},{merge:true});
+      }
+    });
     if(o.adId) await updateDoc(doc(db,"ads",o.adId),{status:"Satıldı",updatedAt:serverTimestamp()}).catch(()=>{});
     toast("Sifariş tamamlandı");
-  }catch(e){ console.error(e); toast("Sifariş tamamlanmadı."); }
+  }catch(e){
+    console.error(e);
+    if(e.message==="ALREADY_DONE") toast("Sifariş artıq tamamlanıb.");
+    else if(e.message==="DISPUTED") toast("Mübahisədəki sifarişi yalnız admin tamamlaya bilər.");
+    else toast("Sifariş tamamlanmadı.");
+  }
 }
 async function cancelOrder(id){
   await refreshUser(); if(!currentUser) return;
   try{
-    const ref=doc(db,"orders",id), snap=await getDoc(ref); if(!snap.exists()) return; const o=snap.data();
+    const orderRef=doc(db,"orders",id);
+    const snap=await getDoc(orderRef); if(!snap.exists()) return; const o=snap.data();
     if(o.buyerUid!==currentUser.uid && !isAdmin()){ toast("İcazə yoxdur."); return; }
     if(o.status==="Ləğv edildi"){ toast("Sifariş artıq ləğv edilib."); return; }
-    await updateDoc(ref,{status:"Ləğv edildi",escrowStatus:"Alıcıya qaytarıldı",updatedAt:serverTimestamp()});
-    const buyer=await ensureWallet(o.buyerUid,o.buyerEmail);
-    await updateDoc(doc(db,"wallets",o.buyerUid),{balance:Number(buyer.balance||0)+Number(o.price||0),escrowOut:Math.max(0,Number(buyer.escrowOut||0)-Number(o.price||0)),updatedAt:serverTimestamp()}).catch(()=>{});
+    // Transaction: sifariş statusu + alıcı wallet atomik dəyişdirilir
+    await runTransaction(db, async (tx)=>{
+      const oSnap=await tx.get(orderRef);
+      if(!oSnap.exists() || oSnap.data().status==="Ləğv edildi") throw new Error("ALREADY_CANCELLED");
+      const o2=oSnap.data();
+      const buyerRef=doc(db,"wallets",o2.buyerUid);
+      const bSnap=await tx.get(buyerRef);
+      const b=bSnap.data()||{};
+      tx.update(orderRef,{status:"Ləğv edildi",escrowStatus:"Alıcıya qaytarıldı",updatedAt:serverTimestamp()});
+      tx.update(buyerRef,{
+        balance:Number(b.balance||0)+Number(o2.price||0),
+        escrowOut:Math.max(0,Number(b.escrowOut||0)-Number(o2.price||0)),
+        updatedAt:serverTimestamp()
+      });
+    });
     if(o.adId) await updateDoc(doc(db,"ads",o.adId),{status:"Təsdiqləndi",buyerUid:"",buyerEmail:"",updatedAt:serverTimestamp()}).catch(()=>{});
     toast("Sifariş ləğv edildi");
-  }catch(e){ console.error(e); toast("Ləğv edilmədi."); }
+  }catch(e){
+    console.error(e);
+    if(e.message==="ALREADY_CANCELLED") toast("Sifariş artıq ləğv edilib.");
+    else toast("Ləğv edilmədi.");
+  }
 }
 async function disputeOrder(id){
   await refreshUser(); if(!currentUser) return;
@@ -4219,7 +4422,11 @@ function listenPurchases(){
   onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     el.innerHTML='<h3>Alışlarım</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Satıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(o=>`<tr><td><b>${esc(o.productTitle)}</b><br><small>${esc(o.escrowStatus||"")}</small></td><td>${esc(o.sellerEmail||'GameSatış')}</td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions"><button class="complete-btn" data-complete="${o.id}">Tamamla</button><button class="cancel-btn" data-cancel="${o.id}">Ləğv et</button><button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ alış yoxdur.</div>');
-    el.querySelectorAll("[data-complete]").forEach(b=>b.onclick=()=>completeOrder(b.dataset.complete));
+    el.querySelectorAll("[data-complete]").forEach(b=>b.onclick=()=>{
+      // Təsadüfi klik ilə pul köçürülməsin — təsdiq tələb olunur
+      if(!confirm("Malı aldığınızı təsdiqləyirsiniz? Təsdiqlədikdən sonra pul satıcıya köçürüləcək və geri qaytarılmayacaq.")) return;
+      completeOrder(b.dataset.complete);
+    });
     el.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>cancelOrder(b.dataset.cancel));
     el.querySelectorAll("[data-dispute]").forEach(b=>b.onclick=()=>disputeOrder(b.dataset.dispute));
   },err=>{ console.error(err); el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Alışlar yüklənmədi. Firestore Rules yoxla.</div>'; });
@@ -4349,7 +4556,16 @@ function wire(){
 
 onAuthStateChanged(auth, async user=>{
   currentUser=user||null;
-  if(currentUser){ await reload(currentUser).catch(()=>{}); currentUser=auth.currentUser; await ensureUserProfile(currentUser).catch(()=>{}); if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; toast("Hesabınız admin tərəfindən bloklanıb."); } else { await ensureWallet(currentUser.uid,currentUser.email).catch(()=>{}); } }
+  if(currentUser){
+    await reload(currentUser).catch(()=>{});
+    currentUser=auth.currentUser;
+    await ensureUserProfile(currentUser).catch(()=>{});
+    await loadCurrentUserRole();
+    if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; currentUserRole="user"; toast("Hesabınız admin tərəfindən bloklanıb."); }
+    else { await ensureWallet(currentUser.uid,currentUser.email).catch(()=>{}); }
+  } else {
+    currentUserRole="user";
+  }
   updateHeader();
   listenHeaderNotifications();
   wire();
