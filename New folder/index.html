@@ -7,7 +7,28 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#050607">
-<title>GameSatış Azərbaycan - Professional Demo</title>
+<title>GameSatış Azərbaycan - Oyun Hesabı, Skin və Balans Alışı</title>
+
+<!-- SEO -->
+<meta name="description" content="Azərbaycanda ən etibarlı oyun marketplace-i. PUBG Mobile, Valorant, Free Fire hesab, skin, oyun pulu, gift card alıb-satın. Təhlükəsiz ödəniş, sürətli çatdırılma.">
+<meta name="keywords" content="oyun hesabı al, game hesabı satış, pubg hesab, valorant hesab, free fire hesab, skin satışı, gift card, azerbaijan gaming marketplace, hesab satışı">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://hesabim.pages.dev/">
+
+<!-- Open Graph (Facebook, WhatsApp, Telegram) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hesabim.pages.dev/">
+<meta property="og:title" content="GameSatış Azərbaycan - Oyun Hesabı, Skin və Balans Alışı">
+<meta property="og:description" content="Azərbaycanda ən etibarlı oyun marketplace-i. PUBG, Valorant, Free Fire hesab, skin, gift card — Təhlükəsiz alış-veriş.">
+<meta property="og:image" content="https://hesabim.pages.dev/og-image.png">
+<meta property="og:locale" content="az_AZ">
+<meta property="og:site_name" content="GameSatış Azərbaycan">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GameSatış Azərbaycan - Oyun Hesabı Satışı">
+<meta name="twitter:description" content="PUBG, Valorant, Free Fire hesab, skin, gift card — Azərbaycanda etibarlı oyun marketplace.">
+<meta name="twitter:image" content="https://hesabim.pages.dev/og-image.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
@@ -1261,20 +1282,42 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 }
 </style>
 
+<style>
+/* ===== YENİ FUNKSİYALAR CSS ===== */
+.seller-profile-header{display:flex;align-items:center;gap:16px;padding:20px;background:#0d1117;border-radius:12px;margin-bottom:16px}
+.seller-profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#fb923c,#f97316);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+.seller-profile-info h2{margin:0 0 4px;font-size:18px}
+.seller-profile-info .meta{font-size:13px;color:#64748b;display:flex;gap:12px;flex-wrap:wrap}
+.seller-profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.sp-stat{background:#0d1117;border:1px solid #1e2d45;border-radius:10px;padding:12px;text-align:center}
+.sp-stat b{display:block;font-size:20px;color:#fb923c}
+.sp-stat span{font-size:11px;color:#64748b}
+.seller-ads-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+.seller-ad-card{background:#0d1117;border:1px solid #1e2d45;border-radius:10px;padding:10px;cursor:pointer;transition:.2s}
+.seller-ad-card:hover{border-color:#fb923c}
+.seller-ad-card .ad-price{color:#fb923c;font-weight:700;font-size:15px}
+.report-btn{background:none;border:1px solid #334155;color:#64748b;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;transition:.2s}
+.report-btn:hover{border-color:#ef4444;color:#ef4444}
+.coupon-row{display:flex;gap:8px;margin-bottom:12px}
+.coupon-row input{flex:1}
+.coupon-row button{white-space:nowrap;padding:0 14px;background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s}
+.coupon-row button:hover{background:#2a3d5a}
+.coupon-applied{background:#0f2d1a;border:1px solid #22c55e;border-radius:8px;padding:8px 12px;font-size:13px;color:#22c55e;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.coupon-applied button{background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0}
+.admin-coupon-list{margin-top:12px}
+.admin-coupon-item{display:flex;justify-content:space-between;align-items:center;background:#0d1117;border:1px solid #1e2d45;border-radius:8px;padding:10px 14px;margin-bottom:6px;font-size:13px}
+.admin-coupon-item .code{font-weight:700;color:#fb923c;font-family:monospace;font-size:15px}
+.seller-name-link{cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:.2s}
+.seller-name-link:hover{text-decoration-color:#fb923c;color:#fb923c}
+.pagination-hidden{display:none!important}
+</style>
+
 </head>
 <body>
 
 <header class="header">
   <div class="shell">
-    <button class="logo" onclick="goHome(event)">
-      <svg viewBox="0 0 190 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19.1 0h-8.2L0 23.3l10.9 22.4h8.2l-8.2-22.4L19.1 0z" fill="#FF6A00"/>
-        <path d="M30.4 0h-8.2L11.3 23.3l10.9 22.4h8.2l-8.2-22.4L30.4 0z" fill="#FFF"/>
-        <path d="M52.4 14.3h-9.7v4.6h8.4v6.2h-8.4v5.1h10.2v6.4H36V7.7h16.4v6.6zM68.5 28.1l-1.9-5.9h-4.8v5.9h-6.7V7.7h11.9c4.2 0 6.9 2.1 6.9 5.8 0 2.6-1.4 4.5-3.8 5.2l2.9 9.4h-4.5zm-6.7-11.4v2.9h4.7c1.3 0 2-.6 2-1.4 0-.9-.7-1.5-2-1.5h-4.7zM92.3 28.1h-6.7V14.6l-4.1 8.9h-3.4l-4.1-8.9v13.5h-6.7V7.7h7.2l5.3 11.2 5.3-11.2h7.2v20.4zM109.1 28.1l-1.4-4.3h-6.4l-1.4 4.3h-7.1L101 7.7h7.6l8.3 20.4h-7.8zm-4.6-14 l-2.1 6.4h4.2l-2.1-6.4z" fill="#FFF"/>
-        <path d="M127.3 12.8c-1.8-1.1-4-1.7-6.2-1.7-3 0-4.6 1.3-4.6 3.1 0 5.2 14.8 3.3 14.8 13.5 0 6.4-5.3 8.9-12.2 8.9-3.8 0-7.3-1-9.9-2.7l2.4-5.4c2.2 1.5 5 2.4 7.5 2.4 3.4 0 5.1-1.3 5.1-3.4 0-5.6-14.8-3.4-14.8-13.4 0-5.8 4.9-8.7 11.6-8.7 3.3 0 6.4.8 8.7 2.1l-2.4 5.3z" fill="#FF6A00"/>
-        <path d="M147.2 12.9h-5.8v15.2h-6.7V12.9h-5.8V7.7h18.3v5.2zM159.2 28.1h-6.7V7.7h6.7v20.4zM178.6 12.8c-1.8-1.1-4-1.7-6.2-1.7-3 0-4.6 1.3-4.6 3.1 0 5.2 14.8 3.3 14.8 13.5 0 6.4-5.3 8.9-12.2 8.9-3.8 0-7.3-1-9.9-2.7l2.4-5.4c2.2 1.5 5 2.4 7.5 2.4 3.4 0 5.1-1.3 5.1-3.4 0-5.6-14.8-3.4-14.8-13.4 0-5.8 4.9-8.7 11.6-8.7 3.3 0 6.4.8 8.7 2.1l-2.4 5.3z" fill="#FF6A00"/>
-      </svg>
-    </button>
+    <button class="logo" onclick="goHome(event)"><img src="data:image/webp;base64,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" alt="Hesablar.net" style="height:64px;width:auto;object-fit:contain;display:block"></button>
     <form class="search" onsubmit="event.preventDefault();filterCards()">
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <select id="searchCategory" onchange="syncSearchCategory()">
@@ -1298,6 +1341,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
     <div class="actions">
       <button id="cabinetBtn" class="hbtn" type="button" style="display:none">Şəxsi kabinet</button>
       <button id="notifyBtn" class="notify-btn" type="button" title="Bildirişlər" onclick="openNotifications()">🔔<b id="notifyBadge" style="display:none">0</b></button>
+      <button id="notifyPermBtn" class="notify-btn" type="button" title="Push bildirişləri aktiv et" onclick="requestNotificationPermission()" style="display:none;font-size:16px">🔕</button>
       <button id="themeToggleBtn" class="theme-toggle" type="button" title="Light / Dark mode" onclick="toggleTheme()">🌙</button>
       <button id="loginBtn" class="hbtn" type="button">Giriş et</button>
       <button id="registerBtn" class="hbtn orange" type="button">Qeydiyyat</button>
@@ -1417,6 +1461,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
         <button class="tab" onclick="filterCategory('Oyun Konsolu')">Oyun Konsolu</button>
       </div>
       <div class="ads" id="ads"></div>
+      <div id="pagination" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 0;flex-wrap:wrap"></div>
     </section>
   </div>
 
@@ -1530,6 +1575,11 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
   <h3 style="margin:0 0 8px">Səbət</h3>
   <div id="cartItems"></div>
   <div class="cart-total"><span>Cəmi</span><span id="cartTotal">0.00 ₼</span></div>
+  <div id="couponStatus"></div>
+  <div class="coupon-row">
+    <input id="couponInput" placeholder="Kupon kodu" style="text-transform:uppercase" maxlength="20">
+    <button onclick="applyCoupon()">Tətbiq et</button>
+  </div>
   <button class="fullbtn" onclick="checkoutCart()">Sifarişi Tamamla (WhatsApp)</button>
 </div>
 
@@ -1806,6 +1856,13 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
             <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;flex:none;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
             WhatsApp
           </a>
+          <button class="pd-action-btn" type="button" id="pdSellerProfile" onclick="openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Satıcı profili
+          </button>
+          <button class="report-btn" type="button" id="pdReport" onclick="openReportModal('ad',currentDetailProduct?.adId||'',currentDetailProduct?.title||'Elan')" style="margin-top:6px;font-size:12px">
+            ⚑ Elanı şikayət et
+          </button>
         </div>
       </div>
     </div>
@@ -1855,6 +1912,55 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ===== SATICI PROFİL MODALI ===== -->
+<div class="modal" id="sellerProfileModal">
+  <div class="modal-box" style="max-width:560px;max-height:85vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeModal('sellerProfileModal')">✕</button>
+    <div id="sellerProfileContent"><div style="text-align:center;padding:40px;color:#64748b">Yüklənir...</div></div>
+  </div>
+</div>
+
+<!-- ===== ŞİKAYƏT MODALI ===== -->
+<div class="modal" id="reportModal">
+  <div class="modal-box" style="max-width:420px">
+    <button class="modal-close" onclick="closeModal('reportModal')">✕</button>
+    <h3 style="margin-bottom:16px">Şikayət göndər</h3>
+    <input type="hidden" id="reportTargetId">
+    <input type="hidden" id="reportTargetType">
+    <input type="hidden" id="reportTargetTitle">
+    <div style="margin-bottom:12px">
+      <label style="display:block;margin-bottom:6px;font-size:13px;color:#94a3b8">Şikayət səbəbi</label>
+      <select id="reportReason" style="width:100%;padding:10px;background:#0d1117;border:1px solid #1e2d45;border-radius:8px;color:#e2e8f0;font-size:14px">
+        <option>Saxta/aldadıcı elan</option>
+        <option>Spam</option>
+        <option>Uyğunsuz məzmun</option>
+        <option>Yanlış qiymət</option>
+        <option>Digər</option>
+      </select>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="display:block;margin-bottom:6px;font-size:13px;color:#94a3b8">Ətraflı (isteğe bağlı)</label>
+      <textarea id="reportDesc" maxlength="300" placeholder="Problemi qısa izah edin..." style="width:100%;padding:10px;background:#0d1117;border:1px solid #1e2d45;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;min-height:80px;box-sizing:border-box"></textarea>
+    </div>
+    <button class="fullbtn" type="button" onclick="submitReport()">Şikayəti göndər</button>
+  </div>
+</div>
+
+<!-- ===== KUPON MODALI (admin yaradır) ===== -->
+<div class="modal" id="createCouponModal">
+  <div class="modal-box" style="max-width:400px">
+    <button class="modal-close" onclick="closeModal('createCouponModal')">✕</button>
+    <h3 style="margin-bottom:16px">Yeni kupon yarat</h3>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <input id="couponCode" placeholder="Kupon kodu (məs: YENI10)" style="text-transform:uppercase">
+      <input id="couponDiscount" type="number" min="1" max="100" placeholder="Endirim % (1-100)">
+      <input id="couponMaxUses" type="number" min="1" placeholder="Maksimum istifadə sayı">
+      <input id="couponExpiry" type="date" placeholder="Son istifadə tarixi">
+      <button class="fullbtn" type="button" onclick="createCoupon()">Kuponu yarat</button>
+    </div>
+  </div>
+</div>
 
 <script>
 let cart = JSON.parse(localStorage.getItem("gs_cart") || "[]");
@@ -2301,7 +2407,7 @@ window.renderMarketAds = function renderMarketAds(){
           + '</div>'
           + tagsHtml
           + '<div class="ad-views">&#128065; '+formatViewsCount(a.views)+' baxış</div>'
-          + '<div class="user">'+a.seller+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
+          + '<div class="user"><span class="seller-name-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+a.seller+'</span>'+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
         + '</div>'
         + '</button>';
     } catch(e) {
@@ -2310,7 +2416,7 @@ window.renderMarketAds = function renderMarketAds(){
     }
   }).join("");
 
-  filterCategory(currentCategory);
+  paginateVisible();
 }
 
 function setSort(value){
@@ -2323,6 +2429,22 @@ let currentDetailProduct = null;
 function openProductDetail(p){
   currentDetailProduct = p || {};
   window.currentDetailProduct = currentDetailProduct;
+
+  // Dinamik SEO — məhsul açılanda meta tagları yenilə
+  try{
+    const _t = currentDetailProduct.title || "GameSatış Azərbaycan";
+    const _d = (currentDetailProduct.desc||"").slice(0,155) || "Azərbaycanda etibarlı oyun marketplace-i.";
+    const _img = currentDetailProduct.imageUrl || "https://hesabim.pages.dev/og-image.png";
+    document.title = _t + " | GameSatış Azərbaycan";
+    const setMeta = (sel, val) => { const el = document.querySelector(sel); if(el) el.setAttribute("content", val); };
+    setMeta('meta[name="description"]', _d);
+    setMeta('meta[property="og:title"]', _t);
+    setMeta('meta[property="og:description"]', _d);
+    setMeta('meta[property="og:image"]', _img);
+    setMeta('meta[name="twitter:title"]', _t);
+    setMeta('meta[name="twitter:description"]', _d);
+  }catch(e){}
+
   const modal=document.getElementById("productModal");
   if(!modal) return;
   document.getElementById("pdTitle").textContent = currentDetailProduct.title || "Məhsul";
@@ -2514,6 +2636,7 @@ function filterByText(text){
 
 function filterCategory(cat){
   currentCategory=cat;
+  currentPage=1;
   
   const selectSearch = document.getElementById("searchCategory");
   if(selectSearch && selectSearch.value !== cat) {
@@ -2526,6 +2649,7 @@ function filterCategory(cat){
 
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.innerText.trim()===cat || (cat==="Hamısı" && t.innerText.trim()==="Hamısı")));
   
+  // Orijinal kateqoriya filtri — is-hidden ilə
   document.querySelectorAll(".searchable").forEach(el=>{
     if(cat === "Hamısı" || el.dataset.category === cat || el.getAttribute('data-category') === cat){
       el.classList.remove("is-hidden");
@@ -2533,7 +2657,81 @@ function filterCategory(cat){
       el.classList.add("is-hidden");
     }
   });
+
+  // Kateqoriya dəyişdikdən sonra pagination tətbiq et
+  paginateVisible();
 }
+
+// ===== PAGİNATİON (ayrı mexanizm — pagination-hidden class) =====
+const ADS_PER_PAGE = 12;
+let currentPage = 1;
+
+function paginateVisible(){
+  // Yalnız #ads içindəki, is-hidden olmayan elanları al
+  const allAds = Array.from(document.querySelectorAll("#ads button.ad"));
+  const visible = allAds.filter(el => !el.classList.contains("is-hidden"));
+
+  const totalPages = Math.ceil(visible.length / ADS_PER_PAGE);
+  if(currentPage > totalPages) currentPage = Math.max(1, totalPages);
+  const start = (currentPage-1) * ADS_PER_PAGE;
+  const end = start + ADS_PER_PAGE;
+
+  // pagination-hidden ilə yalnız page dışındakıları gizlə
+  allAds.forEach(el=>{
+    el.classList.remove("pagination-hidden");
+  });
+  visible.forEach((el, idx)=>{
+    if(idx < start || idx >= end){
+      el.classList.add("pagination-hidden");
+    }
+  });
+
+  renderPagination(totalPages);
+}
+
+function applyPaginationAndFilter(){
+  // Kateqoriya filtrini tətbiq et
+  document.querySelectorAll("#ads button.ad").forEach(el=>{
+    const match = currentCategory==="Hamısı" || el.dataset.category===currentCategory || el.getAttribute("data-category")===currentCategory;
+    if(match){ el.classList.remove("is-hidden"); }
+    else { el.classList.add("is-hidden"); }
+  });
+  paginateVisible();
+}
+
+function renderPagination(totalPages){
+  const el = document.getElementById("pagination");
+  if(!el) return;
+  if(totalPages <= 1){ el.innerHTML=""; return; }
+
+  let html = "";
+  const btnStyle = "padding:8px 14px;border-radius:8px;border:1px solid #1e2d45;background:#0d1117;color:#e2e8f0;cursor:pointer;font-size:13px;transition:.2s";
+  const activeStyle = "padding:8px 14px;border-radius:8px;border:1px solid #fb923c;background:#fb923c;color:#fff;cursor:pointer;font-size:13px;font-weight:700";
+
+  html += `<button style="${currentPage===1?'opacity:.4;'+btnStyle:btnStyle}" onclick="goToPage(${currentPage-1})" ${currentPage===1?"disabled":""}>‹</button>`;
+
+  for(let i=1; i<=totalPages; i++){
+    if(i===1 || i===totalPages || (i>=currentPage-2 && i<=currentPage+2)){
+      html += `<button style="${i===currentPage?activeStyle:btnStyle}" onclick="goToPage(${i})">${i}</button>`;
+    } else if(i===currentPage-3 || i===currentPage+3){
+      html += `<span style="color:#475569">...</span>`;
+    }
+  }
+
+  html += `<button style="${currentPage===totalPages?'opacity:.4;'+btnStyle:btnStyle}" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?"disabled":""}>›</button>`;
+  html += `<span style="font-size:12px;color:#475569">${currentPage}/${totalPages} səhifə</span>`;
+  el.innerHTML = html;
+}
+
+window.goToPage = function(page){
+  const allAds = Array.from(document.querySelectorAll("#ads button.ad"));
+  const visible = allAds.filter(el => !el.classList.contains("is-hidden"));
+  const totalPages = Math.ceil(visible.length / ADS_PER_PAGE);
+  if(page < 1 || page > totalPages) return;
+  currentPage = page;
+  paginateVisible();
+  document.getElementById("ads")?.scrollIntoView({behavior:"smooth", block:"start"});
+};
 
 function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
   cart.push({name, price, adId, sellerUid, sellerEmail});
@@ -2561,7 +2759,13 @@ function updateCart(){
       </div>`).join("");
   }
   const sum=cart.reduce((a,b)=>a+moneyToNumber(b.price),0);
-  total.textContent=sum.toFixed(2)+" ₼";
+  const discount = window.getCouponDiscount ? window.getCouponDiscount(sum) : 0;
+  const finalSum = Math.max(0, sum - discount);
+  if(discount > 0){
+    total.innerHTML = `<span style="text-decoration:line-through;color:#64748b;font-size:13px">${sum.toFixed(2)} ₼</span> ${finalSum.toFixed(2)} ₼ <span style="color:#22c55e;font-size:12px">(-${discount.toFixed(2)} ₼)</span>`;
+  } else {
+    total.textContent = sum.toFixed(2) + " ₼";
+  }
 }
 
 function removeCart(i){
@@ -2905,6 +3109,7 @@ function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg)
 function authStatus(msg){ const e=document.getElementById("authStatus"); if(e) e.textContent=msg||""; }
 function validEmail(email){ return /^\S+@\S+\.\S+$/.test(email); }
 function esc(v){ return String(v||"").replace(/[<>&"]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[s])); }
+window.esc = esc; // non-module script-lər üçün export
 // XSS qoruması: icon sahəsi Firestore-dan gəlir, raw HTML kimi render edilir.
 // Yalnız Cloudinary img teqləri və SVG-lər icazəlidir, başqa hər şey fallback ilə əvəzlənir.
 const _SAFE_ICON_FALLBACK = '<svg viewBox="0 0 24 24" fill="#fb923c" style="width:30px"><circle cx="12" cy="12" r="8"/></svg>';
@@ -3216,15 +3421,23 @@ function updateHeader(){
   const cabinet=document.getElementById("cabinetBtn");
   const login=document.getElementById("loginBtn");
   const register=document.getElementById("registerBtn");
+  const notifyPerm=document.getElementById("notifyPermBtn");
 
   if(currentUser && currentUser.emailVerified){
     if(cabinet) cabinet.style.display="inline-flex";
     if(login) login.textContent=currentUser.email.split("@")[0];
     if(register) register.textContent="Çıxış";
+    // Push bildiriş düyməsi: icazə verilməyibsə göstər
+    if(notifyPerm && "Notification" in window){
+      notifyPerm.style.display = Notification.permission === "granted" ? "none" : "";
+      notifyPerm.title = Notification.permission === "granted" ? "Bildirişlər aktivdir" : "Push bildirişləri aktiv et";
+      notifyPerm.textContent = Notification.permission === "granted" ? "🔔" : "🔕";
+    }
   }else{
     if(cabinet) cabinet.style.display="none";
     if(login) login.textContent="Giriş et";
     if(register) register.textContent="Qeydiyyat";
+    if(notifyPerm) notifyPerm.style.display="none";
   }
 }
 
@@ -3888,6 +4101,71 @@ window.openNotifications=function(){
   document.getElementById("cabinetModal")?.classList.add("show");
   if(typeof window.showTab==="function") window.showTab("messages");
 };
+
+// ============================================================
+// PUSH BİLDİRİŞLƏR — Notifications API
+// ============================================================
+// FCM token saxlamaq üçün (tam push notification Firebase Functions tələb edir)
+// Bu hissə: icazə almaq + local bildiriş + FCM token Firestore-a yazmaq
+
+window.requestNotificationPermission = async function(){
+  if(!("Notification" in window)){ toast("Bu brauzer bildirişləri dəstəkləmir."); return; }
+  if(!currentUser){ openModal("loginModal"); return; }
+  try{
+    const permission = await Notification.requestPermission();
+    if(permission === "granted"){
+      toast("✓ Bildirişlər aktiv edildi!");
+      await saveNotificationToken();
+    } else {
+      toast("Bildiriş icazəsi verilmədi.");
+    }
+  }catch(e){ console.warn("Notification permission:", e); }
+};
+
+async function saveNotificationToken(){
+  if(!currentUser) return;
+  try{
+    // FCM token almaq üçün Firebase Messaging SDK lazımdır
+    // Hazırda: istifadəçi notification icazəsini qeyd edirik
+    await setDoc(doc(db,"users",currentUser.uid),{
+      notificationsEnabled: true,
+      notificationUpdatedAt: serverTimestamp()
+    },{merge:true});
+  }catch(e){ console.warn("Token save:", e); }
+}
+
+// Local bildiriş göstər (sayt açıq olanda)
+function showLocalNotification(title, body, icon){
+  if(Notification.permission !== "granted") return;
+  try{
+    new Notification(title, {
+      body: body || "",
+      icon: icon || "https://res.cloudinary.com/dtipzh3lx/image/upload/v1/icon.png",
+      badge: "https://res.cloudinary.com/dtipzh3lx/image/upload/v1/icon.png",
+      tag: "gamesatis-" + Date.now()
+    });
+  }catch(e){ console.warn("Local notification:", e); }
+}
+window.showLocalNotification = showLocalNotification;
+
+// Yeni mesaj gəldikdə bildiriş göstər
+function notifyNewMessage(chatTitle, messageText){
+  if(document.hasFocus()) return; // Sayt aktiv olarsa bildiriş göstərmə
+  showLocalNotification(
+    "📩 Yeni mesaj — " + (chatTitle||"GameSatış"),
+    messageText || "Yeni mesajınız var",
+  );
+}
+window.notifyNewMessage = notifyNewMessage;
+
+// Yeni sifariş gəldikdə bildiriş göstər
+function notifyNewOrder(productTitle, buyerEmail){
+  showLocalNotification(
+    "🛒 Yeni sifariş!",
+    (productTitle||"Məhsulunuz") + " üçün sifariş gəldi" + (buyerEmail ? " — " + buyerEmail : "")
+  );
+}
+window.notifyNewOrder = notifyNewOrder;
 function chatProductKey(p){
   const raw=String((p&&(p.adId||p.id||p.title))||"product");
   return raw.toLowerCase().replace(/[^a-z0-9\u0259\u0131\u00f6\u00fc\u011f\u015f\u00e7]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,90)||"product";
@@ -4042,7 +4320,13 @@ function adminShell(){
   <div id="adminOrders" class="admin-section"></div>
   <div id="adminChats" class="admin-section"></div>
   <div id="adminTickets" class="admin-section"></div>
-  <div id="adminUsers" class="admin-section"></div>`;
+  <div id="adminUsers" class="admin-section"></div>
+  <div id="adminReports" class="admin-section"></div>
+  <div id="adminCouponsSection" class="admin-section">
+    <h3>Kupon idarəsi</h3>
+    <button class="fullbtn" style="max-width:220px;margin-bottom:12px" onclick="openModal('createCouponModal')">+ Yeni kupon yarat</button>
+    <div id="adminCoupons"></div>
+  </div>`;
 }
 async function _fetchBalanceAdmin(){
   const el=document.getElementById("adminBalanceRequests"); if(!el||!isAdmin()) return;
@@ -4440,6 +4724,8 @@ function listenAdmin(){
   listenChatsAdmin();
   listenTicketsAdmin();
   listenUsersAdmin();
+  listenReportsAdmin();
+  listenCouponsAdmin();
 }
 
 
@@ -4569,6 +4855,272 @@ document.addEventListener("DOMContentLoaded",()=>{
   listenSellerStats();
   listenSellerOnlineStatuses();
 });
+
+// ============================================================
+// 1. SATICI İCTİMAİ PROFİL
+// ============================================================
+window.openSellerProfile = async function(sellerUid, sellerEmail){
+  if(!sellerUid && !sellerEmail){ toast("Satıcı məlumatı tapılmadı."); return; }
+  openModal("sellerProfileModal");
+  const el = document.getElementById("sellerProfileContent");
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b">Yüklənir...</div>';
+  try{
+    // Satıcı profilini yüklə
+    let profile = {};
+    if(sellerUid){
+      const uSnap = await getDoc(doc(db,"users",sellerUid)).catch(()=>null);
+      if(uSnap && uSnap.exists()) profile = uSnap.data();
+    }
+    const displayName = profile.fullName || profile.name || (sellerEmail||"").split("@")[0] || "Satıcı";
+    const initial = displayName.charAt(0).toUpperCase();
+    const joinDate = profile.createdAt ? new Date(profile.createdAt.seconds*1000).toLocaleDateString("az-AZ",{year:"numeric",month:"long"}) : "";
+    const isVerified = !!profile.sellerVerified;
+
+    // Satıcının aktiv elanlarını yüklə
+    const adsQ = sellerUid
+      ? query(collection(db,"ads"), where("sellerUid","==",sellerUid), where("status","==","Təsdiqləndi"))
+      : query(collection(db,"ads"), where("sellerEmail","==",sellerEmail), where("status","==","Təsdiqləndi"));
+    const adsSnap = await getDocs(adsQ).catch(()=>null);
+    const ads = [];
+    if(adsSnap) adsSnap.forEach(d=>ads.push({id:d.id,...d.data()}));
+
+    // Satış sayını tap
+    const salesKey = sellerEmail || "";
+    const salesCache = JSON.parse(localStorage.getItem("gs_seller_sales_counts")||"{}");
+    const salesCount = salesCache[salesKey] || 0;
+
+    // Rəyləri yüklə (bu satıcının aldığı rəylər)
+    let avgRating = 0, reviewCount = 0;
+    if(sellerUid){
+      const revQ = query(collection(db,"reviews"), where("sellerUid","==",sellerUid));
+      const revSnap = await getDocs(revQ).catch(()=>null);
+      if(revSnap && !revSnap.empty){
+        let total = 0;
+        revSnap.forEach(d=>{ total += (d.data().rating||5); reviewCount++; });
+        avgRating = (total/reviewCount).toFixed(1);
+      }
+    }
+
+    const adsHtml = ads.length ? `
+      <h4 style="margin:0 0 10px;color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:.05em">Aktiv elanlar (${ads.length})</h4>
+      <div class="seller-ads-grid">
+        ${ads.slice(0,6).map((a,i)=>{
+          // window.__spAds-a saxlayırıq, onclick-də yalnız index işlədirik
+          if(!window.__spAds) window.__spAds = {};
+          window.__spAds[a.id||i] = {title:a.title||"", price:a.priceText||(String(a.price||"")+" ₼"), desc:a.desc||"", seller:displayName, sellerUid:a.sellerUid||"", sellerEmail:a.sellerEmail||"", adId:a.id||"", views:a.views||0, icon:""};
+          return `<div class="seller-ad-card" onclick="closeModal('sellerProfileModal');openProductDetail(window.__spAds['${esc(a.id||String(i))}'])">
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">${esc(a.title||"Elan")}</div>
+            <div class="ad-price">${esc(a.priceText||String(a.price||"")+" ₼")}</div>
+          </div>`;
+        }).join("")}
+      </div>` : '<p style="color:#64748b;font-size:13px">Bu satıcının aktiv elanı yoxdur.</p>';
+
+    el.innerHTML = `
+      <div class="seller-profile-header">
+        <div class="seller-profile-avatar">${esc(initial)}</div>
+        <div class="seller-profile-info">
+          <h2>${esc(displayName)} ${isVerified ? '<span style="color:#22c55e;font-size:13px">✔ Təsdiqlənmiş</span>' : ''}</h2>
+          <div class="meta">
+            ${joinDate ? `<span>📅 ${esc(joinDate)}</span>` : ""}
+            ${reviewCount ? `<span>⭐ ${avgRating} (${reviewCount} rəy)</span>` : ""}
+          </div>
+        </div>
+      </div>
+      <div class="seller-profile-stats">
+        <div class="sp-stat"><b>${ads.length}</b><span>Aktiv elan</span></div>
+        <div class="sp-stat"><b>${salesCount}</b><span>Tamamlanan satış</span></div>
+        <div class="sp-stat"><b>${avgRating||"—"}</b><span>Orta reytinq</span></div>
+      </div>
+      ${adsHtml}
+      <button class="report-btn" style="margin-top:4px" onclick="openReportModal('seller','${esc(sellerUid||sellerEmail||"")}','${esc(displayName)}')">⚑ Satıcını şikayət et</button>
+    `;
+  }catch(e){
+    console.error(e);
+    el.innerHTML = '<p style="color:#ef4444;padding:20px">Profil yüklənmədi.</p>';
+  }
+};
+
+// ============================================================
+// 2. ŞİKAYƏT / REPORT SİSTEMİ
+// ============================================================
+window.openReportModal = function(type, targetId, targetTitle){
+  if(!currentUser){ openModal("loginModal"); toast("Şikayət etmək üçün giriş et."); return; }
+  document.getElementById("reportTargetId").value = targetId || "";
+  document.getElementById("reportTargetType").value = type || "ad";
+  document.getElementById("reportTargetTitle").value = targetTitle || "";
+  document.getElementById("reportDesc").value = "";
+  openModal("reportModal");
+};
+
+window.submitReport = async function(){
+  if(!currentUser){ openModal("loginModal"); return; }
+  if(!rateLimiter("submitReport", 60_000, "Şikayət üçün 60 saniyə gözləyin.")) return;
+  const targetId = document.getElementById("reportTargetId").value;
+  const targetType = document.getElementById("reportTargetType").value;
+  const targetTitle = document.getElementById("reportTargetTitle").value;
+  const reason = document.getElementById("reportReason").value;
+  const desc = document.getElementById("reportDesc").value.trim();
+  if(!targetId){ toast("Hədəf məlumatı tapılmadı."); return; }
+  try{
+    await addDoc(collection(db,"reports"),{
+      targetId, targetType, targetTitle: targetTitle||"",
+      reason, desc,
+      reporterUid: currentUser.uid,
+      reporterEmail: currentUser.email||"",
+      status: "Baxılmadı",
+      createdAt: serverTimestamp()
+    });
+    closeModal("reportModal");
+    toast("Şikayətiniz göndərildi. Admin baxacaq.");
+  }catch(e){ console.error(e); toast("Şikayət göndərilmədi."); }
+};
+
+// Admin panelindən şikayətlərə baxmaq
+window.listenReportsAdmin = function(){
+  const el = document.getElementById("adminReports");
+  if(!el || !isAdmin()) return;
+  const q = query(collection(db,"reports"), where("status","==","Baxılmadı"));
+  onSnapshot(q, snap=>{
+    const arr = [];
+    snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    if(!arr.length){ el.innerHTML='<div class="cabinet-empty">Baxılmamış şikayət yoxdur.</div>'; return; }
+    el.innerHTML = arr.map(r=>`
+      <div style="background:#0d1117;border:1px solid #1e2d45;border-radius:10px;padding:14px;margin-bottom:8px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <b>${esc(r.targetType==="seller"?"Satıcı şikayəti":"Elan şikayəti")}</b> — <span style="color:#fb923c">${esc(r.reason)}</span><br>
+            <span style="color:#64748b">Hədəf: ${esc(r.targetTitle||r.targetId||"")}</span><br>
+            ${r.desc?`<span style="color:#94a3b8">${esc(r.desc)}</span>`:""}
+            <br><small style="color:#475569">Şikayətçi: ${esc(r.reporterEmail||"")}</small>
+          </div>
+          <button onclick="resolveReport('${r.id}')" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12px">Baxıldı ✓</button>
+        </div>
+      </div>`).join("");
+  }, err=>console.warn("Reports:", err));
+};
+
+window.resolveReport = async function(id){
+  try{
+    await updateDoc(doc(db,"reports",id),{status:"Həll edildi",resolvedAt:serverTimestamp()});
+    toast("Şikayət bağlandı.");
+  }catch(e){ toast("Xəta baş verdi."); }
+};
+
+// ============================================================
+// 3. KUPON / ENDİRİM SİSTEMİ
+// ============================================================
+let activeCoupon = null; // {code, discount, id}
+
+window.applyCoupon = async function(){
+  const code = (document.getElementById("couponInput")?.value||"").trim().toUpperCase();
+  if(!code){ toast("Kupon kodu yaz."); return; }
+  if(!currentUser){ openModal("loginModal"); return; }
+  try{
+    const q = query(collection(db,"coupons"), where("code","==",code), where("active","==",true));
+    const snap = await getDocs(q);
+    if(snap.empty){ toast("Bu kupon kodu mövcud deyil və ya deaktivdir."); return; }
+    const couponDoc = snap.docs[0];
+    const c = couponDoc.data();
+    // Müddəti yoxla
+    if(c.expiry && new Date(c.expiry) < new Date()){ toast("Bu kuponun müddəti bitib."); return; }
+    // Maksimum istifadə yoxla
+    if(c.maxUses && (c.usedCount||0) >= c.maxUses){ toast("Bu kupon artıq maksimum sayda istifadə edilib."); return; }
+    activeCoupon = {code, discount: c.discount, id: couponDoc.id};
+    renderCouponStatus();
+    toast(`✓ ${code} kuponu tətbiq edildi — ${c.discount}% endirim`);
+  }catch(e){ console.error(e); toast("Kupon yoxlanmadı."); }
+};
+
+window.removeCoupon = function(){
+  activeCoupon = null;
+  renderCouponStatus();
+  const inp = document.getElementById("couponInput");
+  if(inp) inp.value = "";
+  toast("Kupon silindi.");
+};
+
+function renderCouponStatus(){
+  const el = document.getElementById("couponStatus");
+  if(!el) return;
+  if(activeCoupon){
+    el.innerHTML = `<div class="coupon-applied"><span>🏷️ <b>${esc(activeCoupon.code)}</b> — ${activeCoupon.discount}% endirim tətbiq edildi</span><button onclick="removeCoupon()">✕</button></div>`;
+  } else {
+    el.innerHTML = "";
+  }
+  // Məbləği yenilə
+  if(typeof updateCart === "function") updateCart();
+}
+
+// Kupon endirimi tətbiq et (cart-dan çağırılır)
+window.getCouponDiscount = function(total){
+  if(!activeCoupon || !total) return 0;
+  return Math.round(total * activeCoupon.discount / 100 * 100) / 100;
+};
+
+// Sifarişdə kuponu işlət (usedCount artır)
+async function useCoupon(){
+  if(!activeCoupon) return;
+  try{
+    await updateDoc(doc(db,"coupons",activeCoupon.id),{
+      usedCount: increment(1)
+    });
+  }catch(e){ console.warn("Kupon istifadə sayı artmadı:", e); }
+}
+
+// Admin: kupon yarat
+window.createCoupon = async function(){
+  if(!isAdmin()){ toast("Yalnız admin kupon yarada bilər."); return; }
+  const code = (document.getElementById("couponCode")?.value||"").trim().toUpperCase();
+  const discount = Number(document.getElementById("couponDiscount")?.value);
+  const maxUses = Number(document.getElementById("couponMaxUses")?.value) || 0;
+  const expiry = document.getElementById("couponExpiry")?.value || "";
+  if(!code || !discount || discount<1 || discount>100){ toast("Kodu və endirimi düzgün doldur."); return; }
+  try{
+    // Eyni kod varsa yoxla
+    const q = query(collection(db,"coupons"), where("code","==",code));
+    const exists = await getDocs(q);
+    if(!exists.empty){ toast("Bu kod artıq mövcuddur."); return; }
+    await addDoc(collection(db,"coupons"),{
+      code, discount, maxUses: maxUses||null, expiry: expiry||null,
+      active:true, usedCount:0, createdAt:serverTimestamp()
+    });
+    closeModal("createCouponModal");
+    toast(`✓ ${code} kuponu yaradıldı!`);
+    listenCouponsAdmin();
+  }catch(e){ console.error(e); toast("Kupon yaradılmadı."); }
+};
+
+// Admin: kuponları göstər
+window.listenCouponsAdmin = async function(){
+  const el = document.getElementById("adminCoupons");
+  if(!el || !isAdmin()) return;
+  try{
+    const snap = await getDocs(collection(db,"coupons"));
+    const coupons = [];
+    snap.forEach(d=>coupons.push({id:d.id,...d.data()}));
+    if(!coupons.length){ el.innerHTML='<div class="cabinet-empty">Kupon yoxdur.</div>'; return; }
+    el.innerHTML = `<div class="admin-coupon-list">${coupons.map(c=>`
+      <div class="admin-coupon-item">
+        <div><span class="code">${esc(c.code)}</span> <span style="color:#64748b;font-size:12px">— ${c.discount}% endirim</span><br>
+        <small style="color:#475569">İstifadə: ${c.usedCount||0}/${c.maxUses||"∞"} ${c.expiry?'· Son: '+c.expiry:""} ${c.active?'':'· <span style="color:#ef4444">Deaktiv</span>'}</small></div>
+        <div style="display:flex;gap:6px">
+          <button onclick="toggleCoupon('${c.id}',${!c.active})" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">${c.active?"Deaktiv et":"Aktiv et"}</button>
+          <button onclick="deleteCoupon('${c.id}')" style="background:#2d1515;border:1px solid #7f1d1d;color:#ef4444;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Sil</button>
+        </div>
+      </div>`).join("")}</div>`;
+  }catch(e){ el.innerHTML='<div class="cabinet-empty">Kuponlar yüklənmədi.</div>'; }
+};
+
+window.toggleCoupon = async function(id, active){
+  try{ await updateDoc(doc(db,"coupons",id),{active}); toast(active?"Aktiv edildi":"Deaktiv edildi"); listenCouponsAdmin(); }
+  catch(e){ toast("Xəta."); }
+};
+
+window.deleteCoupon = async function(id){
+  if(!confirm("Bu kuponu silmək istəyirsiniz?")) return;
+  try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
+  catch(e){ toast("Xəta."); }
+};
 </script>
 
 <script>
