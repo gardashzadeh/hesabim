@@ -4503,7 +4503,12 @@ function listenUsersAdminRenderOnly(users){
   el.querySelectorAll("[data-user-block]").forEach(b=>b.onclick=()=>toggleUserBlock(b.dataset.userBlock,b.dataset.val==="1"));
 }
 async function toggleSellerVerify(uid,val){
-  try{ await updateDoc(doc(db,"users",uid),{sellerVerified:val,updatedAt:serverTimestamp()}); toast(val?"Satıcı təsdiqləndi":"Satıcı təsdiqi silindi"); }
+  try{
+    await updateDoc(doc(db,"users",uid),{sellerVerified:val,updatedAt:serverTimestamp()});
+    // presence-i dərhal yenilə — satıcı onlayn olmasa belə badge görünsün
+    await setDoc(doc(db,"presence",uid),{sellerVerified:!!val},{merge:true}).catch(()=>{});
+    toast(val?"Satıcı təsdiqləndi":"Satıcı təsdiqi silindi");
+  }
   catch(e){ console.error(e); toast("Satıcı statusu dəyişmədi."); }
 }
 async function toggleUserBlock(uid,val){
