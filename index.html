@@ -2500,7 +2500,7 @@ function openProductDetail(p){
     });
   }
   document.getElementById("pdDesc").textContent = currentDetailProduct.desc || "Məhsul haqqında məlumat.";
-  updateProductDetailSellerBadge();
+  if(typeof window.updateProductDetailSellerBadge === "function") window.updateProductDetailSellerBadge();
   const sellerIconEl = document.getElementById("pdSellerIcon");
   if(sellerIconEl){
     const sellerName = currentDetailProduct.seller || "GameSatış";
@@ -3152,6 +3152,8 @@ window.getAdOnlineHomeHtml = getAdOnlineHomeHtml;
 window.updateProductDetailSellerOnline = updateProductDetailSellerOnline;
 window.updateProductDetailSellerBadge = updateProductDetailSellerBadge;
 window.getSellerStatus = getSellerStatus;
+window.getSellerVerifiedFromCache = getSellerVerifiedFromCache;
+window.refreshSellerBadges = refreshSellerBadges;
 function listenSellerUserStatuses(){
   if(window._sellerUsersUnsub) return;
   try{
