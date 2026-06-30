@@ -4589,7 +4589,12 @@ async function toggleSellerVerify(uid,val){
   try{
     await updateDoc(doc(db,"users",uid),{sellerVerified:val,updatedAt:serverTimestamp()});
     // presence-i dərhal yenilə — satıcı onlayn olmasa belə badge görünsün
-    await setDoc(doc(db,"presence",uid),{sellerVerified:!!val},{merge:true}).catch(()=>{});
+    try{
+      await setDoc(doc(db,"presence",uid),{sellerVerified:!!val},{merge:true});
+      console.log("[toggleSellerVerify] presence yeniləndi, uid:", uid, "val:", val);
+    }catch(presenceErr){
+      console.error("[toggleSellerVerify] presence yazıla bilmədi:", presenceErr.code, presenceErr.message);
+    }
     toast(val?"Satıcı təsdiqləndi":"Satıcı təsdiqi silindi");
   }
   catch(e){ console.error(e); toast("Satıcı statusu dəyişmədi."); }
