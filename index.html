@@ -3591,8 +3591,19 @@ async function resetPassword(){
 async function googleLogin(){
   try{
     const provider = new GoogleAuthProvider();
-    // Popup əvəzinə redirect — cross-origin sessionStorage problemini həll edir
-    await signInWithRedirect(auth, provider);
+    const cred = await signInWithPopup(auth, provider);
+    currentUser = cred.user;
+    await ensureUserProfile(currentUser,{
+      name:(currentUser.displayName||"").split(" ")[0] || "",
+      surname:(currentUser.displayName||"").split(" ").slice(1).join(" ") || "",
+      birthDate:""
+    });
+    await loadCurrentUserRole();
+    if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; currentUserRole="user"; updateHeader(); authStatus("Hesabınız admin tərəfindən bloklanıb."); return; }
+    await ensureWallet(currentUser.uid,currentUser.email);
+    updateHeader();
+    closeModal("loginModal");
+    toast("Google ilə giriş uğurludur");
   }catch(e){
     console.error(e);
     authStatus("Google giriş xətası: " + (e.code || e.message));
