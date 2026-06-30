@@ -923,7 +923,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 
 /* REGISTER PROFILE FIELDS */
 #registerStep input[type="date"]{color-scheme:dark}
-#authStatus{color:#ffb27a;font-size:13px;min-height:18px;margin-top:8px;margin-bottom:0}
+#authStatus{color:#ffb27a;font-size:13px;min-height:18px;margin-top:8px;margin-bottom:0;position:sticky;bottom:0;background:#10141c;padding:6px 0;font-weight:600}
 
 
 /* CLOUDINARY AD IMAGE UPLOAD */
@@ -1561,7 +1561,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 </a>
 
 <div class="modal" id="loginModal">
-  <div class="modal-box">
+  <div class="modal-box" style="max-height:88vh;overflow-y:auto">
     <h3>Giriş / qeydiyyat</h3>
 
     <div class="social-login-title">Giriş üsulunu seç</div>
@@ -3812,6 +3812,14 @@ async function logoutUser(){
   await signOut(auth);
   currentUser=null;
   currentUserRole="user";
+  // Köhnə hesabın real-time listener-lərini dayandır — yoxsa yeni hesabda
+  // əvvəlki istifadəçinin mesajları/yazışmaları görünə bilər
+  if(typeof stopChatListeners === "function") stopChatListeners();
+  if(unsubMyAds){ unsubMyAds(); unsubMyAds=null; }
+  if(unsubAdmin){ unsubAdmin(); unsubAdmin=null; }
+  if(typeof stopAdminListeners === "function") stopAdminListeners();
+  activeChatId = null;
+  adminActiveChatId = null;
   // Paylaşılan kompüterdə növbəti şəxs məlumatları görməsin
   try{
     localStorage.removeItem("gs_saved_fallback");
@@ -3819,6 +3827,11 @@ async function logoutUser(){
     // Review cache-lərini təmizlə
     Object.keys(localStorage).filter(k=>k.startsWith("gs_reviews_cache_")).forEach(k=>localStorage.removeItem(k));
   }catch(e){}
+  // Açıq qalmış kabinet sekmələrini təmizlə
+  const chatListEl = document.getElementById("chatList");
+  if(chatListEl) chatListEl.innerHTML = "";
+  const chatBoxEl = document.getElementById("chatBox");
+  if(chatBoxEl) chatBoxEl.innerHTML = "";
   updateHeader();
   toast("Hesabdan çıxış edildi");
 }
@@ -5126,6 +5139,11 @@ getRedirectResult(auth).then(async (result)=>{
 }).catch((e)=>{ if(e.code !== "auth/no-current-user") console.warn("Redirect result:", e); });
 
 onAuthStateChanged(auth, async user=>{
+  // Auth state hər dəyişdikdə (giriş/çıxış/hesab dəyişimi) köhnə listener-ləri dayandır
+  if(typeof stopChatListeners === "function") stopChatListeners();
+  activeChatId = null;
+  adminActiveChatId = null;
+
   currentUser=user||null;
   if(currentUser){
     await reload(currentUser).catch(()=>{});
