@@ -2030,7 +2030,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
                 </div>
                 <p style="font-size:11.5px;color:#5b6678;margin:0 0 10px;line-height:1.5">Doldursanız, alıcı ödənişi tamamladıqda bu məlumatlar ona avtomatik mesaj kimi göndəriləcək.</p>
                 <input id="adAccountLogin" placeholder="E-mail / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
-                <input id="adAccountPassword" type="password" placeholder="Şifrə" autocomplete="new-password">
+                <input id="adAccountPassword" type="text" placeholder="Şifrə" autocomplete="off">
               </div>
             </div>
 
@@ -3009,6 +3009,12 @@ function openProductDetail(p){
   const _chatBtnEl = document.getElementById("pdChat");
   if(_chatBtnEl){
     _chatBtnEl.onclick = async function(){
+      if(!currentUser){
+        closeModal("productModal");
+        openModal("loginModal");
+        toast("Mesaj göndərmək üçün giriş et.");
+        return;
+      }
       if(typeof window.openChatFromProduct === "function"){
         await window.openChatFromProduct(currentDetailProduct);
       }else{
@@ -4845,27 +4851,23 @@ function listenMyChats(){
   const el=document.getElementById("chatList");
   if(el) el.innerHTML='<div class="cabinet-empty">Yüklənir...</div>';
 
-  // Yalnız cari istifadəçinin iştirak etdiyi yazışmaları göstər.
-  // Əvvəlki buyerUid/sellerUid ilə 2 ayrı sorğu bəzi hallarda köhnə/test chatləri qarışdırırdı.
-  const q=query(collection(db,"chats"),where("participants","array-contains",currentUser.uid));
+  let buyer=[], seller=[];
+  const draw=()=>drawChatList(mergeChats(buyer,seller));
 
-  chatUnsubs.push(onSnapshot(q,s=>{
-    const chats=[];
-    s.forEach(d=>{
-      const c={id:d.id,...d.data()};
-      // KRİTİK: participants sahəsi köhnə/test chatlərdə səhv qala bilər.
-      // Ona görə siyahıda yalnız real alıcı və ya satıcı UID uyğun gəlirsə göstəririk.
-      if(currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid)) chats.push(c);
-    });
-    drawChatList(chats.sort((a,b)=>{
-      const ta=a.updatedAt&&a.updatedAt.toMillis?a.updatedAt.toMillis():0;
-      const tb=b.updatedAt&&b.updatedAt.toMillis?b.updatedAt.toMillis():0;
-      return tb-ta;
-    }));
-  },e=>{
-    console.error(e);
-    if(el) el.innerHTML='<div class="cabinet-empty">Yazışmalar yüklənmədi. Firestore Rules və chats/participants sahəsini yoxla.</div>';
-  }));
+  const qb=query(collection(db,"chats"),where("buyerUid","==",currentUser.uid));
+  const qs=query(collection(db,"chats"),where("sellerUid","==",currentUser.uid));
+
+  chatUnsubs.push(onSnapshot(qb,s=>{
+    buyer=[];
+    s.forEach(d=>buyer.push({id:d.id,...d.data()}));
+    draw();
+  },e=>{console.error(e);if(el)el.innerHTML='<div class="cabinet-empty">Yazışmalar yüklənmədi.</div>';}));
+
+  chatUnsubs.push(onSnapshot(qs,s=>{
+    seller=[];
+    s.forEach(d=>{const c={id:d.id,...d.data()};if(c.buyerUid!==currentUser.uid)seller.push(c);});
+    draw();
+  },e=>console.error(e)));
 }
 function drawChatList(arr){
   const el=document.getElementById("chatList"); if(!el) return;
