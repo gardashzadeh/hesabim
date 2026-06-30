@@ -1960,7 +1960,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
     <input id="couponInput" placeholder="Kupon kodu" style="text-transform:uppercase" maxlength="20">
     <button onclick="applyCoupon()">Tətbiq et</button>
   </div>
-  <button class="fullbtn" onclick="checkoutCart()">Sifarişi Tamamla (WhatsApp)</button>
+  <button class="fullbtn" onclick="checkoutCart()">Sifarişi Tamamla</button>
 </div>
 
 <div class="cabinet-modal" id="cabinetModal">
@@ -2785,6 +2785,7 @@ window.renderMarketAds = function renderMarketAds(){
       sellerUid: btn.dataset.selleruid,
       sellerEmail: btn.dataset.selleremail,
       sellerVerified: btn.dataset.sellerverified === "1",
+      approved: btn.dataset.approved === "1",
       platform: btn.dataset.platform,
       region: btn.dataset.region,
       server: btn.dataset.server,
@@ -2825,6 +2826,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-selleruid="'+attr(a.sellerUid)+'" '
         + 'data-selleremail="'+attr(a.sellerEmail)+'" '
         + 'data-sellerverified="'+(a.sellerVerified?1:0)+'" '
+        + 'data-approved="'+(a.approved?1:0)+'" '
         + 'data-platform="'+attr(a.platform)+'" '
         + 'data-region="'+attr(a.region)+'" '
         + 'data-server="'+attr(a.server)+'" '
@@ -3237,12 +3239,14 @@ function removeCart(i){
 
 function checkoutCart(){
   if(cart.length===0){showToast("Səbət boşdur");return}
+  const itemList = cart.map(x=>`• ${x.name} — ${x.price}`).join("\n");
+  const confirmed = confirm(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul escrow-a alınacaq.`);
+  if(!confirmed) return;
   if(typeof window.createOrdersFromCart === "function"){
     window.createOrdersFromCart(cart);
     return;
   }
-  const text="Salam, GameSatış-dan bu məhsulları almaq istəyirəm: " + cart.map(x=>x.name+" - "+x.price).join(", ");
-  window.open("https://wa.me/994555707071?text="+encodeURIComponent(text), "_blank");
+  toast("Sifariş sistemi yüklənməyib, yenidən cəhd edin.");
 }
 
 function goHome(e){
@@ -4428,37 +4432,117 @@ window.createOrdersFromCart = async function(items){
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); toast("Alış üçün əvvəlcə giriş et"); return; }
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
-  // Satıcı elanları ödəniş sisteminə daxil edilmir
-  const adminItems = items.filter(item => !item.sellerUid || item.sellerUid === "site_admin" || item.sellerUid === "");
-  if(!adminItems.length){ toast("Satıcı məhsulları üçün satıcı ilə birbaşa əlaqə qurun."); return; }
-  items = adminItems;
-  const total=items.reduce((s,item)=>s+moneyToNumber(item.price),0);
-  const walletRef=doc(db,"wallets",currentUser.uid);
+
+  const total = items.reduce((s,item)=>s+moneyToNumber(item.price),0);
+  const buyerRef = doc(db,"wallets",currentUser.uid);
+
   try{
-    // Transaction: balans oxunuşu və çıxılması atomik icra edilir — double-spend mümkün deyil
+    // 1. Alıcının balansından pul çıx — admin balansına köçür (transaction ilə)
     await runTransaction(db, async (tx)=>{
       await ensureWallet(currentUser.uid,currentUser.email);
-      const wSnap=await tx.get(walletRef);
-      const w=wSnap.data()||{};
-      const bal=Number(w.balance||0);
-      if(bal<total) throw new Error("INSUFFICIENT_BALANCE");
-      tx.update(walletRef,{
-        balance:bal-total,
-        escrowOut:Number(w.escrowOut||0)+total,
-        totalSpent:Number(w.totalSpent||0)+total,
-        updatedAt:serverTimestamp()
+      const wSnap = await tx.get(buyerRef);
+      const w = wSnap.data()||{};
+      const bal = Number(w.balance||0);
+      if(bal < total) throw new Error("INSUFFICIENT_BALANCE");
+      // Alıcının balansından çıx
+      tx.update(buyerRef,{
+        balance: bal-total,
+        totalSpent: Number(w.totalSpent||0)+total,
+        updatedAt: serverTimestamp()
       });
+      // Admin balansına köçür
+      const adminEmail = atob("Z2FyZGFzaHphZGVoQGdtYWlsLmNvbQ==");
+      const adminUid = "admin_platform";
+      const adminRef = doc(db,"wallets","admin_platform");
+      const aSnap = await tx.get(adminRef);
+      const a = aSnap.exists() ? (aSnap.data()||{}) : {balance:0,totalEarned:0};
+      tx.set(adminRef,{
+        uid: adminUid,
+        email: adminEmail,
+        balance: Number(a.balance||0)+total,
+        totalEarned: Number(a.totalEarned||0)+total,
+        updatedAt: serverTimestamp()
+      },{merge:true});
     });
+
+    // 2. Hər item üçün sifariş yarat
     for(const item of items){
-      await addDoc(collection(db,"orders"),{productTitle:item.name||"Məhsul",price:moneyToNumber(item.price),priceText:item.price||"",adId:item.adId||"",sellerUid:item.sellerUid||"",sellerEmail:item.sellerEmail||"GameSatış",buyerUid:currentUser.uid,buyerEmail:currentUser.email,status:"Gözləmədə",escrowStatus:"Pul sistemdə saxlanılır",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
-      if(item.adId) await updateDoc(doc(db,"ads",item.adId),{status:"Rezervdə",buyerUid:currentUser.uid,buyerEmail:currentUser.email,updatedAt:serverTimestamp()}).catch(()=>{});
+      const orderRef = await addDoc(collection(db,"orders"),{
+        productTitle: item.name||"Məhsul",
+        price: moneyToNumber(item.price),
+        priceText: item.price||"",
+        adId: item.adId||"",
+        sellerUid: item.sellerUid||"",
+        sellerEmail: item.sellerEmail||"GameSatış",
+        buyerUid: currentUser.uid,
+        buyerEmail: currentUser.email,
+        status: "Aktiv",
+        buyerConfirmed: false,
+        sellerConfirmed: false,
+        payoutRequested: false,
+        payoutDone: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      // 3. Elanı rezervə al
+      if(item.adId){
+        await updateDoc(doc(db,"ads",item.adId),{
+          status:"Rezervdə",
+          buyerUid: currentUser.uid,
+          buyerEmail: currentUser.email,
+          updatedAt: serverTimestamp()
+        }).catch(()=>{});
+
+        // 4. Credentials varsa — alıcıya avtomatik göndər
+        try{
+          const adSnap = await getDoc(doc(db,"ads",item.adId));
+          if(adSnap.exists()){
+            const creds = adSnap.data().accountCredentials;
+            if(creds && (creds.login || creds.password)){
+              const loginDec    = creds.login    ? decodeURIComponent(escape(atob(creds.login)))    : "";
+              const passwordDec = creds.password ? decodeURIComponent(escape(atob(creds.password))) : "";
+              const chatId = [currentUser.uid, item.sellerUid||"site_admin", item.adId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+              const chatRef = doc(db,"chats",chatId);
+              const chatSnap = await getDoc(chatRef).catch(()=>null);
+              if(!chatSnap || !chatSnap.exists()){
+                await setDoc(chatRef,{
+                  buyerUid: currentUser.uid,
+                  buyerEmail: currentUser.email||"",
+                  sellerUid: item.sellerUid||"site_admin",
+                  sellerEmail: item.sellerEmail||"",
+                  productId: item.adId,
+                  productTitle: item.name||"Məhsul",
+                  participants: [currentUser.uid, item.sellerUid||"site_admin"],
+                  lastMessage:"",
+                  unreadBuyer:0,
+                  unreadSeller:1,
+                  updatedAt: serverTimestamp(),
+                  createdAt: serverTimestamp()
+                });
+              }
+              await addDoc(collection(db,"chats",chatId,"messages"),{
+                senderId:"system",
+                senderEmail:"system",
+                text:`🔑 Sifariş tamamlandı! Hesab giriş məlumatlarınız:\n\n📧 Login: ${loginDec}\n🔒 Şifrə: ${passwordDec}\n\nXoş oyunlar! Problem olarsa satıcı ilə əlaqə saxlayın.`,
+                type:"credentials",
+                createdAt: serverTimestamp()
+              });
+              await updateDoc(doc(db,"ads",item.adId),{accountCredentials:deleteField()}).catch(()=>{});
+            }
+          }
+        }catch(credErr){ console.warn("Credentials göndərilmədi:", credErr); }
+      }
     }
-    cart=[]; localStorage.setItem("gs_cart", JSON.stringify(cart)); updateCart();
-    toast("Sifariş yaradıldı. Pul təhlükəsiz gözləməyə alındı."); openCabinet(); window.showTab("purchases");
+
+    cart=[]; localStorage.setItem("gs_cart",JSON.stringify(cart)); updateCart();
+    toast("✅ Sifariş yaradıldı! Sifarişlərim bölməsini yoxla.");
+    openCabinet();
+    window.showTab("purchases");
   }catch(e){
     console.error(e);
     if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); }
-    else toast("Sifariş yaradılmadı. Firestore Rules yoxla.");
+    else toast("Sifariş yaradılmadı: " + (e.message||""));
   }
 }
 
@@ -4966,6 +5050,7 @@ function renderAdminStats(){
 function adminShell(){
   return `<h3>Admin panel</h3>
   <div id="adminStatsGrid" class="admin-mini-grid"></div>
+  <div id="adminPayouts" class="admin-section"></div>
   <div id="adminPendingAds" class="admin-section"></div>
   <div id="adminBalanceRequests" class="admin-section"></div>
   <div id="adminOrders" class="admin-section"></div>
@@ -5382,9 +5467,27 @@ function listenSales(){
   const q=query(collection(db,"orders"),where("sellerUid","==",currentUser.uid));
   onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    el.innerHTML='<h3>Satışlarım</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(o=>`<tr><td><b>${esc(o.productTitle)}</b><br><small>${esc(o.escrowStatus||"")}</small></td><td>${esc(o.buyerEmail||'-')}</td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions"><button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ satış yoxdur.</div>');
-    el.querySelectorAll("[data-dispute]").forEach(b=>b.onclick=()=>disputeOrder(b.dataset.dispute));
-  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Satışlar yüklənmədi. Firestore Rules yoxla.</div>'; });
+    if(!arr.length){ el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Hələ satış yoxdur.</div>'; return; }
+    el.innerHTML='<h3>Satışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
+      const both = o.buyerConfirmed && o.sellerConfirmed;
+      let btns = '';
+      if(o.status==="Aktiv"){
+        if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
+        else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
+        if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+        if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+        if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+      } else if(o.status==="Tamamlandı"){
+        if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+        else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+        else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+      }
+      const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
+      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.buyerEmail||'-')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
+    }).join('')+'</tbody></table>';
+    el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
+    el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
+  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
 }
 
 function listenPurchases(){
@@ -5392,15 +5495,88 @@ function listenPurchases(){
   const q=query(collection(db,"orders"),where("buyerUid","==",currentUser.uid));
   onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    el.innerHTML='<h3>Alışlarım</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Satıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(o=>`<tr><td><b>${esc(o.productTitle)}</b><br><small>${esc(o.escrowStatus||"")}</small></td><td>${esc(o.sellerEmail||'GameSatış')}</td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions"><button class="complete-btn" data-complete="${o.id}">Tamamla</button><button class="cancel-btn" data-cancel="${o.id}">Ləğv et</button><button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ alış yoxdur.</div>');
-    el.querySelectorAll("[data-complete]").forEach(b=>b.onclick=()=>{
-      // Təsadüfi klik ilə pul köçürülməsin — təsdiq tələb olunur
-      if(!confirm("Malı aldığınızı təsdiqləyirsiniz? Təsdiqlədikdən sonra pul satıcıya köçürüləcək və geri qaytarılmayacaq.")) return;
-      completeOrder(b.dataset.complete);
+    if(!arr.length){ el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Hələ alış yoxdur.</div>'; return; }
+    el.innerHTML='<h3>Alışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Satıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
+      let btns = '';
+      if(o.status==="Aktiv"){
+        if(!o.buyerConfirmed) btns += `<button class="complete-btn" data-buyer-confirm="${o.id}">✓ Aldım, problem yox</button>`;
+        else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın</span>`;
+        btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
+      } else if(o.status==="Tamamlandı"){
+        btns = `<span style="color:#22c55e;font-size:12px">✅ Tamamlandı</span>`;
+      } else if(o.status==="Ləğv edildi"){
+        btns = `<span style="color:#ef4444;font-size:12px">Ləğv edildi</span>`;
+      }
+      const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Sən':'○ Sən'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
+      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.sellerEmail||'GameSatış')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
+    }).join('')+'</tbody></table>';
+    el.querySelectorAll("[data-buyer-confirm]").forEach(b=>b.onclick=()=>{
+      if(!confirm("Məhsulu aldığınızı və problem olmadığını təsdiqləyirsiniz?")) return;
+      buyerConfirmOrder(b.dataset.buyerConfirm);
     });
-    el.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>cancelOrder(b.dataset.cancel));
     el.querySelectorAll("[data-dispute]").forEach(b=>b.onclick=()=>disputeOrder(b.dataset.dispute));
-  },err=>{ console.error(err); el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Alışlar yüklənmədi. Firestore Rules yoxla.</div>'; });
+  },err=>{ console.error(err); el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
+}
+
+// Alıcı: "Aldım, problem yox"
+async function buyerConfirmOrder(id){
+  if(!currentUser) return;
+  try{
+    const oRef = doc(db,"orders",id);
+    const oSnap = await getDoc(oRef);
+    if(!oSnap.exists()) return;
+    const o = oSnap.data();
+    if(o.buyerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
+    const newData = {buyerConfirmed:true, updatedAt:serverTimestamp()};
+    // Hər ikisi təsdiqləyibsə — sifariş tamamlandı
+    if(o.sellerConfirmed) newData.status = "Tamamlandı";
+    await updateDoc(oRef, newData);
+    toast("Təsdiq edildi.");
+  }catch(e){ console.error(e); toast("Xəta baş verdi."); }
+}
+
+// Satıcı: "Təhvil verdim"
+async function sellerConfirmOrder(id){
+  if(!currentUser) return;
+  try{
+    const oRef = doc(db,"orders",id);
+    const oSnap = await getDoc(oRef);
+    if(!oSnap.exists()) return;
+    const o = oSnap.data();
+    if(o.sellerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
+    const newData = {sellerConfirmed:true, updatedAt:serverTimestamp()};
+    if(o.buyerConfirmed) newData.status = "Tamamlandı";
+    await updateDoc(oRef, newData);
+    toast("Təhvil təsdiqləndi.");
+  }catch(e){ console.error(e); toast("Xəta baş verdi."); }
+}
+
+// Satıcı: "Ödəniş tələb et" — admin görəcək
+async function requestPayout(id){
+  if(!currentUser) return;
+  if(!confirm("Ödəniş tələb etmək istəyirsiniz? Admin 5% komissiya tutub qalan məbləği göndərəcək.")) return;
+  try{
+    const oRef = doc(db,"orders",id);
+    const oSnap = await getDoc(oRef);
+    if(!oSnap.exists()) return;
+    const o = oSnap.data();
+    if(o.sellerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
+    if(o.payoutRequested){ toast("Artıq tələb edilib."); return; }
+    await updateDoc(oRef,{payoutRequested:true, payoutRequestedAt:serverTimestamp(), updatedAt:serverTimestamp()});
+    // Admin üçün ayrıca payout request yarat
+    await addDoc(collection(db,"payoutRequests"),{
+      orderId: id,
+      productTitle: o.productTitle||"",
+      price: o.price||0,
+      commission: Math.round(o.price*5)/100,
+      payout: Math.round(o.price*95)/100,
+      sellerUid: currentUser.uid,
+      sellerEmail: currentUser.email||"",
+      status: "Gözləmədə",
+      createdAt: serverTimestamp()
+    });
+    toast("Ödəniş tələbi göndərildi. Admin yaxın zamanda ödəyəcək.");
+  }catch(e){ console.error(e); toast("Xəta baş verdi."); }
 }
 
 function listenMyAds(){
@@ -5446,6 +5622,7 @@ function listenAdmin(){
   stopAdminListeners();
   el.innerHTML=adminShell();
   renderAdminStats();
+  listenPayoutsAdmin();
   listenPendingAdsAdmin();
   listenBalanceRequestsAdmin();
   listenOrdersAdmin();
@@ -5454,6 +5631,46 @@ function listenAdmin(){
   listenUsersAdmin();
   listenReportsAdmin();
   listenCouponsAdmin();
+}
+
+function listenPayoutsAdmin(){
+  const el = document.getElementById("adminPayouts");
+  if(!el || !isAdmin()) return;
+  const q = query(collection(db,"payoutRequests"), where("status","==","Gözləmədə"));
+  onSnapshot(q, snap=>{
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    if(!arr.length){ el.innerHTML=''; return; }
+    el.innerHTML=`<h3 style="color:#fb923c">💰 Ödəniş tələbləri (${arr.length})</h3><table class="cabinet-table"><thead><tr><th>Satıcı</th><th>Məhsul</th><th>Məbləğ</th><th>5% Komissiya</th><th>Ödənişi</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(r=>`<tr><td><small>${esc(r.sellerEmail||"")}</small></td><td>${esc(r.productTitle||"")}</td><td>${Number(r.price||0).toFixed(2)} ₼</td><td>-${Number(r.commission||0).toFixed(2)} ₼</td><td><b style="color:#22c55e">${Number(r.payout||0).toFixed(2)} ₼</b></td><td><button class="approve-btn" data-pay-id="${r.id}" data-seller-uid="${r.sellerUid||""}" data-payout="${r.payout||0}" data-order-id="${r.orderId||""}">✓ Ödə</button></td></tr>`).join("")}</tbody></table>`;
+    el.querySelectorAll("[data-pay-id]").forEach(b=>b.onclick=()=>processPayoutAdmin(b.dataset.payId, b.dataset.sellerUid, parseFloat(b.dataset.payout), b.dataset.orderId));
+  }, err=>console.warn("Payouts:", err));
+}
+
+async function processPayoutAdmin(payoutId, sellerUid, amount, orderId){
+  if(!isAdmin()){ toast("Admin icazəsi yoxdur."); return; }
+  if(!confirm(`${amount.toFixed(2)} ₼ satıcıya ödənilsin?`)) return;
+  try{
+    // Satıcının balansına köçür
+    if(sellerUid){
+      const selRef = doc(db,"wallets",sellerUid);
+      const sSnap = await getDoc(selRef).catch(()=>null);
+      const s = sSnap?.exists() ? sSnap.data() : {balance:0,totalEarned:0};
+      await setDoc(selRef,{
+        balance: Number(s.balance||0)+amount,
+        totalEarned: Number(s.totalEarned||0)+amount,
+        updatedAt: serverTimestamp()
+      },{merge:true});
+    }
+    // Admin balansından çıx
+    const adminRef = doc(db,"wallets","admin_platform");
+    const aSnap = await getDoc(adminRef).catch(()=>null);
+    const a = aSnap?.exists() ? aSnap.data() : {balance:0};
+    await setDoc(adminRef,{balance:Math.max(0,Number(a.balance||0)-amount), updatedAt:serverTimestamp()},{merge:true});
+    // Payout request-i tamamla
+    await updateDoc(doc(db,"payoutRequests",payoutId),{status:"Ödənildi",paidAt:serverTimestamp()});
+    // Sifariş-i güncəllə
+    if(orderId) await updateDoc(doc(db,"orders",orderId),{payoutDone:true, updatedAt:serverTimestamp()}).catch(()=>{});
+    toast(`✅ ${amount.toFixed(2)} ₼ satıcıya göndərildi.`);
+  }catch(e){ console.error(e); toast("Ödəniş xətası."); }
 }
 
 
