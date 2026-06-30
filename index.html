@@ -2307,7 +2307,6 @@ function render(){
 }
 
 window.renderMarketAds = function renderMarketAds(){
-  console.log("[renderMarketAds] çağırıldı, presence cache ölçüsü:", sellerStatusCache.size);
   const adsEl=document.getElementById("ads");
   if(!adsEl) return;
 
@@ -3125,9 +3124,10 @@ function listenSellerOnlineStatuses(){
     window._sellerOnlineUnsub = onSnapshot(collection(db,"presence"), snap=>{
       snap.forEach(d=>cacheSellerStatus({uid:d.id, ...(d.data()||{})}));
       // Tam re-render əvəzinə yalnız user elementlərini yenilə — filter/pagination pozulmasın
-      document.querySelectorAll("#ads button.ad[data-seller-uid], #ads button.ad[data-seller-email]").forEach(btn=>{
-        const sUid = btn.getAttribute("data-seller-uid") || "";
-        const sEmail = btn.getAttribute("data-seller-email") || "";
+      document.querySelectorAll("#ads button.ad").forEach(btn=>{
+        const sUid = btn.dataset.selleruid || "";
+        const sEmail = btn.dataset.selleremail || "";
+        if(!sUid && !sEmail) return;
         const userEl = btn.querySelector(".user");
         if(!userEl) return;
         const sellerNameSpan = userEl.querySelector(".seller-name-link");
