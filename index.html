@@ -2871,6 +2871,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   createUserWithEmailAndPassword,
@@ -3589,18 +3591,8 @@ async function resetPassword(){
 async function googleLogin(){
   try{
     const provider = new GoogleAuthProvider();
-    const cred = await signInWithPopup(auth, provider);
-    currentUser = cred.user;
-    await ensureUserProfile(currentUser,{
-      name:(currentUser.displayName||"").split(" ")[0] || "",
-      surname:(currentUser.displayName||"").split(" ").slice(1).join(" ") || "",
-      birthDate:""
-    });
-    if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; updateHeader(); authStatus("Hesabınız admin tərəfindən bloklanıb."); return; }
-    await ensureWallet(currentUser.uid,currentUser.email);
-    updateHeader();
-    closeModal("loginModal");
-    toast("Google ilə giriş uğurludur");
+    // Popup əvəzinə redirect — cross-origin sessionStorage problemini həll edir
+    await signInWithRedirect(auth, provider);
   }catch(e){
     console.error(e);
     authStatus("Google giriş xətası: " + (e.code || e.message));
@@ -4901,6 +4893,21 @@ function wire(){
     });
   });
 }
+
+// Google redirect nəticəsini yoxla — redirect-dən qayıtdıqda işə düşür
+getRedirectResult(auth).then(async (result)=>{
+  if(!result || !result.user) return;
+  const user = result.user;
+  await ensureUserProfile(user,{
+    name:(user.displayName||"").split(" ")[0] || "",
+    surname:(user.displayName||"").split(" ").slice(1).join(" ") || "",
+    birthDate:""
+  }).catch(()=>{});
+  await loadCurrentUserRole();
+  if(await isCurrentUserBlocked()){ await signOut(auth); toast("Hesabınız bloklanıb."); return; }
+  await ensureWallet(user.uid, user.email).catch(()=>{});
+  toast("Google ilə giriş uğurludur");
+}).catch((e)=>{ if(e.code !== "auth/no-current-user") console.warn("Redirect result:", e); });
 
 onAuthStateChanged(auth, async user=>{
   currentUser=user||null;
