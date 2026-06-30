@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#050607">
+<meta name="google-site-verification" content="CwGPVwg9UIEmTCgYJUozyCwaRJrhLuTn_40naXAws5E" />
 <title>GameSatış Azərbaycan - Oyun Hesabı, Skin və Balans Alışı</title>
 
 <!-- SEO -->
@@ -173,6 +174,7 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .ads{display:grid;grid-template-columns:repeat(1,1fr);gap:12px;padding:0 12px 12px}
 @media(min-width:900px){.ads{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1400px){.ads{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1800px){.ads{grid-template-columns:repeat(4,1fr)}}
 .ad{background:#181919;border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:11px;border:1px solid transparent;transition:border-color 0.2s}
 .ad:hover{border-color:var(--orange)}
 .ad-img{width:64px;height:72px;border-radius:6px;background:radial-gradient(circle,#2a1a0e,#0c0d0d 90%);display:grid;place-items:center;padding:6px}
@@ -1325,6 +1327,19 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 .seller-name-link{cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:.2s}
 .seller-name-link:hover{text-decoration-color:#fb923c;color:#fb923c}
 .pagination-hidden{display:none!important}
+
+/* ===== SKELETON LOADING ===== */
+@keyframes skeleton-pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+.skel{background:#161a22;border-radius:8px;animation:skeleton-pulse 1.4s ease-in-out infinite}
+.skel-card{background:#0d1117;border:1px solid #1e2d45;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.skel-img{width:100%;height:140px;border-radius:10px}
+.skel-line{height:13px;border-radius:4px}
+.skel-line.w60{width:60%}
+.skel-line.w40{width:40%}
+.skel-line.w80{width:80%}
+.skel-game{background:#0d1117;border:1px solid #1e2d45;border-radius:12px;height:96px}
+.skel-epin{background:#0d1117;border:1px solid #1e2d45;border-radius:12px;height:130px}
+.skel-seller{background:#0d1117;border:1px solid #1e2d45;border-radius:10px;height:64px}
 </style>
 
 </head>
@@ -1437,42 +1452,18 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 
     <section class="panel">
       <div class="panel-head"><h2>POPULYAR OYUNLAR</h2><button onclick="filterCategory('Oyun')">Hamısına Bax</button></div>
-      <div class="games" id="games"></div>
+      <div class="games" id="games">
+        <div class="skel-game skel"></div><div class="skel-game skel"></div><div class="skel-game skel"></div>
+        <div class="skel-game skel"></div><div class="skel-game skel"></div><div class="skel-game skel"></div>
+      </div>
     </section>
 
     <section class="panel">
       <div class="panel-head"><h2>E-PİN MƏHSULLARI</h2><button onclick="filterCategory('Gift Card &amp; E-Pin')">Hamısına Bax</button></div>
-      <div class="epins" id="epins"></div>
-    </section>
-    
-    <section class="panel">
-      <div class="panel-head">
-        <h2>OYUNÇU BAZARI</h2>
-        <div class="panel-head-actions">
-          <div class="sort-control">
-            <label for="marketSort" class="sort-control-label">Sırala</label>
-            <select id="marketSort" class="sort-select" onchange="setSort(this.value)">
-              <option value="newest" selected>Ən yeni</option>
-              <option value="price_asc">Qiymət: ucuzdan bahaya</option>
-              <option value="price_desc">Qiymət: bahadan ucuza</option>
-            </select>
-          </div>
-          <button onclick="filterCategory('Hamısı')">Bütün Elanlar</button>
-        </div>
+      <div class="epins" id="epins">
+        <div class="skel-epin skel"></div><div class="skel-epin skel"></div>
+        <div class="skel-epin skel"></div><div class="skel-epin skel"></div>
       </div>
-      <div class="tabs">
-        <button class="tab active" onclick="filterCategory('Hamısı')">Hamısı</button>
-        <button class="tab" onclick="filterCategory('Hesab')">Hesab</button>
-        <button class="tab" onclick="filterCategory('Skin')">Skin</button>
-        <button class="tab" onclick="filterCategory('Oyun Pulu')">Oyun Pulu</button>
-        <button class="tab" onclick="filterCategory('Gift Card &amp; E-Pin')">Gift Card &amp; E-Pin</button>
-        <button class="tab" onclick="filterCategory('Oyun Boost')">Oyun Boost</button>
-        <button class="tab" onclick="filterCategory('Hesab Kirayəsi')">Hesab Kirayəsi</button>
-        <button class="tab" onclick="filterCategory('Sosial Media')">Sosial Media</button>
-        <button class="tab" onclick="filterCategory('Oyun Konsolu')">Oyun Konsolu</button>
-      </div>
-      <div class="ads" id="ads"></div>
-      <div id="pagination" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 0;flex-wrap:wrap"></div>
     </section>
   </div>
 
@@ -1497,7 +1488,11 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
     
     <section class="box">
       <div class="seller-head"><h3>GÜVƏNİLİR SATICILAR</h3><button onclick="showToast('Bütün satıcılar aktivdir')">Hamısına Bax</button></div>
-      <div id="sellers"></div>
+      <div id="sellers">
+        <div class="skel-seller skel" style="margin-bottom:8px"></div>
+        <div class="skel-seller skel" style="margin-bottom:8px"></div>
+        <div class="skel-seller skel"></div>
+      </div>
     </section>
     
     <section class="box">
@@ -1519,6 +1514,43 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
     </section>
   </aside>
 </div>
+
+<section class="panel" style="margin-top:12px">
+  <div class="panel-head">
+    <h2>OYUNÇU BAZARI</h2>
+    <div class="panel-head-actions">
+      <div class="sort-control">
+        <label for="marketSort" class="sort-control-label">Sırala</label>
+        <select id="marketSort" class="sort-select" onchange="setSort(this.value)">
+          <option value="newest" selected>Ən yeni</option>
+          <option value="price_asc">Qiymət: ucuzdan bahaya</option>
+          <option value="price_desc">Qiymət: bahadan ucuza</option>
+        </select>
+      </div>
+      <button onclick="filterCategory('Hamısı')">Bütün Elanlar</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="filterCategory('Hamısı')">Hamısı</button>
+    <button class="tab" onclick="filterCategory('Hesab')">Hesab</button>
+    <button class="tab" onclick="filterCategory('Skin')">Skin</button>
+    <button class="tab" onclick="filterCategory('Oyun Pulu')">Oyun Pulu</button>
+    <button class="tab" onclick="filterCategory('Gift Card &amp; E-Pin')">Gift Card &amp; E-Pin</button>
+    <button class="tab" onclick="filterCategory('Oyun Boost')">Oyun Boost</button>
+    <button class="tab" onclick="filterCategory('Hesab Kirayəsi')">Hesab Kirayəsi</button>
+    <button class="tab" onclick="filterCategory('Sosial Media')">Sosial Media</button>
+    <button class="tab" onclick="filterCategory('Oyun Konsolu')">Oyun Konsolu</button>
+  </div>
+  <div class="ads" id="ads">
+    <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
+    <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
+    <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
+    <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
+    <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
+    <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
+  </div>
+  <div id="pagination" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 0;flex-wrap:wrap"></div>
+</section>
 </main>
 
 <a class="whats" href="https://wa.me/994555707071?text=Salam%2C%20məhsul%20almaq%20istəyirəm" target="_blank">
@@ -1870,6 +1902,10 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
           <button class="pd-action-btn" type="button" id="pdSellerProfile" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Satıcı profili
+          </button>
+          <button class="pd-action-btn" type="button" id="pdShare" onclick="shareCurrentProduct()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex:none"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Paylaş
           </button>
           <button class="report-btn" type="button" id="pdReport" onclick="closeModal('productModal');openReportModal('ad',currentDetailProduct?.adId||'',currentDetailProduct?.title||'Elan')" style="margin-top:6px;font-size:12px">
             ⚑ Elanı şikayət et
@@ -4284,6 +4320,34 @@ function showLocalNotification(title, body, icon){
   }catch(e){ console.warn("Local notification:", e); }
 }
 window.showLocalNotification = showLocalNotification;
+
+// ============================================================
+// SOSİAL PAYLAŞIM
+// ============================================================
+window.shareCurrentProduct = async function(){
+  const p = window.currentDetailProduct || {};
+  const title = p.title || "GameSatış Azərbaycan";
+  const price = p.price || "";
+  const text = `${title} — ${price}\nGameSatış Azərbaycan-da bax!`;
+  const url = window.location.href;
+
+  if(navigator.share){
+    try{
+      await navigator.share({title, text, url});
+    }catch(e){
+      // İstifadəçi paylaşımı ləğv edibsə sakitcə keç
+      if(e.name !== "AbortError") console.warn("Share xətası:", e);
+    }
+  } else {
+    // Desktop fallback — linki kopyala
+    try{
+      await navigator.clipboard.writeText(url);
+      toast("Link kopyalandı!");
+    }catch(e){
+      toast("Link: " + url);
+    }
+  }
+};
 
 // Yeni mesaj gəldikdə bildiriş göstər
 function notifyNewMessage(chatTitle, messageText){
