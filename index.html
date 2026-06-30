@@ -2598,9 +2598,9 @@ function openProductDetail(p){
       }
     };
   })();
-  const chatBtn=document.getElementById("pdChat");
-  if(chatBtn){
-    chatBtn.onclick = async function(){
+  const _chatBtnEl = document.getElementById("pdChat");
+  if(_chatBtnEl){
+    _chatBtnEl.onclick = async function(){
       if(typeof window.openChatFromProduct === "function"){
         await window.openChatFromProduct(currentDetailProduct);
       }else{
