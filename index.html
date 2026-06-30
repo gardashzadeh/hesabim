@@ -1198,6 +1198,21 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
   .sort-select{width:100%;font-size:12.5px}
 }
 
+
+/* Seller verified badge fix - product detail */
+.seller-verified-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;
+  height:20px;
+  margin-left:5px;
+  vertical-align:middle;
+  flex:none;
+}
+.seller-verified-badge svg{width:20px;height:20px;display:block}
+#pdSeller .seller-verified-badge{position:relative;top:3px}
+
 </style>
 
 <style>
@@ -2500,7 +2515,7 @@ function openProductDetail(p){
     });
   }
   document.getElementById("pdDesc").textContent = currentDetailProduct.desc || "Məhsul haqqında məlumat.";
-  if(typeof window.updateProductDetailSellerBadge === "function") window.updateProductDetailSellerBadge();
+  updateProductDetailSellerBadge();
   const sellerIconEl = document.getElementById("pdSellerIcon");
   if(sellerIconEl){
     const sellerName = currentDetailProduct.seller || "GameSatış";
@@ -3109,19 +3124,28 @@ function refreshSellerBadges(){
   if(window.currentDetailProduct && typeof updateProductDetailSellerBadge === "function") updateProductDetailSellerBadge();
   if(typeof updateProductDetailSellerOnline === "function") updateProductDetailSellerOnline();
 }
+
+function getSellerVerifiedBadgeHtml(size=20){
+  const n = Number(size) || 20;
+  return `<span class="seller-verified-badge" title="Təsdiqli satıcı" aria-label="Təsdiqli satıcı" style="width:${n}px;height:${n}px">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${n}px;height:${n}px">
+      <circle cx="12" cy="12" r="10" fill="#2F80ED"/>
+      <path d="M8 12.4l2.35 2.35L16.4 8.7" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </span>`;
+}
+
 function updateProductDetailSellerBadge(){
   const pdSellerEl = document.getElementById("pdSeller");
   if(!pdSellerEl || !window.currentDetailProduct) return;
   const sellerName = window.currentDetailProduct.seller || "GameSatış";
   const isVerified = getSellerVerifiedFromCache(window.currentDetailProduct.sellerUid||"", window.currentDetailProduct.sellerEmail||"", !!window.currentDetailProduct.sellerVerified);
-  const verBadge = isVerified
-    ? ' <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAEBElEQVR42rWVTWyUVRSG33Pu/b5vpp2iIqnVmEpLTTREjUkBMSHtNBpgbRpjAH/WgBBNFTa23SlpYoKauGgXplSwJOKuxRhaY4w/IEETqhChQReSugDbmflm7t9xMTP0h2qMxrO99z55zz3nvAdYLUSoq19077goiBBEaOkZRKh3XFRX/5RedvZvovvYwpH86PzQP71PK5WCSJ76oNQaIjngmSfA819zJfdSlGs4CgCuVDjoo9KImDWbtMLTbOT9z15o+KX+9nawCO2YQJx+A08Ppc9k78ieMAsWwZmrJGgDc/VeCBDCLOu4Pc5FKP+RPhsuZT/OboGa3AlTh+tF7SSTQAUAesYWOr2FF2u8irPtwZaBEOr3oKJMuzepCS5SLH7T1CCNA3DLv6KWQtdo8f5Iq83O+yeYsIeUagnOCRGkmhlRPTUBhAEKHBG8u84kY4H5vLOVr754/q5ZiJDuGphWnwNOEV7Wa5I+NoCvGIizICK6rQ4gUgQqO2Bt5FBm3eJ0/GomC1Ru+CEAfV0D04qbNYYj93DOPWTDSMzioMpz57Z1biBBkAYgFRLPUgh31Haq+JMS3AmEIgrrqqMaVHpIjTCo82MEzMW731nOVgbdJxpyY8V9mOQAgCQiFDPh4U3dUPuNZ+mQhKo4gkPryMkinD2N487E0LRVqGHt8Z4pJnx0YzDyPcWsQIIAiGGzmTh0sLQtsu513nltHgBmhLg4KYYh5+M0Xmvwu+poLlxCfRHi5Ef6lBAZLXJq7VbfrS4XyXJW+Jt4pzn/AMa+zojzBvB8AWHHe0Km+9TOF5XyjVotVEC67jiTHpoenfTUYjQ8uJ1FK6oJLs+2HIoWuLtbQp7OyMwgFgTTl1yGL6wRGm1rwNHGfamPDu1q3ED6sXrPQnGIIXujkJeJUlrMBUDATXFwOlZj3fPWQiATy4vgVIdCkBAwZSNipPW/PFyHoMUek+C9dzFaQIAVrxdN0Ycoij2FYPgLHIxYeqax1xJcPVmgOYaVG75C0hHpJI4VgkQbpidAM7MXZymvx1pqY102YMSVR1DqWJFBMQ6InHuuoiMQfN5eHw5tbvhWvWPV4meY8UjuqnhFbtQ9CrOxHAVBJFq/kTgKINgU6tzjWzmC29P72nqW8nQq9mmcHqONZSKEhVsZRYi68G1NggBwaZXSEUdSgOk1NmuftErbXN1ox8vtQYn+wLxaZPNfJsslF6sG70vlg5kizeHS41rt4CxU1PmnU+fo19XGv3/tprw18t06j8BB38omljZPzUAAAAASUVORK5CYII=" style="width:22px;height:22px;vertical-align:middle;margin-left:4px" title="Təsdiqli satıcı">'
-    : '';
+  const verBadge = isVerified ? getSellerVerifiedBadgeHtml(20) : '';
   pdSellerEl.innerHTML = esc(sellerName) + verBadge;
 }
 function getAdOnlineHomeHtml(a){
   const st = getSellerStatus(a.sellerUid || "", a.sellerEmail || "");
-  const verifiedBadge = getSellerVerifiedFromCache(a.sellerUid || "", a.sellerEmail || "", !!a.sellerVerified) ? ' <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAEBElEQVR42rWVTWyUVRSG33Pu/b5vpp2iIqnVmEpLTTREjUkBMSHtNBpgbRpjAH/WgBBNFTa23SlpYoKauGgXplSwJOKuxRhaY4w/IEETqhChQReSugDbmflm7t9xMTP0h2qMxrO99z55zz3nvAdYLUSoq19077goiBBEaOkZRKh3XFRX/5RedvZvovvYwpH86PzQP71PK5WCSJ76oNQaIjngmSfA819zJfdSlGs4CgCuVDjoo9KImDWbtMLTbOT9z15o+KX+9nawCO2YQJx+A08Ppc9k78ieMAsWwZmrJGgDc/VeCBDCLOu4Pc5FKP+RPhsuZT/OboGa3AlTh+tF7SSTQAUAesYWOr2FF2u8irPtwZaBEOr3oKJMuzepCS5SLH7T1CCNA3DLv6KWQtdo8f5Iq83O+yeYsIeUagnOCRGkmhlRPTUBhAEKHBG8u84kY4H5vLOVr754/q5ZiJDuGphWnwNOEV7Wa5I+NoCvGIizICK6rQ4gUgQqO2Bt5FBm3eJ0/GomC1Ru+CEAfV0D04qbN3YLAAjzpCs574olI87KLYErggkoO+DuLOGNbQn2P04S0qIxBeeF9AQANG/srvXoQFVV/sHizyrOtAVbDkTEBCDIIlQRkDpgXQPh0NYYj93DOPWTDSMzioMpz57Z1biBBkAYgFRLPUgh31Haq+JMS3AmEIgrrqqMaVHpIjTCo82MEzMW731nOVgbdJxpyY8V9mOQAgCQiFDPh4U3dUPuNZ+mQhKo4gkPryMkinD2N487E0LRVqGHt8Z4pJnx0YzDyPcWsQIIAiGGzmTh0sLQtsu513nltHgBmhLg4KYYh5+M0Xmvwu+poLlxCfRHi5Ef6lBAZLXJq7VbfrS4XyXJW+Jt4pzn/AMa+zojzBvB8AWHHe0Km+9TOF5XyjVotVEC67jiTHpoenfTUYjQ8uJ1FK6oJLs+2HIoWuLtbQp7OyMwgFgTTl1yGL6wRGm1rwNHGfamPDu1q3ED6sXrPQnGIIXujkJeJUlrMBUDATXFwOlZj3fPWQiATy4vgVIdCkBAwZSNipPW/PFyHoMUek+C9dzFaQIAVrxdN0Ycoij2FYPgLHIxYeqax1xJcPVmgOYaVG75C0hHpJI4VgkQbpidAM7MXZymvx1pqY102YMSVR1DqWJFBMQ6InHuuoiMQfN5eHw5tbvhWvWPV4meY8UjuqnhFbtQ9CrOxHAVBJFq/kTgKINgU6tzjWzmC29P72nqW8nQq9mmcHqONZSKEhVsZRYi68G1NggBwaZXSEUdSgOk1NmuftErbXN1ox8vtQYn+wLxaZPNfJsslF6sG70vlg5kizeHS41rt4CxU1PmnU+fo19XGv3/tprw18t06j8t0z8BB38omljZPzUAAAAASUVORK5CYII=" style="width:22px;height:22px;vertical-align:middle;margin-left:4px" title="Təsdiqli satıcı">' : '';
+  const verifiedBadge = getSellerVerifiedFromCache(a.sellerUid || "", a.sellerEmail || "", !!a.sellerVerified) ? getSellerVerifiedBadgeHtml(19) : '';
   if(st && isSellerOnline(st)) return verifiedBadge + ' <span>●</span> Online';
   return verifiedBadge;
 }
@@ -3152,8 +3176,6 @@ window.getAdOnlineHomeHtml = getAdOnlineHomeHtml;
 window.updateProductDetailSellerOnline = updateProductDetailSellerOnline;
 window.updateProductDetailSellerBadge = updateProductDetailSellerBadge;
 window.getSellerStatus = getSellerStatus;
-window.getSellerVerifiedFromCache = getSellerVerifiedFromCache;
-window.refreshSellerBadges = refreshSellerBadges;
 function listenSellerUserStatuses(){
   if(window._sellerUsersUnsub) return;
   try{
