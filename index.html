@@ -4479,12 +4479,13 @@ function mergeChats(a,b){
 function listenMyChats(){
   stopChatListeners();
   if(!currentUser) return;
+  console.log("[listenMyChats] currentUser.uid:", currentUser.uid, "email:", currentUser.email);
   let buyer=[], seller=[];
   const draw=()=>drawChatList(mergeChats(buyer,seller));
   const qb=query(collection(db,"chats"),where("buyerUid","==",currentUser.uid));
   const qs=query(collection(db,"chats"),where("sellerUid","==",currentUser.uid));
-  chatUnsubs.push(onSnapshot(qb,s=>{buyer=[];s.forEach(d=>buyer.push({id:d.id,...d.data()}));draw();},e=>{console.error(e);document.getElementById("chatList").innerHTML='<div class="cabinet-empty">Yazışmalar yüklənmədi. Firestore Rules yoxla.</div>';}));
-  chatUnsubs.push(onSnapshot(qs,s=>{seller=[];s.forEach(d=>seller.push({id:d.id,...d.data()}));draw();},e=>console.error(e)));
+  chatUnsubs.push(onSnapshot(qb,s=>{buyer=[];s.forEach(d=>{console.log("[listenMyChats] buyer chat tapıldı:", d.id, "buyerUid:", d.data().buyerUid, "sellerUid:", d.data().sellerUid);buyer.push({id:d.id,...d.data()})});draw();},e=>{console.error(e);document.getElementById("chatList").innerHTML='<div class="cabinet-empty">Yazışmalar yüklənmədi. Firestore Rules yoxla.</div>';}));
+  chatUnsubs.push(onSnapshot(qs,s=>{seller=[];s.forEach(d=>{console.log("[listenMyChats] seller chat tapıldı:", d.id, "buyerUid:", d.data().buyerUid, "sellerUid:", d.data().sellerUid);seller.push({id:d.id,...d.data()})});draw();},e=>console.error(e)));
 }
 function drawChatList(arr){
   const el=document.getElementById("chatList"); if(!el) return;
