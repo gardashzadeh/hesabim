@@ -2438,7 +2438,7 @@ window.renderMarketAds = function renderMarketAds(){
           + '</div>'
           + tagsHtml
           + '<div class="ad-views">&#128065; '+formatViewsCount(a.views)+' baxış</div>'
-          + '<div class="user"><span class="seller-name-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+a.seller+'</span>'+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
+          + '<div class="user" data-wa-html="'+attr(waHtml)+'" data-aprv-html="'+attr(aprvHtml)+'"><span class="seller-name-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+a.seller+'</span>'+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
         + '</div>'
         + '</button>';
     } catch(e) {
@@ -3121,11 +3121,21 @@ window.getSellerStatus = getSellerStatus;
 function listenSellerOnlineStatuses(){
   if(window._sellerOnlineUnsub) return;
   try{
-    // users kolleksiyası yerinə presence — yalnız online/lastSeen/email saxlayır
-    // Anonim ziyarətçilər istifadəçilərin adı, emaili, blok statusu və s. görə bilmir
     window._sellerOnlineUnsub = onSnapshot(collection(db,"presence"), snap=>{
       snap.forEach(d=>cacheSellerStatus({uid:d.id, ...(d.data()||{})}));
-      if(typeof renderMarketAds === "function") renderMarketAds();
+      // Tam re-render əvəzinə yalnız user elementlərini yenilə — filter/pagination pozulmasın
+      document.querySelectorAll("#ads button.ad[data-seller-uid], #ads button.ad[data-seller-email]").forEach(btn=>{
+        const sUid = btn.getAttribute("data-seller-uid") || "";
+        const sEmail = btn.getAttribute("data-seller-email") || "";
+        const userEl = btn.querySelector(".user");
+        if(!userEl) return;
+        const sellerNameSpan = userEl.querySelector(".seller-name-link");
+        const sellerName = sellerNameSpan ? sellerNameSpan.outerHTML : (userEl.dataset.sellerName || "");
+        const waHtml = userEl.dataset.waHtml || "";
+        const aprvHtml = userEl.dataset.aprvHtml || "";
+        const onlineHtml = (typeof getAdOnlineHomeHtml === "function") ? getAdOnlineHomeHtml({sellerUid:sUid, sellerEmail:sEmail}) : "";
+        userEl.innerHTML = sellerName + onlineHtml + waHtml + aprvHtml;
+      });
       updateProductDetailSellerOnline();
     }, err=>console.warn("online status listen:", err));
   }catch(e){ console.warn("online status init:", e); }
@@ -3589,23 +3599,31 @@ async function resetPassword(){
 }
 
 async function googleLogin(){
+  console.log("[googleLogin] başladı");
   try{
     const provider = new GoogleAuthProvider();
+    console.log("[googleLogin] popup açılır...");
     const cred = await signInWithPopup(auth, provider);
+    console.log("[googleLogin] popup nəticəsi:", cred);
     currentUser = cred.user;
+    console.log("[googleLogin] currentUser:", currentUser?.email);
     await ensureUserProfile(currentUser,{
       name:(currentUser.displayName||"").split(" ")[0] || "",
       surname:(currentUser.displayName||"").split(" ").slice(1).join(" ") || "",
       birthDate:""
     });
+    console.log("[googleLogin] profil təmin edildi");
     await loadCurrentUserRole();
+    console.log("[googleLogin] rol yükləndi:", currentUserRole);
     if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; currentUserRole="user"; updateHeader(); authStatus("Hesabınız admin tərəfindən bloklanıb."); return; }
     await ensureWallet(currentUser.uid,currentUser.email);
+    console.log("[googleLogin] wallet təmin edildi, updateHeader çağırılır");
     updateHeader();
     closeModal("loginModal");
     toast("Google ilə giriş uğurludur");
+    console.log("[googleLogin] TAMAMLANDI");
   }catch(e){
-    console.error(e);
+    console.error("[googleLogin] XƏTA:", e.code, e.message, e);
     authStatus("Google giriş xətası: " + (e.code || e.message));
   }
 }
