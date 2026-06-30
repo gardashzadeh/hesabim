@@ -4491,9 +4491,9 @@ function listenMyChats(){
     const chats=[];
     s.forEach(d=>{
       const c={id:d.id,...d.data()};
-      const parts=Array.isArray(c.participants)?c.participants:[];
-      // Frontend-də əlavə təhlükəsizlik: participants içində cari UID yoxdursa göstərmə.
-      if(parts.includes(currentUser.uid)) chats.push(c);
+      // KRİTİK: participants sahəsi köhnə/test chatlərdə səhv qala bilər.
+      // Ona görə siyahıda yalnız real alıcı və ya satıcı UID uyğun gəlirsə göstəririk.
+      if(currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid)) chats.push(c);
     });
     drawChatList(chats.sort((a,b)=>{
       const ta=a.updatedAt&&a.updatedAt.toMillis?a.updatedAt.toMillis():0;
@@ -4523,9 +4523,7 @@ async function openChat(chatId,adminMode=false){
   // KRİTİK TƏHLÜKƏSİZLİK YOXLAMASI: bu chat həqiqətən cari istifadəçiyə aiddirmi?
   // Admin rejimi xaricdə, yalnız alıcı/satıcı öz yazışmasını aça bilər
   if(!adminMode){
-    const parts=Array.isArray(c.participants)?c.participants:[];
     const belongsToUser = currentUser && (
-      parts.includes(currentUser.uid) ||
       c.buyerUid===currentUser.uid ||
       c.sellerUid===currentUser.uid
     );
