@@ -4479,13 +4479,31 @@ function mergeChats(a,b){
 function listenMyChats(){
   stopChatListeners();
   if(!currentUser) return;
-  console.log("[listenMyChats] currentUser.uid:", currentUser.uid, "email:", currentUser.email);
-  let buyer=[], seller=[];
-  const draw=()=>drawChatList(mergeChats(buyer,seller));
-  const qb=query(collection(db,"chats"),where("buyerUid","==",currentUser.uid));
-  const qs=query(collection(db,"chats"),where("sellerUid","==",currentUser.uid));
-  chatUnsubs.push(onSnapshot(qb,s=>{buyer=[];s.forEach(d=>{console.log("[listenMyChats] buyer chat tapıldı:", d.id, "buyerUid:", d.data().buyerUid, "sellerUid:", d.data().sellerUid);buyer.push({id:d.id,...d.data()})});draw();},e=>{console.error(e);document.getElementById("chatList").innerHTML='<div class="cabinet-empty">Yazışmalar yüklənmədi. Firestore Rules yoxla.</div>';}));
-  chatUnsubs.push(onSnapshot(qs,s=>{seller=[];s.forEach(d=>{console.log("[listenMyChats] seller chat tapıldı:", d.id, "buyerUid:", d.data().buyerUid, "sellerUid:", d.data().sellerUid);seller.push({id:d.id,...d.data()})});draw();},e=>console.error(e)));
+
+  const el=document.getElementById("chatList");
+  if(el) el.innerHTML='<div class="cabinet-empty">Yüklənir...</div>';
+
+  // Yalnız cari istifadəçinin iştirak etdiyi yazışmaları göstər.
+  // Əvvəlki buyerUid/sellerUid ilə 2 ayrı sorğu bəzi hallarda köhnə/test chatləri qarışdırırdı.
+  const q=query(collection(db,"chats"),where("participants","array-contains",currentUser.uid));
+
+  chatUnsubs.push(onSnapshot(q,s=>{
+    const chats=[];
+    s.forEach(d=>{
+      const c={id:d.id,...d.data()};
+      const parts=Array.isArray(c.participants)?c.participants:[];
+      // Frontend-də əlavə təhlükəsizlik: participants içində cari UID yoxdursa göstərmə.
+      if(parts.includes(currentUser.uid)) chats.push(c);
+    });
+    drawChatList(chats.sort((a,b)=>{
+      const ta=a.updatedAt&&a.updatedAt.toMillis?a.updatedAt.toMillis():0;
+      const tb=b.updatedAt&&b.updatedAt.toMillis?b.updatedAt.toMillis():0;
+      return tb-ta;
+    }));
+  },e=>{
+    console.error(e);
+    if(el) el.innerHTML='<div class="cabinet-empty">Yazışmalar yüklənmədi. Firestore Rules və chats/participants sahəsini yoxla.</div>';
+  }));
 }
 function drawChatList(arr){
   const el=document.getElementById("chatList"); if(!el) return;
@@ -4505,7 +4523,12 @@ async function openChat(chatId,adminMode=false){
   // KRİTİK TƏHLÜKƏSİZLİK YOXLAMASI: bu chat həqiqətən cari istifadəçiyə aiddirmi?
   // Admin rejimi xaricdə, yalnız alıcı/satıcı öz yazışmasını aça bilər
   if(!adminMode){
-    const belongsToUser = currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid);
+    const parts=Array.isArray(c.participants)?c.participants:[];
+    const belongsToUser = currentUser && (
+      parts.includes(currentUser.uid) ||
+      c.buyerUid===currentUser.uid ||
+      c.sellerUid===currentUser.uid
+    );
     if(!belongsToUser){
       box.innerHTML='<div class="cabinet-empty">Bu yazışmaya icazəniz yoxdur.</div>';
       return;
