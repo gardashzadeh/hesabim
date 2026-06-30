@@ -972,7 +972,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .profile-form button{grid-column:1/3}
 .order-actions{display:flex;flex-wrap:wrap;gap:6px}
 .order-actions button{height:30px;border-radius:7px;padding:0 9px;color:#fff;font-weight:900}
-.complete-btn{background:#128a45}.cancel-btn{background:#475569}.dispute-btn{background:#a16207}.edit-btn{background:#2563eb}
+.complete-btn{background:#128a45}.cancel-btn{background:#475569}.dispute-btn{background:#a16207}.edit-btn{background:#2563eb}.renew-btn{background:#7c3aed}
 .saved-card.saved-live{border-color:#334155}
 
 @media(max-width:700px){.profile-form{grid-template-columns:1fr}.profile-form .full,.profile-form button{grid-column:auto}}
@@ -1601,6 +1601,8 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
       <input id="regName" type="text" placeholder="Ad" autocomplete="given-name">
       <input id="regSurname" type="text" placeholder="Soyad" autocomplete="family-name">
       <input id="regBirthDate" type="date" placeholder="Doğum tarixi" autocomplete="bday">
+      <input id="regUserId" type="text" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off">
+      <small id="regUserIdHint" style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Yalnız hərf, rəqəm və alt xətt (_) — elanlarınızda bu ID görünəcək</small>
       <input id="regEmail" type="email" placeholder="Email" autocomplete="email">
       <input id="regPassword" type="password" placeholder="Şifrə (minimum 6 simvol)">
       <input id="regPassword2" type="password" placeholder="Şifrəni təkrar et">
@@ -2369,7 +2371,7 @@ window.renderMarketAds = function renderMarketAds(){
     priceValue: Number(a.price || 0),
     originalPrice: Number(a.originalPrice || 0),
     createdAtMs: a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds*1000 : 0),
-    seller:safeText(a.sellerEmail ? a.sellerEmail.split('@')[0] : "Satıcı"),
+    seller:safeText(a.sellerUserId || (a.sellerEmail ? a.sellerEmail.split('@')[0] : "Satıcı")),
     category:safeText(a.category || "Hesab"),
     platform:safeText(a.platform || ""),
     region:safeText(a.region || ""),
@@ -3565,8 +3567,23 @@ window.saveCurrentProductToAccount = async function(){
 
 function statusHtml(s){
   s=s||"Gözləmədə";
-  const cls=s==="Təsdiqləndi"?"approved":s==="Rədd edildi"?"rejected":s==="Satıldı"?"sold":"pending";
+  const cls=s==="Təsdiqləndi"?"approved":s==="Rədd edildi"?"rejected":s==="Satıldı"?"sold":s==="Vaxtı bitib"?"rejected":"pending";
   return `<span class="status ${cls}">${esc(s)}</span>`;
+}
+// Elanın 30 günlük müddəti bitibmi yoxla
+function isAdExpired(a){
+  if(!a.expiresAt) return false;
+  const exp = a.expiresAt.seconds ? a.expiresAt.seconds*1000 : new Date(a.expiresAt).getTime();
+  return Date.now() > exp;
+}
+function adExpiryText(a){
+  if(!a.expiresAt) return "";
+  const exp = a.expiresAt.seconds ? a.expiresAt.seconds*1000 : new Date(a.expiresAt).getTime();
+  const daysLeft = Math.ceil((exp - Date.now()) / (24*60*60*1000));
+  if(daysLeft < 0) return "Vaxtı bitib";
+  if(daysLeft === 0) return "Bu gün bitir";
+  if(daysLeft <= 5) return daysLeft + " gün qalıb";
+  return new Date(exp).toLocaleDateString("az-AZ", {day:"numeric", month:"short", year:"numeric"});
 }
 
 window.setAuthMode = function(mode){
@@ -3603,6 +3620,7 @@ async function registerUser(){
   const name=document.getElementById("regName")?.value.trim() || "";
   const surname=document.getElementById("regSurname")?.value.trim() || "";
   const birthDate=document.getElementById("regBirthDate")?.value || "";
+  const userId=document.getElementById("regUserId")?.value.trim().toLowerCase() || "";
   const email=document.getElementById("regEmail").value.trim().toLowerCase();
   const pass=document.getElementById("regPassword").value.trim();
   const pass2=document.getElementById("regPassword2").value.trim();
@@ -3610,18 +3628,33 @@ async function registerUser(){
   if(!name){authStatus("Ad yaz.");return}
   if(!surname){authStatus("Soyad yaz.");return}
   if(!birthDate){authStatus("Doğum tarixini seç.");return}
+  if(!userId){authStatus("İstifadəçi ID yaz.");return}
+  if(!/^[a-z0-9_]{3,20}$/.test(userId)){authStatus("ID yalnız kiçik hərf, rəqəm və alt xətt (_) ola bilər, 3-20 simvol.");return}
   if(!validEmail(email)){authStatus("Düzgün email yaz.");return}
   if(pass.length<6){authStatus("Şifrə minimum 6 simvol olmalıdır.");return}
   if(pass!==pass2){authStatus("Şifrələr eyni deyil.");return}
 
   try{
+    // ID-nin unikallığını yoxla — usernames/{userId} sənədi mövcuddursa, ID artıq götürülüb
+    const usernameRef = doc(db,"usernames",userId);
+    const usernameSnap = await getDoc(usernameRef);
+    if(usernameSnap.exists()){
+      authStatus("Bu ID artıq götürülüb. Başqa ID seç.");
+      return;
+    }
+
     const cred=await createUserWithEmailAndPassword(auth,email,pass);
+
+    // ID-ni rezerv et — uid ilə əlaqələndir ki, kim götürdüyünü bilək
+    await setDoc(usernameRef,{uid:cred.user.uid, createdAt:serverTimestamp()});
+
     await setDoc(doc(db,"users",cred.user.uid),{
       uid:cred.user.uid,
       name,
       surname,
       fullName:name+" "+surname,
       birthDate,
+      userId,
       email,
       role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
       createdAt:serverTimestamp(),
@@ -3959,6 +3992,7 @@ window.submitAd = async function(){
     const editingId = submitBtn?.dataset?.editingId || "";
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
     const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
+    const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
     const adPayload = {
       title, category, game, ...proFields,
@@ -3968,6 +4002,7 @@ window.submitAd = async function(){
       status: "Gözləmədə",
       sellerUid: currentUser.uid,
       sellerEmail: currentUser.email,
+      sellerUserId,
       sellerVerified,
       updatedAt: serverTimestamp()
     };
@@ -3975,7 +4010,9 @@ window.submitAd = async function(){
     if(editingId){
       await updateDoc(doc(db,"ads",editingId), adPayload);
     } else {
-      await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp()});
+      // Elan müddəti: 30 gün (1 ay)
+      const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
+      await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp(), expiresAt});
     }
 
     // Formu təmizlə
@@ -4916,11 +4953,34 @@ function listenMyAds(){
   const q=query(collection(db,"ads"),where("sellerUid","==",currentUser.uid));
   unsubMyAds=onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
-    el.innerHTML='<h3>Elanlarım</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Elan</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(a=>`<tr><td><b>${esc(a.title)}</b><br><small>${esc([a.game, adMetaText(a)].filter(Boolean).join(" • "))}</small></td><td>${Number(a.price||0).toFixed(2)} ₼</td><td>${statusHtml(a.status)}</td><td><div class="order-actions"><button class="edit-btn" data-edit-ad="${a.id}">Redaktə</button><button class="delete-btn" data-del-ad="${a.id}">Sil</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ elanınız yoxdur.</div>');
+    // Vaxtı bitmiş elanları aktiv elanlardan ayır, amma silmə — sadəcə fərqli göstər
+    el.innerHTML='<h3>Elanlarım</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Elan</th><th>Qiymət</th><th>Status</th><th>Müddət</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(a=>{
+      const expired = isAdExpired(a);
+      const expiryText = adExpiryText(a);
+      const displayStatus = expired ? "Vaxtı bitib" : a.status;
+      const renewBtn = expired ? `<button class="renew-btn" data-renew-ad="${a.id}">Yenilə</button>` : "";
+      return `<tr${expired?' style="opacity:.6"':''}><td><b>${esc(a.title)}</b><br><small>${esc([a.game, adMetaText(a)].filter(Boolean).join(" • "))}</small></td><td>${Number(a.price||0).toFixed(2)} ₼</td><td>${statusHtml(displayStatus)}</td><td><small style="color:${expired?'#ef4444':'#64748b'}">${esc(expiryText)}</small></td><td><div class="order-actions"><button class="edit-btn" data-edit-ad="${a.id}">Redaktə</button>${renewBtn}<button class="delete-btn" data-del-ad="${a.id}">Sil</button></div></td></tr>`;
+    }).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ elanınız yoxdur.</div>');
     el.querySelectorAll("[data-edit-ad]").forEach(b=>b.onclick=()=>editMyAd(b.dataset.editAd,arr));
     el.querySelectorAll("[data-del-ad]").forEach(b=>b.onclick=()=>deleteMyAd(b.dataset.delAd));
+    el.querySelectorAll("[data-renew-ad]").forEach(b=>b.onclick=()=>renewMyAd(b.dataset.renewAd));
   });
 }
+
+// Vaxtı bitmiş elanı yenilə — yeni 30 günlük müddət, yenidən admin təsdiqinə göndərilir
+async function renewMyAd(id){
+  if(!currentUser) return;
+  try{
+    const newExpiry = new Date(Date.now() + 30*24*60*60*1000);
+    await updateDoc(doc(db,"ads",id),{
+      expiresAt: newExpiry,
+      status: "Gözləmədə",
+      updatedAt: serverTimestamp()
+    });
+    toast("Elan yeniləndi, admin təsdiqi gözlənilir.");
+  }catch(e){ console.error(e); toast("Elan yenilənmədi."); }
+}
+window.renewMyAd = renewMyAd;
 
 function listenAdmin(){
   const el=document.getElementById("cabAdmin");
@@ -4990,7 +5050,12 @@ function listenPublicAds(){
   if(unsubPublicAds) unsubPublicAds();
   const q=query(collection(db,"ads"),where("status","==","Təsdiqləndi"));
   unsubPublicAds=onSnapshot(q,snap=>{
-    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    const arr=[];
+    snap.forEach(d=>{
+      const data = {id:d.id,...d.data()};
+      // Vaxtı bitmiş elanları ana səhifədə göstərmə
+      if(!isAdExpired(data)) arr.push(data);
+    });
     window.approvedFirestoreAds=arr;
     if(window.renderMarketAds) window.renderMarketAds();
   });
@@ -5109,7 +5174,7 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
       const uSnap = await getDoc(doc(db,"users",sellerUid)).catch(()=>null);
       if(uSnap && uSnap.exists()) profile = uSnap.data();
     }
-    const displayName = profile.fullName || profile.name || (sellerEmail||"").split("@")[0] || "Satıcı";
+    const displayName = profile.userId || (sellerEmail||"").split("@")[0] || "Satıcı";
     const initial = displayName.charAt(0).toUpperCase();
     const joinDate = profile.createdAt ? new Date(profile.createdAt.seconds*1000).toLocaleDateString("az-AZ",{year:"numeric",month:"long"}) : "";
     const isVerified = !!profile.sellerVerified;
