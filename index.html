@@ -4496,11 +4496,25 @@ function drawChatList(arr){
   el.querySelectorAll("[data-chat-open]").forEach(b=>b.onclick=()=>openChat(b.dataset.chatOpen));
 }
 async function openChat(chatId,adminMode=false){
-  activeChatId=chatId; if(adminMode) adminActiveChatId=chatId;
   const box=document.getElementById(adminMode?"adminChatBox":"chatBox"); if(!box) return;
   const ref=doc(db,"chats",chatId);
   const snap=await getDoc(ref).catch(()=>null); const c=snap&&snap.exists()?{id:snap.id,...snap.data()}:null;
   if(!c){ box.innerHTML='<div class="cabinet-empty">Yazışma tapılmadı.</div>'; return; }
+
+  // KRİTİK TƏHLÜKƏSİZLİK YOXLAMASI: bu chat həqiqətən cari istifadəçiyə aiddirmi?
+  // Admin rejimi xaricdə, yalnız alıcı/satıcı öz yazışmasını aça bilər
+  if(!adminMode){
+    const belongsToUser = currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid);
+    if(!belongsToUser){
+      box.innerHTML='<div class="cabinet-empty">Bu yazışmaya icazəniz yoxdur.</div>';
+      return;
+    }
+  } else if(!isAdmin()){
+    box.innerHTML='<div class="cabinet-empty">Admin icazəniz yoxdur.</div>';
+    return;
+  }
+
+  activeChatId=chatId; if(adminMode) adminActiveChatId=chatId;
   const isBuyer=currentUser&&c.buyerUid===currentUser.uid;
   const canWrite=!adminMode && currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid || isAdmin());
   if(!adminMode && currentUser){ await updateDoc(ref,isBuyer?{unreadBuyer:0}:{unreadSeller:0}).catch(()=>{}); }
