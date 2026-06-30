@@ -2540,6 +2540,22 @@ function openProductDetail(p){
 
   // Satıcı online statusu yoxla
   if(window.updateProductDetailSellerOnline) window.updateProductDetailSellerOnline();
+
+  // Ödəniş sistemi: yalnız admin öz məhsulları üçün (approved:false)
+  // Satıcı elanları (approved:true) → satıcı ilə birbaşa əlaqə
+  const isSellerAd = !!currentDetailProduct.approved;
+  const addCartBtn = document.getElementById("pdAddCart");
+  const chatBtn = document.getElementById("pdChat");
+  if(isSellerAd){
+    // Satıcı elanı — səbət gizlət, əlaqə düymələri aktiv
+    if(addCartBtn) addCartBtn.style.display = "none";
+    if(chatBtn) chatBtn.style.display = "";
+  } else {
+    // Admin məhsulu — səbət göstər
+    if(addCartBtn) addCartBtn.style.display = "";
+    if(chatBtn) chatBtn.style.display = "none";
+  }
+
   document.getElementById("pdAddCart").onclick = function(){
     addToCart(currentDetailProduct.title || "Məhsul", currentDetailProduct.price || "0.00 ₼", currentDetailProduct.adId || "", currentDetailProduct.sellerUid || "", currentDetailProduct.sellerEmail || "");
     closeModal("productModal");
@@ -3875,6 +3891,10 @@ window.createOrdersFromCart = async function(items){
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); toast("Alış üçün əvvəlcə giriş et"); return; }
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
+  // Satıcı elanları ödəniş sisteminə daxil edilmir
+  const adminItems = items.filter(item => !item.sellerUid || item.sellerUid === "site_admin" || item.sellerUid === "");
+  if(!adminItems.length){ toast("Satıcı məhsulları üçün satıcı ilə birbaşa əlaqə qurun."); return; }
+  items = adminItems;
   const total=items.reduce((s,item)=>s+moneyToNumber(item.price),0);
   const walletRef=doc(db,"wallets",currentUser.uid);
   try{
@@ -4773,25 +4793,37 @@ async function updateAdStatus(id,status){
 
 function listenSellerStats(){
   const sellersEl=document.getElementById("sellers");
-  const q=query(collection(db,"orders"));
+  // Yalnız tamamlanmış sifarişləri say
+  const q=query(collection(db,"orders"), where("status","==","Tamamlandı"));
   onSnapshot(q,snap=>{
-    const counts={};
+    const counts={}; // {sellerEmail: {count, sellerUid}}
     snap.forEach(d=>{
       const o=d.data();
       const seller=o.sellerEmail || "GameSatış";
-      counts[seller]=(counts[seller]||0)+1;
+      if(!counts[seller]) counts[seller]={count:0, sellerUid:o.sellerUid||""};
+      counts[seller].count++;
     });
-    localStorage.setItem("gs_seller_sales_counts", JSON.stringify(counts));
+    // localStorage-a sadə say kimi saxla
+    const simple={};
+    Object.entries(counts).forEach(([k,v])=>simple[k]=v.count);
+    localStorage.setItem("gs_seller_sales_counts", JSON.stringify(simple));
 
     if(sellersEl){
-      const rows=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      const rows=Object.entries(counts).sort((a,b)=>b[1].count-a[1].count).slice(0,5);
       if(rows.length){
-        sellersEl.innerHTML=rows.map(([email,count])=>`
-          <button class="seller searchable" onclick="showToast('${email} mağazası açılır...')">
+        sellersEl.innerHTML=rows.map(([email,data])=>{
+          const safeEmail=String(email||"").replace(/[<>&"'`]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;","'":"&#39;","`":"&#96;"}[s]));
+          const safeName=safeEmail.split("@")[0];
+          const st = getSellerStatus(data.sellerUid||"", email||"");
+          const verBadge = (st&&st.sellerVerified) ? '<span style="background:#1d4ed8;color:#fff;font-size:9px;font-weight:700;border-radius:999px;padding:1px 5px;margin-left:4px">✓</span>' : '';
+          return `<button class="seller searchable" onclick="openSellerProfile('${data.sellerUid||""}','${safeEmail}')">
             <div class="sicon"><svg viewBox="0 0 24 24" style="width:24px" fill="#fb923c"><circle cx="12" cy="12" r="10"/></svg></div>
-            <div><b>${email.split("@")[0]}</b><br><span class="star">★</span> <small>Real satış statistikası</small></div>
-            <strong>${count} satış</strong>
-          </button>`).join("");
+            <div><b>${safeName}${verBadge}</b><br><span class="star">★</span> <small>Tamamlanmış satış</small></div>
+            <strong>${data.count} satış</strong>
+          </button>`;
+        }).join("");
+      } else {
+        sellersEl.innerHTML='<div class="cabinet-empty" style="font-size:13px">Hələ tamamlanmış satış yoxdur.</div>';
       }
     }
   },err=>console.warn("Seller stats yüklənmədi:",err));
