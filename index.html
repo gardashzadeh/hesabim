@@ -2307,6 +2307,7 @@ function render(){
 }
 
 window.renderMarketAds = function renderMarketAds(){
+  console.log("[renderMarketAds] çağırıldı, presence cache ölçüsü:", sellerStatusCache.size);
   const adsEl=document.getElementById("ads");
   if(!adsEl) return;
 
