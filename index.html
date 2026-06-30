@@ -3176,19 +3176,10 @@ window.getAdOnlineHomeHtml = getAdOnlineHomeHtml;
 window.updateProductDetailSellerOnline = updateProductDetailSellerOnline;
 window.updateProductDetailSellerBadge = updateProductDetailSellerBadge;
 window.getSellerStatus = getSellerStatus;
-function listenSellerUserStatuses(){
-  if(window._sellerUsersUnsub) return;
-  try{
-    window._sellerUsersUnsub = onSnapshot(collection(db,"users"), snap=>{
-      snap.forEach(d=>{
-        const u = d.data() || {};
-        cacheSellerStatus({uid:d.id, email:u.email || "", sellerVerified:!!u.sellerVerified});
-      });
-      refreshSellerBadges();
-    }, err=>console.warn("seller verified listen:", err));
-  }catch(e){ console.warn("seller verified init:", e); }
-}
-window.listenSellerUserStatuses = listenSellerUserStatuses;
+// NOT: listenSellerUserStatuses silindi — bütün "users" kolleksiyasını oxumağa
+// çalışırdı, bu da admin olmayan istifadəçilər üçün Firestore Rules-u pozurdu
+// (permission-denied). Artıq sellerVerified statusu yalnız "presence" kolleksiyasından
+// gəlir — bu kolleksiya hər kəs üçün oxunaqlıdır (allow read: if true).
 
 function listenSellerOnlineStatuses(){
   if(window._sellerOnlineUnsub) return;
@@ -5016,8 +5007,7 @@ onAuthStateChanged(auth, async user=>{
   listenHeaderNotifications();
   wire();
   if(window.render) window.render();
-  // Satıcı təsdiqi və online statusu yenilə
-  listenSellerUserStatuses();
+  // Online statusu yenilə (presence-də sellerVerified də daxildir)
   listenSellerOnlineStatuses();
   if(currentUser){
     startOwnPresence();
@@ -5032,7 +5022,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   wire();
   listenPublicAds();
   listenSellerStats();
-  listenSellerUserStatuses();
   listenSellerOnlineStatuses();
 });
 
