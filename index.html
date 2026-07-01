@@ -3421,15 +3421,14 @@ const _ae = atob("Z2FyZGFzaHphZGVoQGdtYWlsLmNvbQ==");
 const ADMIN_EMAILS = [_ae];
 
 // ===== TELEGRAM BİLDİRİŞ =====
-const TG_TOKEN = "8555247908:AAERXbr2KD34tEI1-AYi9Iv5YQeFX2RwdHc";
-const TG_CHAT  = "1088371366";
+const TG_WORKER = "https://tg.gardashzadeh.workers.dev";
 
 async function tgNotify(msg){
   try{
-    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({chat_id: TG_CHAT, text: msg, parse_mode:"HTML"})
+    await fetch(TG_WORKER, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({text: msg})
     });
   }catch(e){ console.warn("Telegram bildirişi göndərilmədi:", e); }
 }
