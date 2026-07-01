@@ -2952,19 +2952,11 @@ function openProductDetail(p){
   if(window.updateProductDetailSellerOnline) window.updateProductDetailSellerOnline();
 
   // Ödəniş sistemi: yalnız admin öz məhsulları üçün (approved:false)
-  // Satıcı elanları (approved:true) → satıcı ilə birbaşa əlaqə
-  const isSellerAd = !!currentDetailProduct.approved;
+  // Bütün elanlarda həm "Səbətə əlavə et", həm "Mesaj" görünür
   const addCartBtn = document.getElementById("pdAddCart");
   const chatBtn = document.getElementById("pdChat");
-  if(isSellerAd){
-    // Satıcı elanı — səbət gizlət, əlaqə düymələri aktiv
-    if(addCartBtn) addCartBtn.style.display = "none";
-    if(chatBtn) chatBtn.style.display = "";
-  } else {
-    // Admin məhsulu — səbət göstər
-    if(addCartBtn) addCartBtn.style.display = "";
-    if(chatBtn) chatBtn.style.display = "none";
-  }
+  if(addCartBtn) addCartBtn.style.display = "";
+  if(chatBtn) chatBtn.style.display = "";
 
   document.getElementById("pdAddCart").onclick = function(){
     addToCart(currentDetailProduct.title || "Məhsul", currentDetailProduct.price || "0.00 ₼", currentDetailProduct.adId || "", currentDetailProduct.sellerUid || "", currentDetailProduct.sellerEmail || "");
