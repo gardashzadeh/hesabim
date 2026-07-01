@@ -4750,6 +4750,7 @@ window.createOrdersFromCart = async function(items){
             if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n`;
             if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
 
+            // Admin panelinə bildiriş göndər. Alıcı bu məlumatları görmür.
             await addDoc(collection(db,"adminNotifications"),{
               type: "credentials",
               orderId: orderRef.id,
@@ -4760,7 +4761,7 @@ window.createOrdersFromCart = async function(items){
               sellerUid: item.sellerUid || adData?.sellerUid || "",
               sellerEmail: item.sellerEmail || adData?.sellerEmail || "",
               credentials: credText,
-              status: "Gözləmədə",
+              status: "Admin təsdiqi gözləyir",
               createdAt: serverTimestamp()
             });
             console.log("[creds] ✅ adminNotifications-a yazıldı");
@@ -5242,7 +5243,7 @@ function drawMessages(msgs,adminMode=false){
       ? `<button onclick="sendCredsToBuyer('${esc(m.orderId||"")}','${esc(m.buyerUid||"")}','${esc(m.buyerEmail||"")}')"
           style="display:block;margin-top:8px;background:#22c55e;border:none;color:#fff;font-weight:700;
           padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;width:100%">
-          ✅ Yoxladım, alıcıya göndər
+          ✅ Təsdiqləyirəm, alıcıya göndər
         </button>` : "";
     return `<div class="chat-msg ${isMe?'me':''}${isCredMsg?' style="background:#0a1a0a;border:1px solid #22c55e33"':''}" ${isCredMsg?'style="background:#0a1a0a;border:1px solid #22c55e33;border-radius:10px"':''}>
       <span style="white-space:pre-line">${esc(m.text||"")}</span>
@@ -5256,7 +5257,7 @@ function drawMessages(msgs,adminMode=false){
 window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
   if(!isAdmin()){ toast("Admin icazəsi lazımdır."); return; }
   if(!orderId || !buyerUid){ toast("Məlumat çatışmır."); return; }
-  if(!await (window.showConfirm||window.confirm)("Hesab məlumatlarını alıcıya göndərirsiniz?","✅")) return;
+  if(!await (window.showConfirm||window.confirm)("Hesab məlumatlarını yoxladığınızı təsdiqləyib alıcıya göndərirsiniz?","✅")) return;
 
   try{
     const ADMIN_UID = "B4BLhevMihY5FE8WRv1tk1DuHNm2";
@@ -5291,7 +5292,13 @@ window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
       createdAt:serverTimestamp()
     });
     await updateDoc(buyerChatRef,{lastMessage:"Hesab məlumatları göndərildi",unreadBuyer:1,updatedAt:serverTimestamp()}).catch(()=>{});
-    if(orderId) await updateDoc(doc(db,"orders",orderId),{credentialsStatus:"Alıcıya göndərildi",updatedAt:serverTimestamp()}).catch(()=>{});
+    if(orderId) await updateDoc(doc(db,"orders",orderId),{
+      pendingCredentials: deleteField(),
+      credentialsStatus:"Alıcıya göndərildi",
+      credentialsApprovedAt:serverTimestamp(),
+      credentialsApprovedBy:currentUser.uid||"",
+      updatedAt:serverTimestamp()
+    }).catch(()=>{});
     toast("✅ Alıcıya göndərildi!");
   }catch(e){ console.error(e); toast("Xəta: "+e.message); }
 };
@@ -5723,48 +5730,14 @@ async function completeOrder(id){
     });
     if(o.adId) await updateDoc(doc(db,"ads",o.adId),{status:"Satıldı",updatedAt:serverTimestamp()}).catch(()=>{});
 
-    // Hesab məlumatlarını alıcıya avtomatik göndər
-    try{
-      if(o.adId){
-        const adSnap = await getDoc(doc(db,"ads",o.adId));
-        if(adSnap.exists()){
-          const creds = adSnap.data().accountCredentials;
-          if(creds && (creds.login || creds.password)){
-            // Decode
-            const loginDecoded    = creds.login    ? decodeURIComponent(escape(atob(creds.login)))    : "";
-            const passwordDecoded = creds.password ? decodeURIComponent(escape(atob(creds.password))) : "";
-            // Chat ID-ni tap — buyerUid + sellerUid + adId
-            const chatId = [o.buyerUid, o.sellerUid||"", o.adId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
-            const chatRef = doc(db,"chats",chatId);
-            const chatSnap = await getDoc(chatRef).catch(()=>null);
-            let targetChatId = chatId;
-            // Əgər bu chat tapılmadısa, buyerUid-ə aid hər hansı chat-i axtar
-            if(!chatSnap || !chatSnap.exists()){
-              const q = query(collection(db,"chats"),
-                where("buyerUid","==",o.buyerUid),
-                where("sellerUid","==",o.sellerUid||"")
-              );
-              const cs = await getDocs(q).catch(()=>null);
-              if(cs && !cs.empty) targetChatId = cs.docs[0].id;
-              else targetChatId = null;
-            }
-            if(targetChatId){
-              await addDoc(collection(db,"chats",targetChatId,"messages"),{
-                senderId:"system",
-                senderEmail:"system",
-                text:`🔑 Sifariş tamamlandı! Hesab giriş məlumatlarınız:\n\n📧 Login: ${loginDecoded}\n🔒 Şifrə: ${passwordDecoded}\n\nXoş oyunlar! Hər hansı problem olarsa satıcı ilə əlaqə saxlayın.`,
-                type:"credentials",
-                createdAt:serverTimestamp()
-              });
-              // Məlumatları elan sənədindən sil — artıq çatdırılıb
-              await updateDoc(doc(db,"ads",o.adId),{
-                accountCredentials: deleteField()
-              }).catch(()=>{});
-            }
-          }
-        }
-      }
-    }catch(credErr){ console.warn("Credentials göndərilmədi:", credErr); }
+    // Hesab məlumatları burada alıcıya avtomatik göndərilmir.
+    // Məlumatlar yalnız admin panelində yoxlanıb "Təsdiqləyirəm, alıcıya göndər" düyməsi basıldıqdan sonra alıcıya gedir.
+    if(o.pendingCredentials){
+      await updateDoc(doc(db,"orders",id),{
+        credentialsStatus:"Admin təsdiqi gözləyir",
+        updatedAt:serverTimestamp()
+      }).catch(()=>{});
+    }
 
     toast("Sifariş tamamlandı");
   }catch(e){
@@ -5990,9 +5963,12 @@ function listenAdmin(){
 
 function listenNotifAdmin(){
   const el=document.getElementById("adminNotifSection"); if(!el||!isAdmin()) return;
-  const q=query(collection(db,"adminNotifications"),where("status","==","Gözləmədə"));
+  const q=query(collection(db,"adminNotifications"));
   onSnapshot(q,snap=>{
-    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    const arr=[]; snap.forEach(d=>{
+      const n={id:d.id,...d.data()};
+      if(!["Göndərildi","Ləğv edildi"].includes(n.status)) arr.push(n);
+    });
     arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     if(!arr.length){ el.innerHTML=''; return; }
     el.innerHTML=`<h3 style="color:#fb923c">🔑 Hesab məlumatları (${arr.length})</h3>
@@ -6002,7 +5978,7 @@ function listenNotifAdmin(){
       <td><small>${esc(n.buyerEmail||"")}</small></td>
       <td>${Number(n.price||0).toFixed(2)} ₼</td>
       <td><pre style="font-size:11px;color:#e2e8f0;margin:0;white-space:pre-wrap">${esc(n.credentials||"")}</pre></td>
-      <td><button class="approve-btn" data-notif-id="${n.id}" data-buyer-uid="${n.buyerUid||""}" data-buyer-email="${esc(n.buyerEmail||"")}">✅ Yoxladım, alıcıya göndər</button></td>
+      <td><button class="approve-btn" data-notif-id="${n.id}" data-buyer-uid="${n.buyerUid||""}" data-buyer-email="${esc(n.buyerEmail||"")}">✅ Təsdiqləyirəm, alıcıya göndər</button></td>
     </tr>`).join("")}
     </tbody></table>`;
     el.querySelectorAll("[data-notif-id]").forEach(b=>b.onclick=()=>
@@ -6013,7 +5989,7 @@ function listenNotifAdmin(){
 
 async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
   if(!isAdmin()) return;
-  if(!await (window.showConfirm||window.confirm)("Hesab məlumatlarını alıcıya göndərirsiniz?","✅")) return;
+  if(!await (window.showConfirm||window.confirm)("Hesab məlumatlarını yoxladığınızı təsdiqləyib alıcıya göndərirsiniz?","✅")) return;
   try{
     const nSnap = await getDoc(doc(db,"adminNotifications",notifId));
     if(!nSnap.exists()){ toast("Tapılmadı."); return; }
@@ -6038,8 +6014,14 @@ async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
       type:"credentials", createdAt:serverTimestamp()
     });
     await updateDoc(chatRef,{lastMessage:"Hesab məlumatları",unreadBuyer:1,updatedAt:serverTimestamp()}).catch(()=>{});
-    await updateDoc(doc(db,"adminNotifications",notifId),{status:"Göndərildi",sentAt:serverTimestamp()});
-    if(n.orderId) await updateDoc(doc(db,"orders",n.orderId),{credentialsStatus:"Alıcıya göndərildi",updatedAt:serverTimestamp()}).catch(()=>{});
+    await updateDoc(doc(db,"adminNotifications",notifId),{status:"Göndərildi",sentAt:serverTimestamp(),approvedBy:currentUser.uid||""});
+    if(n.orderId) await updateDoc(doc(db,"orders",n.orderId),{
+      pendingCredentials: deleteField(),
+      credentialsStatus:"Alıcıya göndərildi",
+      credentialsApprovedAt:serverTimestamp(),
+      credentialsApprovedBy:currentUser.uid||"",
+      updatedAt:serverTimestamp()
+    }).catch(()=>{});
     toast("✅ Alıcıya göndərildi!");
   }catch(e){ console.error(e); toast("Xəta: "+e.message); }
 }
