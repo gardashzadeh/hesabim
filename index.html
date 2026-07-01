@@ -3420,6 +3420,20 @@ const firebaseConfig = {
 const _ae = atob("Z2FyZGFzaHphZGVoQGdtYWlsLmNvbQ==");
 const ADMIN_EMAILS = [_ae];
 
+// ===== TELEGRAM BİLDİRİŞ =====
+const TG_TOKEN = "8555247908:AAERXbr2KD34tEI1-AYi9Iv5YQeFX2RwdHc";
+const TG_CHAT  = "1088371366";
+
+async function tgNotify(msg){
+  try{
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({chat_id: TG_CHAT, text: msg, parse_mode:"HTML"})
+    });
+  }catch(e){ console.warn("Telegram bildirişi göndərilmədi:", e); }
+}
+
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -4614,6 +4628,7 @@ window.submitAd = async function(){
     const tags = tagsRaw ? tagsRaw.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
     const editingId = submitBtn?.dataset?.editingId || "";
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
+    const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
     // Çatdırılma üsulu və hesab məlumatları
@@ -4648,8 +4663,7 @@ window.submitAd = async function(){
       sellerUid: currentUser.uid,
       sellerEmail: currentUser.email,
       sellerUserId,
-      // sellerVerified burada yazılmır. Firestore rules bu field-i user-dən gələndə bloklayır.
-      // Təsdiq statusu users/presence kolleksiyasından ayrıca oxunur.
+      sellerVerified,
       ...(accountCredentials ? {accountCredentials} : {}),
       deliveryMode,
       chatMode: deliveryMode==="chat" ? chatMode : null,
@@ -4688,9 +4702,7 @@ window.submitAd = async function(){
 
   }catch(e){
     console.error("submitAd error:", e);
-    const msg = "⚠️ Elan göndərilmədi: " + (e?.message || e?.code || String(e));
-    toast(msg);
-    authStatus(msg);
+    toast("⚠️ Elan göndərilmədi: " + (e.message || String(e)));
   }finally{
     if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; delete submitBtn.dataset.editingId; }
   }
@@ -4814,6 +4826,8 @@ window.createOrdersFromCart = async function(items){
               status: "Admin təsdiqi gözləyir",
               createdAt: serverTimestamp()
             });
+            // Telegram bildirişi
+            tgNotify(`🔑 <b>Yeni hesab sifarişi!</b>\n📦 Məhsul: ${item.name||"Məhsul"}\n👤 Alıcı: ${currentUser.email}\n💰 Məbləğ: ${item.price} ₼\n\nAdmin panelini yoxla → hesablar.net`);
             console.log("[creds] ✅ adminNotifications-a yazıldı");
           }
         }catch(credErr){
@@ -4824,6 +4838,9 @@ window.createOrdersFromCart = async function(items){
 
     cart=[]; localStorage.setItem("gs_cart",JSON.stringify(cart)); updateCart();
     toast("✅ Sifariş yaradıldı! Sifarişlərim bölməsini yoxla.");
+    // Telegram bildirişi — hər yeni sifariş
+    const orderSummary = items.map(i=>`• ${i.name} — ${i.price} ₼`).join("\n");
+    tgNotify(`🛒 <b>Yeni sifariş!</b>\n${orderSummary}\n👤 Alıcı: ${currentUser?.email||""}\n\nhesablar.net → Admin panel`);
     openCabinet();
     window.showTab("purchases");
   }catch(e){
@@ -4897,6 +4914,7 @@ window.submitDepositRequest = async function(){
     const snap=await getDoc(ref); const w=snap.data()||{};
     await updateDoc(ref,{pendingIn:Number(w.pendingIn||0)+amount,updatedAt:serverTimestamp()});
     toast("Balans artırma müraciəti göndərildi");
+    tgNotify(`💰 <b>Balans müraciəti!</b>\n👤 ${currentUser.email}\n💵 Məbləğ: ${amount} ₼\n📋 Üsul: ${method}\n\nhesablar.net → Admin panel`);
     renderWallet();
   }catch(e){ console.error(e); toast("Müraciət göndərilmədi. Firestore Rules yoxla."); }
 }
@@ -5387,7 +5405,7 @@ async function _fetchChatsAdmin(){
 }
 function listenChatsAdmin(){
   _fetchChatsAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminChats")&&isAdmin())_fetchChatsAdmin();else clearInterval(t);},60000);
+  
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5435,7 +5453,7 @@ async function _fetchBalanceAdmin(){
 }
 function listenBalanceRequestsAdmin(){
   _fetchBalanceAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminBalanceRequests")&&isAdmin())_fetchBalanceAdmin();else clearInterval(t);},60000);
+  
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5533,7 +5551,7 @@ async function sendCredsToByuer(orderId){
 
 function listenOrdersAdmin(){
   _fetchOrdersAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminOrders")&&isAdmin())_fetchOrdersAdmin();else clearInterval(t);},60000);
+  
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5552,7 +5570,7 @@ async function _fetchTicketsAdmin(){
 }
 function listenTicketsAdmin(){
   _fetchTicketsAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminTickets")&&isAdmin())_fetchTicketsAdmin();else clearInterval(t);},60000);
+  
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5582,7 +5600,7 @@ async function _fetchUsersAdmin(){
 }
 function listenUsersAdmin(){
   _fetchUsersAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminUsers")&&isAdmin())_fetchUsersAdmin();else clearInterval(t);},90000);
+  
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5645,7 +5663,7 @@ async function _fetchPendingAds(){
 }
 function listenPendingAdsAdmin(){
   _fetchPendingAds();
-  const t=setInterval(()=>{if(document.getElementById("adminPendingAds")&&isAdmin())_fetchPendingAds();else clearInterval(t);},60000);
+  
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -6150,16 +6168,25 @@ async function updateAdStatus(id, status){
 
 function listenSellerStats(){
   const sellersEl=document.getElementById("sellers");
-  // Yalnız tamamlanmış sifarişləri say
-  const q=query(collection(db,"orders"), where("status","==","Tamamlandı"));
-  onSnapshot(q,snap=>{
-    const counts={}; // {sellerEmail: {count, sellerUid}}
-    snap.forEach(d=>{
-      const o=d.data();
-      const seller=o.sellerEmail || "GameSatış";
-      if(!counts[seller]) counts[seller]={count:0, sellerUid:o.sellerUid||""};
-      counts[seller].count++;
-    });
+  if(!sellersEl) return;
+  // Quota qorumaq üçün real-time listener yox, yalnız cache istifadə edirik
+  // Seller stats saytda dəyişən məlumat deyil, 24 saatlıq cache kifayətdir
+  try{
+    const cached = JSON.parse(localStorage.getItem("gs_seller_sales_counts")||"{}");
+    if(Object.keys(cached).length > 0){
+      const rows = Object.entries(cached).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      sellersEl.innerHTML = rows.map(([email, count])=>{
+        const safeName = String(email||"").split("@")[0].replace(/[<>&"'`]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[s]||s));
+        return `<button class="seller searchable" onclick="openSellerProfile('','${safeName}')">
+          <div class="sicon"><svg viewBox="0 0 24 24" style="width:24px" fill="#fb923c"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="seller-info"><b>${safeName}</b><small>${count} satış</small></div>
+        </button>`;
+      }).join("");
+      return;
+    }
+  }catch(e){}
+  sellersEl.innerHTML = '<div class="cabinet-empty" style="font-size:12px;padding:12px">—</div>';
+}
     // localStorage-a sadə say kimi saxla
     const simple={};
     Object.entries(counts).forEach(([k,v])=>simple[k]=v.count);
