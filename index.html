@@ -4723,57 +4723,29 @@ window.createOrdersFromCart = async function(items){
           if(adSnap.exists()){
             const creds = adSnap.data().accountCredentials;
             if(creds && creds.data){
-              // Deşifrə et
+              // Deşifrə et və adminNotifications kolleksiyasına yaz
               const c = await decryptCreds(creds);
               if(c){
-                let credText = "🔑 YENİ SİFARİŞ — Hesab məlumatları:\n\n";
-                credText += `📦 Məhsul: ${item.name||"Məhsul"}\n`;
-                credText += `👤 Alıcı: ${currentUser.email}\n`;
-                credText += `💰 Məbləğ: ${item.price}\n\n`;
-                if(c.mailEmail || c.mailPassword) credText += `📧 Mail: ${c.mailEmail}\n🔑 Mail şifrəsi: ${c.mailPassword}\n\n`;
-                if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n\n`;
-                if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n\n`;
-                credText += "━━━━━━━━━━━━━━━";
+                let credText = "";
+                if(c.mailEmail || c.mailPassword) credText += `📧 Mail: ${c.mailEmail}\n🔑 Mail şifrəsi: ${c.mailPassword}\n`;
+                if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n`;
+                if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
 
-                const ADMIN_UID = "B4BLhevMihY5FE8WRv1tk1DuHNm2";
-                // buyerUid=alıcı(cari istifadəçi), sellerUid=admin — Rules: buyerUid==auth.uid ✓
-                const adminChatId = ["cred_notify", ADMIN_UID, orderRef.id].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
-                const adminChatRef = doc(db,"chats",adminChatId);
-                const adminChatSnap = await getDoc(adminChatRef).catch(()=>null);
-                if(!adminChatSnap || !adminChatSnap.exists()){
-                  await setDoc(adminChatRef,{
-                    buyerUid: currentUser.uid,
-                    buyerEmail: currentUser.email||"",
-                    sellerUid: ADMIN_UID,
-                    sellerEmail: "admin@hesablar.net",
-                    productId: item.adId,
-                    productTitle: item.name||"Məhsul",
-                    orderId: orderRef.id,
-                    buyerUidActual: currentUser.uid,
-                    buyerEmailActual: currentUser.email,
-                    sellerUidActual: item.sellerUid||"",
-                    sellerEmailActual: item.sellerEmail||"",
-                    participants: [currentUser.uid, ADMIN_UID],
-                    isAdminCredChat: true,
-                    lastMessage: "Yeni sifariş — hesab məlumatları",
-                    unreadBuyer: 0, unreadSeller: 1,
-                    updatedAt: serverTimestamp(), createdAt: serverTimestamp()
-                  });
-                }
-                await addDoc(collection(db,"chats",adminChatId,"messages"),{
-                  senderId: currentUser.uid,
-                  senderEmail: currentUser.email||"",
-                  text: credText,
-                  type: "credentials_admin",
+                await addDoc(collection(db,"adminNotifications"),{
+                  type: "credentials",
                   orderId: orderRef.id,
+                  productTitle: item.name||"Məhsul",
+                  price: moneyToNumber(item.price),
                   buyerUid: currentUser.uid,
                   buyerEmail: currentUser.email||"",
-                  sellerUidActual: item.sellerUid||"",
+                  sellerUid: item.sellerUid||"",
+                  sellerEmail: item.sellerEmail||"",
+                  credentials: credText,
+                  status: "Gözləmədə",
                   createdAt: serverTimestamp()
                 });
-                await updateDoc(orderRef,{credentialsStatus:"Adminə göndərildi"});
                 await updateDoc(doc(db,"ads",item.adId),{accountCredentials:deleteField()}).catch(()=>{});
-                console.log("[creds] ✅ Adminə mesaj göndərildi");
+                console.log("[creds] ✅ adminNotifications-a yazıldı");
               }
             }
           }
@@ -5353,6 +5325,7 @@ function renderAdminStats(){
 function adminShell(){
   return `<h3>Admin panel</h3>
   <div id="adminStatsGrid" class="admin-mini-grid"></div>
+  <div id="adminNotifSection" class="admin-section"></div>
   <div id="adminPayouts" class="admin-section"></div>
   <div id="adminPendingAds" class="admin-section"></div>
   <div id="adminBalanceRequests" class="admin-section"></div>
@@ -5985,6 +5958,7 @@ function listenAdmin(){
   stopAdminListeners();
   el.innerHTML=adminShell();
   renderAdminStats();
+  listenNotifAdmin();
   listenPayoutsAdmin();
   listenPendingAdsAdmin();
   listenBalanceRequestsAdmin();
@@ -5994,6 +5968,62 @@ function listenAdmin(){
   listenUsersAdmin();
   listenReportsAdmin();
   listenCouponsAdmin();
+}
+
+function listenNotifAdmin(){
+  const el=document.getElementById("adminNotifSection"); if(!el||!isAdmin()) return;
+  const q=query(collection(db,"adminNotifications"),where("status","==","Gözləmədə"));
+  onSnapshot(q,snap=>{
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    if(!arr.length){ el.innerHTML=''; return; }
+    el.innerHTML=`<h3 style="color:#fb923c">🔑 Hesab məlumatları (${arr.length})</h3>
+    <table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Məbləğ</th><th>Hesab məlumatları</th><th>Əməliyyat</th></tr></thead><tbody>
+    ${arr.map(n=>`<tr>
+      <td><b>${esc(n.productTitle||"")}</b></td>
+      <td><small>${esc(n.buyerEmail||"")}</small></td>
+      <td>${Number(n.price||0).toFixed(2)} ₼</td>
+      <td><pre style="font-size:11px;color:#e2e8f0;margin:0;white-space:pre-wrap">${esc(n.credentials||"")}</pre></td>
+      <td><button class="approve-btn" data-notif-id="${n.id}" data-buyer-uid="${n.buyerUid||""}" data-buyer-email="${esc(n.buyerEmail||"")}">✅ Yoxladım, alıcıya göndər</button></td>
+    </tr>`).join("")}
+    </tbody></table>`;
+    el.querySelectorAll("[data-notif-id]").forEach(b=>b.onclick=()=>
+      sendNotifToBuyer(b.dataset.notifId, b.dataset.buyerUid, b.dataset.buyerEmail)
+    );
+  }, err=>console.warn("Notif:", err));
+}
+
+async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
+  if(!isAdmin()) return;
+  if(!await (window.showConfirm||window.confirm)("Hesab məlumatlarını alıcıya göndərirsiniz?","✅")) return;
+  try{
+    const nSnap = await getDoc(doc(db,"adminNotifications",notifId));
+    if(!nSnap.exists()){ toast("Tapılmadı."); return; }
+    const n = nSnap.data();
+    const ADMIN_UID = "B4BLhevMihY5FE8WRv1tk1DuHNm2";
+    const chatId = [buyerUid, ADMIN_UID, n.orderId||notifId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+    const chatRef = doc(db,"chats",chatId);
+    const chatSnap = await getDoc(chatRef).catch(()=>null);
+    if(!chatSnap||!chatSnap.exists()){
+      await setDoc(chatRef,{
+        buyerUid, buyerEmail:buyerEmail||"",
+        sellerUid:ADMIN_UID, sellerEmail:"admin@hesablar.net",
+        productTitle:n.productTitle||"",orderId:n.orderId||"",
+        participants:[buyerUid,ADMIN_UID],
+        lastMessage:"",unreadBuyer:1,unreadSeller:0,
+        updatedAt:serverTimestamp(),createdAt:serverTimestamp()
+      });
+    }
+    await addDoc(collection(db,"chats",chatId,"messages"),{
+      senderId:ADMIN_UID, senderEmail:"admin@hesablar.net",
+      text:`🔑 Hesab məlumatlarınız:\n\n${n.credentials||""}\n\nXoş oyunlar! Problem olarsa admin ilə əlaqə saxlayın.`,
+      type:"credentials", createdAt:serverTimestamp()
+    });
+    await updateDoc(chatRef,{lastMessage:"Hesab məlumatları",unreadBuyer:1,updatedAt:serverTimestamp()}).catch(()=>{});
+    await updateDoc(doc(db,"adminNotifications",notifId),{status:"Göndərildi",sentAt:serverTimestamp()});
+    if(n.orderId) await updateDoc(doc(db,"orders",n.orderId),{credentialsStatus:"Alıcıya göndərildi",updatedAt:serverTimestamp()}).catch(()=>{});
+    toast("✅ Alıcıya göndərildi!");
+  }catch(e){ console.error(e); toast("Xəta: "+e.message); }
 }
 
 function listenPayoutsAdmin(){
