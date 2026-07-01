@@ -3399,6 +3399,8 @@ import {
   getDocs,
   setDoc,
   increment,
+  orderBy,
+  limit,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -5347,16 +5349,16 @@ window.sendChatMessage=async function(chatId,adminMode=false){
 async function _fetchChatsAdmin(){
   const el=document.getElementById("adminChats"); if(!el||!isAdmin()) return;
   try{
-    const snap=await getDocs(collection(db,"chats"));
+    // Yalnız son 30 chat-i yüklə
+    const snap=await getDocs(query(collection(db,"chats"),orderBy("updatedAt","desc"),limit(30)));
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
-    arr.sort((a,b)=>((b.updatedAt&&b.updatedAt.toMillis?b.updatedAt.toMillis():0)-((a.updatedAt&&a.updatedAt.toMillis?a.updatedAt.toMillis():0))));
-    el.innerHTML='<h3>Alıcı / satıcı yazışmaları</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Son mesaj</th><th>Əməliyyat</th></tr></thead><tbody>${arr.slice(0,50).map(ch=>`<tr><td>${esc(ch.productTitle||'-')}</td><td>${esc(ch.buyerEmail||'-')}</td><td>${esc(ch.sellerEmail||'-')}</td><td>${esc(ch.lastMessage||'-')}</td><td><button class="info-btn" data-admin-chat="${esc(ch.id)}">Bax</button></td></tr>`).join("")}</tbody></table><div id="adminChatBox" class="chat-box" style="margin-top:12px"><div class="chat-head"><b>Yazışma seç</b><small>Admin mübahisə zamanı yazışmanı buradan görə bilər.</small></div><div class="chat-messages"></div></div>`:'<div class="cabinet-empty">Yazışma yoxdur.</div>');
+    el.innerHTML='<h3>Alıcı / satıcı yazışmaları</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Son mesaj</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(ch=>`<tr><td>${esc(ch.productTitle||'-')}</td><td>${esc(ch.buyerEmail||'-')}</td><td>${esc(ch.sellerEmail||'-')}</td><td>${esc(ch.lastMessage||'-')}</td><td><button class="info-btn" data-admin-chat="${esc(ch.id)}">Bax</button></td></tr>`).join("")}</tbody></table><div id="adminChatBox" class="chat-box" style="margin-top:12px"><div class="chat-head"><b>Yazışma seç</b><small>Admin mübahisə zamanı yazışmanı buradan görə bilər.</small></div><div class="chat-messages"></div></div>`:'<div class="cabinet-empty">Yazışma yoxdur.</div>');
     el.querySelectorAll("[data-admin-chat]").forEach(b=>b.onclick=()=>openChat(b.dataset.adminChat,true));
   }catch(e){ console.error("_fetchChatsAdmin:",e); }
 }
 function listenChatsAdmin(){
   _fetchChatsAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminChats")&&isAdmin())_fetchChatsAdmin();else clearInterval(t);},20000);
+  const t=setInterval(()=>{if(document.getElementById("adminChats")&&isAdmin())_fetchChatsAdmin();else clearInterval(t);},60000);
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5404,7 +5406,7 @@ async function _fetchBalanceAdmin(){
 }
 function listenBalanceRequestsAdmin(){
   _fetchBalanceAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminBalanceRequests")&&isAdmin())_fetchBalanceAdmin();else clearInterval(t);},15000);
+  const t=setInterval(()=>{if(document.getElementById("adminBalanceRequests")&&isAdmin())_fetchBalanceAdmin();else clearInterval(t);},60000);
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5502,7 +5504,7 @@ async function sendCredsToByuer(orderId){
 
 function listenOrdersAdmin(){
   _fetchOrdersAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminOrders")&&isAdmin())_fetchOrdersAdmin();else clearInterval(t);},15000);
+  const t=setInterval(()=>{if(document.getElementById("adminOrders")&&isAdmin())_fetchOrdersAdmin();else clearInterval(t);},60000);
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5521,7 +5523,7 @@ async function _fetchTicketsAdmin(){
 }
 function listenTicketsAdmin(){
   _fetchTicketsAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminTickets")&&isAdmin())_fetchTicketsAdmin();else clearInterval(t);},15000);
+  const t=setInterval(()=>{if(document.getElementById("adminTickets")&&isAdmin())_fetchTicketsAdmin();else clearInterval(t);},60000);
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5551,7 +5553,7 @@ async function _fetchUsersAdmin(){
 }
 function listenUsersAdmin(){
   _fetchUsersAdmin();
-  const t=setInterval(()=>{if(document.getElementById("adminUsers")&&isAdmin())_fetchUsersAdmin();else clearInterval(t);},30000);
+  const t=setInterval(()=>{if(document.getElementById("adminUsers")&&isAdmin())_fetchUsersAdmin();else clearInterval(t);},90000);
   adminUnsubs.push(()=>clearInterval(t));
 }
 
@@ -5614,7 +5616,7 @@ async function _fetchPendingAds(){
 }
 function listenPendingAdsAdmin(){
   _fetchPendingAds();
-  const t=setInterval(()=>{if(document.getElementById("adminPendingAds")&&isAdmin())_fetchPendingAds();else clearInterval(t);},10000);
+  const t=setInterval(()=>{if(document.getElementById("adminPendingAds")&&isAdmin())_fetchPendingAds();else clearInterval(t);},60000);
   adminUnsubs.push(()=>clearInterval(t));
 }
 
