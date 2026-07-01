@@ -2041,15 +2041,78 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
                 </select>
                 <input id="adLevel" placeholder="Level / Səviyyə" inputmode="numeric" type="text">
               </div>
-              <!-- Hesab məlumatları — ödənişdən sonra alıcıya avtomatik göndərilir -->
-              <div style="margin-top:12px;background:#0a0e14;border:1px solid #1c2330;border-radius:10px;padding:14px">
-                <div style="font-size:11px;font-weight:700;color:#fb923c;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                  Hesab giriş məlumatları (isteğe bağlı)
+
+              <!-- Çatdırılma üsulu seçimi -->
+              <div style="margin-top:14px">
+                <div style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px">Çatdırılma üsulu</div>
+
+                <!-- Seçim düymələri -->
+                <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+                  <button type="button" id="deliveryBtnDirect" onclick="setDeliveryMode('direct')"
+                    style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12px;cursor:pointer;transition:.15s">
+                    ⚡ Birbaşa çatdırılma
+                  </button>
+                  <button type="button" id="deliveryBtnChat" onclick="setDeliveryMode('chat')"
+                    style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12px;cursor:pointer;transition:.15s">
+                    💬 Chat vasitəsilə
+                  </button>
                 </div>
-                <p style="font-size:11.5px;color:#5b6678;margin:0 0 10px;line-height:1.5">Doldursanız, alıcı ödənişi tamamladıqda bu məlumatlar ona avtomatik mesaj kimi göndəriləcək.</p>
-                <input id="adAccountLogin" placeholder="E-mail / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
-                <input id="adAccountPassword" type="text" placeholder="Şifrə" autocomplete="off">
+                <input type="hidden" id="adDeliveryMode" value="direct">
+
+                <!-- Birbaşa çatdırılma bölməsi -->
+                <div id="deliveryDirectSection">
+                  <div style="background:#0a0e14;border:1px solid #fb923c33;border-radius:10px;padding:14px;margin-bottom:10px">
+                    <div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                      BİRBAŞA ÇATDIRILMA
+                    </div>
+                    <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
+                      Aşağıdakı məlumatlar satış reallaşdıqda <b style="color:#94a3b8">birbaşa alıcıya deyil, əvvəlcə adminə</b> göndəriləcək. Admin yoxlayıb təsdiqlədikdən sonra alıcıya çatdıracaq.
+                    </p>
+
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları</div>
+                    <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com)" autocomplete="off" style="margin-bottom:8px">
+                    <input id="adMailPassword" type="text" placeholder="Mail şifrəsi" autocomplete="off" style="margin-bottom:12px">
+
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları</div>
+                    <input id="adAccountLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
+                    <input id="adAccountPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off" style="margin-bottom:12px">
+
+                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər)</span></div>
+                    <textarea id="adExtraInfo" placeholder="Məs: Wallet balansı: 50$, Bağlı kart: yoxdur, İkili təsdiqləmə: söndürülüb..." rows="3" style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+                  </div>
+                </div>
+
+                <!-- Chat vasitəsilə bölməsi -->
+                <div id="deliveryChatSection" style="display:none">
+                  <div style="background:#0a0e14;border:1px solid #1c2330;border-radius:10px;padding:14px">
+                    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">💬 CHAT VASİTƏSİLƏ ÇATDIRILMA</div>
+                    <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
+                      Satış reallaşdıqda alıcı ilə chat açılacaq. Hesab məlumatlarını özünüz chat vasitəsilə çatdıracaqsınız.
+                    </p>
+                    <div style="font-size:11px;color:#94a3b8;font-weight:600;margin-bottom:8px">Chat + Avtomatik çatdırılma:</div>
+                    <div style="display:flex;gap:8px">
+                      <button type="button" id="chatModeOnlyChat" onclick="setChatMode('chat_only')"
+                        style="flex:1;padding:8px;border-radius:8px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-size:12px;font-weight:700;cursor:pointer">
+                        Yalnız chat
+                      </button>
+                      <button type="button" id="chatModeBoth" onclick="setChatMode('chat_and_auto')"
+                        style="flex:1;padding:8px;border-radius:8px;border:1px solid #1c2330;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer">
+                        Həm chat + avtomatik
+                      </button>
+                    </div>
+                    <input type="hidden" id="adChatMode" value="chat_only">
+
+                    <!-- Həm chat + avtomatik seçiləndə məlumat sahələri açılsın -->
+                    <div id="chatAutoSection" style="display:none;margin-top:12px">
+                      <div style="font-size:11px;color:#5b6678;margin-bottom:8px;line-height:1.5">
+                        ℹ️ Avtomatik hissə üçün hesab məlumatlarını daxil edin — satış reallaşanda adminə göndəriləcək.
+                      </div>
+                      <input id="adChatAutoLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
+                      <input id="adChatAutoPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off">
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -4001,6 +4064,80 @@ function adExpiryText(a){
   return new Date(exp).toLocaleDateString("az-AZ", {day:"numeric", month:"short", year:"numeric"});
 }
 
+// ===== AES-256-GCM ŞİFRƏLƏMƏ =====
+// Hesab məlumatları Firestore-da şifrəli saxlanılır
+// Firebase Console-dan oxunsa belə, məna daşımayan mətn görünür
+const _CREDS_PASSPHRASE = "hsbllr-s3cr3t-2025-v2-xK9mN";
+
+async function _getCredsKey(){
+  const raw = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(_CREDS_PASSPHRASE),
+    "PBKDF2", false, ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2", salt:new TextEncoder().encode("hsbllr-salt-77"), iterations:100000, hash:"SHA-256"},
+    raw, {name:"AES-GCM",length:256}, false, ["encrypt","decrypt"]
+  );
+}
+
+async function encryptCreds(obj){
+  const key = await _getCredsKey();
+  const iv  = crypto.getRandomValues(new Uint8Array(12));
+  const enc = await crypto.subtle.encrypt(
+    {name:"AES-GCM", iv},
+    key,
+    new TextEncoder().encode(JSON.stringify(obj))
+  );
+  return {
+    iv: btoa(String.fromCharCode(...iv)),
+    data: btoa(String.fromCharCode(...new Uint8Array(enc)))
+  };
+}
+
+async function decryptCreds(blob){
+  try{
+    const key  = await _getCredsKey();
+    const iv   = Uint8Array.from(atob(blob.iv),   c=>c.charCodeAt(0));
+    const data = Uint8Array.from(atob(blob.data),  c=>c.charCodeAt(0));
+    const dec  = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, data);
+    return JSON.parse(new TextDecoder().decode(dec));
+  }catch(e){ console.warn("Deşifrə xətası:", e); return null; }
+}
+
+window.setDeliveryMode = function(mode){
+  document.getElementById("adDeliveryMode").value = mode;
+  const directSection = document.getElementById("deliveryDirectSection");
+  const chatSection   = document.getElementById("deliveryChatSection");
+  const btnDirect     = document.getElementById("deliveryBtnDirect");
+  const btnChat       = document.getElementById("deliveryBtnChat");
+  if(mode==="direct"){
+    directSection.style.display="";
+    chatSection.style.display="none";
+    btnDirect.style.borderColor="#fb923c"; btnDirect.style.background="rgba(251,146,60,.1)"; btnDirect.style.color="#fb923c";
+    btnChat.style.borderColor="#1c2330";   btnChat.style.background="transparent";           btnChat.style.color="#64748b";
+  } else {
+    directSection.style.display="none";
+    chatSection.style.display="";
+    btnDirect.style.borderColor="#1c2330"; btnDirect.style.background="transparent";         btnDirect.style.color="#64748b";
+    btnChat.style.borderColor="#fb923c";   btnChat.style.background="rgba(251,146,60,.1)";   btnChat.style.color="#fb923c";
+  }
+};
+window.setChatMode = function(mode){
+  document.getElementById("adChatMode").value = mode;
+  const autoSection = document.getElementById("chatAutoSection");
+  const btnOnly = document.getElementById("chatModeOnlyChat");
+  const btnBoth = document.getElementById("chatModeBoth");
+  if(mode==="chat_only"){
+    autoSection.style.display="none";
+    btnOnly.style.borderColor="#fb923c"; btnOnly.style.background="rgba(251,146,60,.1)"; btnOnly.style.color="#fb923c";
+    btnBoth.style.borderColor="#1c2330"; btnBoth.style.background="transparent";         btnBoth.style.color="#64748b";
+  } else {
+    autoSection.style.display="";
+    btnOnly.style.borderColor="#1c2330"; btnOnly.style.background="transparent";         btnOnly.style.color="#64748b";
+    btnBoth.style.borderColor="#fb923c"; btnBoth.style.background="rgba(251,146,60,.1)"; btnBoth.style.color="#fb923c";
+  }
+};
+
 window.setAuthMode = function(mode){
   authStatus("");
   document.getElementById("loginTabBtn")?.classList.toggle("active", mode==="login");
@@ -4443,13 +4580,28 @@ window.submitAd = async function(){
     const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
-    // Hesab giriş məlumatları — ödənişdən sonra alıcıya avtomatik göndəriləcək
-    const accLogin    = (document.getElementById("adAccountLogin")?.value || "").trim();
-    const accPassword = (document.getElementById("adAccountPassword")?.value || "").trim();
-    const accountCredentials = (accLogin || accPassword) ? {
-      login:    btoa(unescape(encodeURIComponent(accLogin))),
-      password: btoa(unescape(encodeURIComponent(accPassword)))
-    } : null;
+    // Çatdırılma üsulu və hesab məlumatları
+    const deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
+    const chatMode     = document.getElementById("adChatMode")?.value || "chat_only";
+
+    let accountCredentials = null;
+    if(deliveryMode === "direct"){
+      const mailEmail    = (document.getElementById("adMailEmail")?.value    || "").trim();
+      const mailPassword = (document.getElementById("adMailPassword")?.value || "").trim();
+      const accLogin     = (document.getElementById("adAccountLogin")?.value || "").trim();
+      const accPassword  = (document.getElementById("adAccountPassword")?.value || "").trim();
+      const extraInfo    = (document.getElementById("adExtraInfo")?.value    || "").trim();
+      if(mailEmail || mailPassword || accLogin || accPassword || extraInfo){
+        // AES-256 ilə şifrələ — Firestore-da açıq saxlanılmasın
+        accountCredentials = await encryptCreds({mailEmail, mailPassword, login:accLogin, password:accPassword, extraInfo});
+      }
+    } else if(deliveryMode === "chat" && chatMode === "chat_and_auto"){
+      const accLogin    = (document.getElementById("adChatAutoLogin")?.value    || "").trim();
+      const accPassword = (document.getElementById("adChatAutoPassword")?.value || "").trim();
+      if(accLogin || accPassword){
+        accountCredentials = await encryptCreds({login:accLogin, password:accPassword});
+      }
+    }
 
     const adPayload = {
       title, category, game, ...proFields,
@@ -4462,6 +4614,8 @@ window.submitAd = async function(){
       sellerUserId,
       sellerVerified,
       ...(accountCredentials ? {accountCredentials} : {}),
+      deliveryMode,
+      chatMode: deliveryMode==="chat" ? chatMode : null,
       updatedAt: serverTimestamp()
     };
 
@@ -4474,9 +4628,13 @@ window.submitAd = async function(){
     }
 
     // Formu təmizlə
-    ["adTitle","adPrice","adOriginalPrice","adTags","adContact","adStock","adVideo","adDesc","adAccountLogin","adAccountPassword"].forEach(id=>{
+    ["adTitle","adPrice","adOriginalPrice","adTags","adContact","adStock","adVideo","adDesc",
+     "adAccountLogin","adAccountPassword","adMailEmail","adMailPassword","adExtraInfo",
+     "adChatAutoLogin","adChatAutoPassword"].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value="";
     });
+    // Çatdırılma üsulunu sıfırla
+    if(window.setDeliveryMode) window.setDeliveryMode("direct");
     clearAdProfessionalFields();
     if(document.getElementById("adImageFile"))    document.getElementById("adImageFile").value="";
     if(document.getElementById("adImagePreview")) document.getElementById("adImagePreview").innerHTML="";
@@ -4558,45 +4716,22 @@ window.createOrdersFromCart = async function(items){
       // Elanı rezervə alma — yalnız admin edə bilər, satıcı elanlarında buyer update etməsin
       // if(item.adId) await updateDoc(doc(db,"ads",item.adId),{...}).catch(()=>{});
 
-      // Credentials varsa — alıcıya avtomatik göndər
+      // Credentials varsa — adminə şifrəli şəkildə köçür (admin satışdan sonra deşifrə edib alıcıya göndərəcək)
       if(item.adId){
         try{
           const adSnap = await getDoc(doc(db,"ads",item.adId));
           if(adSnap.exists()){
             const creds = adSnap.data().accountCredentials;
-            if(creds && (creds.login || creds.password)){
-              const loginDec    = creds.login    ? decodeURIComponent(escape(atob(creds.login)))    : "";
-              const passwordDec = creds.password ? decodeURIComponent(escape(atob(creds.password))) : "";
-              const chatId = [currentUser.uid, item.sellerUid||"site_admin", item.adId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
-              const chatRef = doc(db,"chats",chatId);
-              const chatSnap = await getDoc(chatRef).catch(()=>null);
-              if(!chatSnap || !chatSnap.exists()){
-                await setDoc(chatRef,{
-                  buyerUid: currentUser.uid,
-                  buyerEmail: currentUser.email||"",
-                  sellerUid: item.sellerUid||"site_admin",
-                  sellerEmail: item.sellerEmail||"",
-                  productId: item.adId,
-                  productTitle: item.name||"Məhsul",
-                  participants: [currentUser.uid, item.sellerUid||"site_admin"],
-                  lastMessage:"",
-                  unreadBuyer:0,
-                  unreadSeller:1,
-                  updatedAt: serverTimestamp(),
-                  createdAt: serverTimestamp()
-                });
-              }
-              await addDoc(collection(db,"chats",chatId,"messages"),{
-                senderId:"system",
-                senderEmail:"system",
-                text:`🔑 Sifariş tamamlandı! Hesab giriş məlumatlarınız:\n\n📧 Login: ${loginDec}\n🔒 Şifrə: ${passwordDec}\n\nXoş oyunlar! Problem olarsa satıcı ilə əlaqə saxlayın.`,
-                type:"credentials",
-                createdAt: serverTimestamp()
+            if(creds && creds.data){
+              // Şifrəli blobu sifarişə köçür — deşifrə etmə, sadəcə köçür
+              await updateDoc(orderRef,{
+                pendingCredentials: creds,
+                credentialsStatus: "Gözləmədə"
               });
               await updateDoc(doc(db,"ads",item.adId),{accountCredentials:deleteField()}).catch(()=>{});
             }
           }
-        }catch(credErr){ console.warn("Credentials göndərilmədi:", credErr); }
+        }catch(credErr){ console.warn("Credentials saxlanmadı:", credErr); }
       }
     }
 
@@ -5176,11 +5311,70 @@ async function _fetchOrdersAdmin(){
     setAdminStat("activeOrders",active.length);
     setAdminStat("totalSales",done.length);
     setAdminStat("totalVolume",done.reduce((s,o)=>s+Number(o.price||0),0));
-    el.innerHTML='<h3>Sifariş və mübahisə idarəsi</h3>'+(active.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Məbləğ</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${active.map(o=>`<tr><td><b>${esc(o.productTitle)}</b><br><small>${esc(o.escrowStatus||"")}</small></td><td>${esc(o.buyerEmail)}</td><td>${esc(o.sellerEmail)}</td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions"><button class="complete-btn" data-admin-complete="${o.id}">Tamamla</button><button class="cancel-btn" data-admin-cancel="${o.id}">Qaytar</button><button class="dispute-btn" data-admin-dispute="${o.id}">Mübahisə</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Aktiv sifariş yoxdur.</div>')+`<div class="wallet-note"><b>Qısa statistika:</b> Tamamlanan satış: ${done.length}, mübahisədə olan sifariş: ${disputes}, ümumi həcm: ${walletNumber(adminStatsState.totalVolume)}</div>`;
-    el.querySelectorAll("[data-admin-complete]").forEach(b=>b.onclick=async()=>{await completeOrder(b.dataset.adminComplete);_fetchOrdersAdmin();});
+    el.innerHTML='<h3>Sifariş idarəsi</h3>'+(active.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Məbləğ</th><th>Status</th><th>Hesab məlumatı</th><th>Əməliyyat</th></tr></thead><tbody>${active.map(o=>{
+      const hasCreds = o.pendingCredentials && (o.pendingCredentials.data);
+      const credCell = hasCreds ? `<td style="font-size:11px;color:#94a3b8;background:#0a1118;border-radius:6px;padding:6px">
+        🔒 <i>Şifrəli saxlanılır</i><br>
+        <button class="approve-btn" style="margin-top:4px;font-size:10px" data-send-creds="${o.id}">📤 Deşifrə et və Alıcıya göndər</button>
+      </td>` : `<td style="color:#475569;font-size:11px">—</td>`;
+      return `<tr><td><b>${esc(o.productTitle)}</b></td><td><small>${esc(o.buyerEmail)}</small></td><td><small>${esc(o.sellerEmail)}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td>${credCell}<td><div class="order-actions"><button class="cancel-btn" data-admin-cancel="${o.id}">Qaytar</button></div></td></tr>`;
+    }).join("")}</tbody></table>`:'<div class="cabinet-empty">Aktiv sifariş yoxdur.</div>')+`<div class="wallet-note"><b>Statistika:</b> Tamamlanan: ${done.length}, mübahisə: ${disputes}, həcm: ${walletNumber(adminStatsState.totalVolume)}</div>`;
     el.querySelectorAll("[data-admin-cancel]").forEach(b=>b.onclick=async()=>{await cancelOrder(b.dataset.adminCancel);_fetchOrdersAdmin();});
-    el.querySelectorAll("[data-admin-dispute]").forEach(b=>b.onclick=async()=>{await disputeOrder(b.dataset.adminDispute);_fetchOrdersAdmin();});
+    el.querySelectorAll("[data-send-creds]").forEach(b=>b.onclick=()=>sendCredsToByuer(b.dataset.sendCreds));
   }catch(e){ console.error("_fetchOrdersAdmin:",e); }
+}
+
+// Admin: hesab məlumatlarını yoxlayıb alıcıya göndər
+async function sendCredsToByuer(orderId){
+  if(!isAdmin()) return;
+  try{
+    const oSnap = await getDoc(doc(db,"orders",orderId));
+    if(!oSnap.exists()) return;
+    const o = oSnap.data();
+    if(!o.pendingCredentials) { toast("Bu sifarişdə hesab məlumatı yoxdur."); return; }
+
+    // AES-256 ilə deşifrə et
+    const c = await decryptCreds(o.pendingCredentials);
+    if(!c){ toast("Deşifrə xətası — məlumatlar oxunmadı."); return; }
+
+    let msgText = "🔑 Hesab məlumatlarınız:\n\n";
+    if(c.mailEmail || c.mailPassword) msgText += `📧 Mail: ${c.mailEmail}\n🔑 Mail şifrəsi: ${c.mailPassword}\n\n`;
+    if(c.login || c.password)         msgText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n\n`;
+    if(c.extraInfo)                   msgText += `📝 Əlavə məlumat:\n${c.extraInfo}\n\n`;
+    msgText += "Xoş oyunlar! Problem olarsa admin ilə əlaqə saxlayın.";
+
+    // Alıcı ilə chat yarat/tap
+    const chatId = [o.buyerUid, o.sellerUid||"site_admin", o.adId||orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+    const chatRef = doc(db,"chats",chatId);
+    const chatSnap = await getDoc(chatRef).catch(()=>null);
+    if(!chatSnap || !chatSnap.exists()){
+      await setDoc(chatRef,{
+        buyerUid: o.buyerUid,
+        buyerEmail: o.buyerEmail||"",
+        sellerUid: o.sellerUid||"site_admin",
+        sellerEmail: o.sellerEmail||"",
+        productId: o.adId||"",
+        productTitle: o.productTitle||"Məhsul",
+        participants: [o.buyerUid, o.sellerUid||"site_admin"],
+        lastMessage:"",unreadBuyer:1,unreadSeller:0,
+        updatedAt:serverTimestamp(),createdAt:serverTimestamp()
+      });
+    }
+    await addDoc(collection(db,"chats",chatId,"messages"),{
+      senderId:"system",senderEmail:"system",
+      text: msgText,
+      type:"credentials",
+      createdAt:serverTimestamp()
+    });
+    // Credentials-ı sifarişdən sil
+    await updateDoc(doc(db,"orders",orderId),{
+      pendingCredentials: deleteField(),
+      credentialsStatus: "Göndərildi",
+      credentialsSentAt: serverTimestamp()
+    });
+    toast("✅ Hesab məlumatları alıcıya göndərildi.");
+    _fetchOrdersAdmin();
+  }catch(e){ console.error(e); toast("Xəta: "+e.message); }
 }
 function listenOrdersAdmin(){
   _fetchOrdersAdmin();
