@@ -2513,7 +2513,14 @@ async function sellerConfirmOrder(id){
     const newData = {sellerConfirmed:true, updatedAt:serverTimestamp()};
     if(o.buyerConfirmed) newData.status = "Tamamlandı";
     await updateDoc(oRef, newData);
-    toast("Təhvil təsdiqləndi.");
+    // Satıcı öz elanını "Satıldı" olaraq işarələyir
+    if(o.adId){
+      await updateDoc(doc(db,"ads",o.adId),{
+        status: "Satıldı",
+        updatedAt: serverTimestamp()
+      }).catch(()=>{});
+    }
+    toast("Təhvil təsdiqləndi. Elan bazardan çıxarıldı.");
   }catch(e){ console.error(e); toast("Xəta baş verdi."); }
 }
 
@@ -3126,11 +3133,5 @@ window.listenCouponsAdmin = async function(){
 
 window.toggleCoupon = async function(id, active){
   try{ await updateDoc(doc(db,"coupons",id),{active}); toast(active?"Aktiv edildi":"Deaktiv edildi"); listenCouponsAdmin(); }
-  catch(e){ toast("Xəta."); }
-};
-
-window.deleteCoupon = async function(id){
-  if(!await showConfirm("Bu kuponu silmək istəyirsiniz?", "🗑️")) return;
-  try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
   catch(e){ toast("Xəta."); }
 };
