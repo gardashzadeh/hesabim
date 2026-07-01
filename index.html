@@ -2371,6 +2371,18 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 
 <div class="toast" id="toast"></div>
 
+<!-- ÖZEL TƏSDİQ MODALI -->
+<div class="modal" id="confirmModal" style="z-index:99998">
+  <div class="modal-box" style="max-width:380px;text-align:center;padding:32px 28px">
+    <div id="confirmIcon" style="font-size:32px;margin-bottom:12px">❓</div>
+    <div id="confirmMsg" style="font-size:14px;color:#cbd5e1;line-height:1.7;margin-bottom:24px;white-space:pre-line"></div>
+    <div style="display:flex;gap:10px">
+      <button id="confirmCancel" class="hbtn" style="flex:1;height:42px" onclick="window._confirmResolve(false)">Ləğv et</button>
+      <button id="confirmOk" class="fullbtn" style="flex:1;height:42px" onclick="window._confirmResolve(true)">Təsdiq</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== SATICI PROFİL MODALI ===== -->
 <div class="modal" id="sellerProfileModal">
   <div class="modal-box" style="max-width:560px;max-height:85vh;overflow-y:auto">
@@ -3251,7 +3263,7 @@ function removeCart(i){
 function checkoutCart(){
   if(cart.length===0){showToast("Səbət boşdur");return}
   const itemList = cart.map(x=>`• ${x.name} — ${x.price}`).join("\n");
-  const confirmed = confirm(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul escrow-a alınacaq.`);
+  const confirmed = await showConfirm(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul balansınızdan çıxılacaq.`, "🛒");
   if(!confirmed) return;
   if(typeof window.createOrdersFromCart === "function"){
     window.createOrdersFromCart(cart);
@@ -3643,6 +3655,24 @@ let adminStatsState = {pendingAds:0,openTickets:0,activeOrders:0,balanceRequests
 let activeReviewProductKey = "";
 
 function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg); }
+
+// Brauzer confirm() əvəzinə öz dizaynlı modal
+function showConfirm(msg, icon){
+  return new Promise(resolve=>{
+    const modal = document.getElementById("confirmModal");
+    const msgEl = document.getElementById("confirmMsg");
+    const iconEl = document.getElementById("confirmIcon");
+    if(!modal || !msgEl) return resolve(confirm(msg)); // fallback
+    msgEl.textContent = msg;
+    iconEl.textContent = icon || "❓";
+    modal.classList.add("show");
+    window._confirmResolve = (val)=>{
+      modal.classList.remove("show");
+      window._confirmResolve = ()=>{};
+      resolve(val);
+    };
+  });
+}
 function authStatus(msg){
   const e=document.getElementById("authStatus");
   if(!e) return;
@@ -5545,7 +5575,7 @@ function listenPurchases(){
       return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.sellerEmail||'GameSatış')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
     }).join('')+'</tbody></table>';
     el.querySelectorAll("[data-buyer-confirm]").forEach(b=>b.onclick=()=>{
-      if(!confirm("Məhsulu aldığınızı və problem olmadığını təsdiqləyirsiniz?")) return;
+      if(!await showConfirm("Məhsulu aldığınızı və problem olmadığını təsdiqləyirsiniz?", "✅")) return;
       buyerConfirmOrder(b.dataset.buyerConfirm);
     });
     el.querySelectorAll("[data-dispute]").forEach(b=>b.onclick=()=>disputeOrder(b.dataset.dispute));
@@ -5588,7 +5618,7 @@ async function sellerConfirmOrder(id){
 // Satıcı: "Ödəniş tələb et" — admin görəcək
 async function requestPayout(id){
   if(!currentUser) return;
-  if(!confirm("Ödəniş tələb etmək istəyirsiniz? Admin 5% komissiya tutub qalan məbləği göndərəcək.")) return;
+  if(!await showConfirm("Ödəniş tələb etmək istəyirsiniz? Admin 5% komissiya tutub qalan məbləği göndərəcək.", "💰")) return;
   try{
     const oRef = doc(db,"orders",id);
     const oSnap = await getDoc(oRef);
@@ -5682,7 +5712,7 @@ function listenPayoutsAdmin(){
 
 async function processPayoutAdmin(payoutId, sellerUid, amount, orderId){
   if(!isAdmin()){ toast("Admin icazəsi yoxdur."); return; }
-  if(!confirm(`${amount.toFixed(2)} ₼ satıcıya ödənilsin?`)) return;
+  if(!await showConfirm(`${amount.toFixed(2)} ₼ satıcıya ödənilsin?`, "💸")) return;
   try{
     // Satıcının balansına köçür
     if(sellerUid){
@@ -6129,7 +6159,7 @@ window.toggleCoupon = async function(id, active){
 };
 
 window.deleteCoupon = async function(id){
-  if(!confirm("Bu kuponu silmək istəyirsiniz?")) return;
+  if(!await showConfirm("Bu kuponu silmək istəyirsiniz?", "🗑️")) return;
   try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
   catch(e){ toast("Xəta."); }
 };
