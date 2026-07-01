@@ -814,7 +814,6 @@ async function registerUser(){
   const email=document.getElementById("regEmail").value.trim().toLowerCase();
   const pass=document.getElementById("regPassword").value.trim();
   const pass2=document.getElementById("regPassword2").value.trim();
-
   if(!name){authStatus("Ad yaz.");return}
   if(!surname){authStatus("Soyad yaz.");return}
   if(!birthDate){authStatus("Doğum tarixini seç.");return}
@@ -833,6 +832,7 @@ async function registerUser(){
       return;
     }
 
+    window._isRegistering = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
     // Auth state-in tam yayılmasını gözlə
@@ -865,23 +865,24 @@ async function registerUser(){
       await ensureWallet(cred.user.uid,email);
       await sendEmailVerification(cred.user);
       await signOut(auth);
+      window._isRegistering = false;
       currentUser=null;
       updateHeader();
       authStatus("Qeydiyyat tamamlandı. Təsdiq linki emailinizə göndərildi.");
     }catch(fsErr){
       // Firestore yazması uğursuz oldu — hər şeyi geri al
       console.error("Qeydiyyat rollback:", fsErr);
-      // Username-i sil (rules icazə verir - aşağıya bax)
       try{ await deleteDoc(usernameRef); }catch(e){
-        // Silmək olmadısa, uid-i sıfırla ki növbəti cəhddə tutulsun
         try{ await setDoc(usernameRef, {uid:"", invalid:true}); }catch(e2){}
       }
       try{ await cred.user.delete(); }catch(e){}
       await signOut(auth).catch(()=>{});
+      window._isRegistering = false;
       currentUser=null;
       throw fsErr;
     }
   }catch(e){
+    window._isRegistering = false;
     console.error(e);
     authStatus("Qeydiyyat xətası: "+(e.code || e.message));
   }
@@ -2868,6 +2869,9 @@ getRedirectResult(auth).then(async (result)=>{
 }).catch((e)=>{ if(e.code !== "auth/no-current-user") console.warn("Redirect result:", e); });
 
 onAuthStateChanged(auth, async user=>{
+  // Qeydiyyat prosesi zamanı bu callback-i keç — registerUser öz axınını idarə edir
+  if(window._isRegistering) return;
+
   // Auth state hər dəyişdikdə (giriş/çıxış/hesab dəyişimi) köhnə listener-ləri dayandır
   if(typeof stopChatListeners === "function") stopChatListeners();
   activeChatId = null;
@@ -3149,7 +3153,3 @@ window.listenCouponsAdmin = async function(){
     const coupons = [];
     snap.forEach(d=>coupons.push({id:d.id,...d.data()}));
     if(!coupons.length){ el.innerHTML='<div class="cabinet-empty">Kupon yoxdur.</div>'; return; }
-    el.innerHTML = `<div class="admin-coupon-list">${coupons.map(c=>`
-      <div class="admin-coupon-item">
-        <div><span class="code">${esc(c.code)}</span> <span style="color:#64748b;font-size:12px">— ${c.discount}% endirim</span><br>
-        <small style="color:#475569">İstifadə: ${c.usedCount||0}/${c.maxUses||"∞"} ${c.expiry?'· Son: '+c.expiry:""} ${c.active?'':'· <span style="color:#ef4444">Deaktiv</span>'}</small></div>
