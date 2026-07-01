@@ -3998,29 +3998,50 @@ async function registerUser(){
       return;
     }
 
-    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
-    // ID-ni rezerv et — uid ilə əlaqələndir ki, kim götürdüyünü bilək
-    await setDoc(usernameRef,{uid:cred.user.uid, createdAt:serverTimestamp()});
-
-    await setDoc(doc(db,"users",cred.user.uid),{
-      uid:cred.user.uid,
-      name,
-      surname,
-      fullName:name+" "+surname,
-      birthDate,
-      userId,
-      email,
-      role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
-      createdAt:serverTimestamp(),
-      updatedAt:serverTimestamp()
+    // Auth state-in tam yayılmasını gözlə
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("Auth timeout")), 8000);
+      const unsub = auth.onAuthStateChanged(user => {
+        if(user && user.uid === cred.user.uid){
+          clearTimeout(timer);
+          unsub();
+          resolve();
+        }
+      });
     });
-    await ensureWallet(cred.user.uid,email);
-    await sendEmailVerification(cred.user);
-    await signOut(auth);
-    currentUser=null;
-    updateHeader();
-    authStatus("Qeydiyyat tamamlandı. Təsdiq linki emailinizə göndərildi.");
+
+    try{
+      await setDoc(usernameRef,{uid:cred.user.uid, createdAt:serverTimestamp()});
+
+      await setDoc(doc(db,"users",cred.user.uid),{
+        uid:cred.user.uid,
+        name,
+        surname,
+        fullName:name+" "+surname,
+        birthDate,
+        userId,
+        email,
+        role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
+        createdAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      });
+      await ensureWallet(cred.user.uid,email);
+      await sendEmailVerification(cred.user);
+      await signOut(auth);
+      currentUser=null;
+      updateHeader();
+      authStatus("Qeydiyyat tamamlandı. Təsdiq linki emailinizə göndərildi.");
+    }catch(fsErr){
+      // Firestore yazması uğursuz oldu — hər şeyi geri al
+      console.error("Qeydiyyat rollback:", fsErr);
+      try{ await deleteDoc(usernameRef); }catch(e){}
+      try{ await cred.user.delete(); }catch(e){}
+      await signOut(auth).catch(()=>{});
+      currentUser=null;
+      throw fsErr;
+    }
   }catch(e){
     console.error(e);
     authStatus("Qeydiyyat xətası: "+(e.code || e.message));
@@ -4430,13 +4451,17 @@ window.createOrdersFromCart = async function(items){
 
   try{
     // Wallet-ləri əvvəlcədən təmin et (transaction xaricində)
+    console.log("[order] ensureWallet başlayır, uid:", currentUser.uid);
     await ensureWallet(currentUser.uid, currentUser.email);
+    console.log("[order] ensureWallet tamamlandı");
 
     // Transaction: yalnız alıcının öz wallet-indən çıx
+    console.log("[order] transaction başlayır, total:", total);
     await runTransaction(db, async (tx)=>{
       const wSnap = await tx.get(buyerRef);
       const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
       const bal = Number(w.balance||0);
+      console.log("[order] tx: mövcud balans:", bal, "tələb:", total);
       if(bal < total) throw new Error("INSUFFICIENT_BALANCE");
       tx.set(buyerRef,{
         uid: currentUser.uid,
@@ -4446,6 +4471,7 @@ window.createOrdersFromCart = async function(items){
         updatedAt: serverTimestamp()
       },{merge:true});
     });
+    console.log("[order] transaction tamamlandı");
     // Qeyd: admin-in qazancı orders kolleksiyasından hesablanır,
     // ayrıca admin wallet-inə yazmağa ehtiyac yoxdur.
 
@@ -4519,9 +4545,9 @@ window.createOrdersFromCart = async function(items){
     openCabinet();
     window.showTab("purchases");
   }catch(e){
-    console.error(e);
+    console.error("[createOrdersFromCart] XƏTA:", e.code, e.message, e);
     if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); }
-    else toast("Sifariş yaradılmadı: " + (e.message||""));
+    else toast("Sifariş yaradılmadı: " + (e.code||e.message||""));
   }
 }
 
@@ -5550,6 +5576,7 @@ async function requestPayout(id){
       commission: Math.round(o.price*5)/100,
       payout: Math.round(o.price*95)/100,
       sellerUid: currentUser.uid,
+      userUid: currentUser.uid,
       sellerEmail: currentUser.email||"",
       status: "Gözləmədə",
       createdAt: serverTimestamp()
