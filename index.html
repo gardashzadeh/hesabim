@@ -3260,7 +3260,7 @@ function removeCart(i){
   updateCart();
 }
 
-function checkoutCart(){
+async function checkoutCart(){
   if(cart.length===0){showToast("Səbət boşdur");return}
   const itemList = cart.map(x=>`• ${x.name} — ${x.price}`).join("\n");
   const confirmed = await showConfirm(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul balansınızdan çıxılacaq.`, "🛒");
@@ -5574,7 +5574,7 @@ function listenPurchases(){
       const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Sən':'○ Sən'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
       return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.sellerEmail||'GameSatış')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
     }).join('')+'</tbody></table>';
-    el.querySelectorAll("[data-buyer-confirm]").forEach(b=>b.onclick=()=>{
+    el.querySelectorAll("[data-buyer-confirm]").forEach(b=>b.onclick=async()=>{
       if(!await showConfirm("Məhsulu aldığınızı və problem olmadığını təsdiqləyirsiniz?", "✅")) return;
       buyerConfirmOrder(b.dataset.buyerConfirm);
     });
