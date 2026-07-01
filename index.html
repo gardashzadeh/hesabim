@@ -5289,6 +5289,7 @@ window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
     await addDoc(collection(db,"chats",buyerChatId,"messages"),{
       senderId:ADMIN_UID, senderEmail:"admin@hesablar.net",
       text:buyerText, type:"credentials",
+      participants:[buyerUid, ADMIN_UID],
       createdAt:serverTimestamp()
     });
     await updateDoc(buyerChatRef,{lastMessage:"Hesab məlumatları göndərildi",unreadBuyer:1,updatedAt:serverTimestamp()}).catch(()=>{});
@@ -5312,7 +5313,13 @@ window.sendChatMessage=async function(chatId,adminMode=false){
   const ref=doc(db,"chats",chatId);
   const snap=await getDoc(ref).catch(()=>null); const c=snap&&snap.exists()?snap.data():{};
   const isBuyer=c.buyerUid===currentUser.uid;
-  await addDoc(collection(db,"chats",chatId,"messages"),{senderUid:currentUser.uid,senderEmail:currentUser.email||"",text,seen:false,createdAt:serverTimestamp()});
+  await addDoc(collection(db,"chats",chatId,"messages"),{
+    senderId:currentUser.uid,
+    senderEmail:currentUser.email||"",
+    text,seen:false,
+    participants:[c.buyerUid||"", c.sellerUid||""],
+    createdAt:serverTimestamp()
+  });
   const patch={lastMessage:text,updatedAt:serverTimestamp()};
   if(isBuyer) patch.unreadSeller=Number(c.unreadSeller||0)+1; else patch.unreadBuyer=Number(c.unreadBuyer||0)+1;
   await updateDoc(ref,patch).catch(()=>{});
@@ -6009,7 +6016,9 @@ async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
     await addDoc(collection(db,"chats",chatId,"messages"),{
       senderId:ADMIN_UID, senderEmail:"admin@hesablar.net",
       text:`🔑 Hesab məlumatlarınız:\n\n${n.credentials||""}\n\nXoş oyunlar! Problem olarsa admin ilə əlaqə saxlayın.`,
-      type:"credentials", createdAt:serverTimestamp()
+      type:"credentials",
+      participants:[buyerUid, ADMIN_UID],
+      createdAt:serverTimestamp()
     });
     await updateDoc(chatRef,{lastMessage:"Hesab məlumatları",unreadBuyer:1,updatedAt:serverTimestamp()}).catch(()=>{});
     await updateDoc(doc(db,"adminNotifications",notifId),{status:"Göndərildi",sentAt:serverTimestamp(),approvedBy:currentUser.uid||""});
