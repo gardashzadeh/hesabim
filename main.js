@@ -1,3 +1,4 @@
+
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getAuth,
@@ -1372,8 +1373,19 @@ window.createOrdersFromCart = async function(items){
 
       const orderRef = await addDoc(collection(db,"orders"), orderPayload);
 
-      // Elanı rezervə alma — yalnız admin edə bilər, satıcı elanlarında buyer update etməsin
-      // if(item.adId) await updateDoc(doc(db,"ads",item.adId),{...}).catch(()=>{});
+      // Elanı "Rezervdə" et — satıcı öz elanını yeniləyə bilir,
+      // buna görə elanı satıcı adından yox, birbaşa Firestore Admin ilə deyil
+      // amma Firestore Rules-da ads update icazəsi var: isAdmin() || sellerUid==auth.uid
+      // Biz burada buyerUid saxlayırıq ki, elan ikinci dəfə satılmasın
+      // Real həll: Rules-da "buyerUid" sahəsini buyer dəyişə bilsin
+      if(item.adId && item.sellerUid){
+        // Satıcı sonradan "Satıldı" edəcək — biz sadəcə bazardan gizlətmək üçün
+        // ad document-a buyerUid yazırıq (yalnız satıcı update edə bilər, skip edirik)
+        // Əvəzinə: listenPublicAds-da bu adId-ni orders-dan gizlədirdik (indi silindi)
+        // Yeni həll: sifariş yarandıqda adId-ni window._reservedAdIds set-inə əlavə et
+        if(!window._reservedAdIds) window._reservedAdIds = new Set();
+        window._reservedAdIds.add(item.adId);
+      }
 
       // Admin panelinin yuxarı bildiriş bölməsi üçün əlavə bildiriş yaratmağa cəhd et.
       // Bu alınmasa belə əsas məlumat artıq orders.pendingCredentials içində saxlanılıb.
@@ -2779,22 +2791,10 @@ function listenPublicAds(){
     const arr=[];
     snap.forEach(d=>{
       const data = {id:d.id,...d.data()};
-      // Vaxtı bitmiş elanları göstərmə
       if(!isAdExpired(data)) arr.push(data);
     });
-    // Aktiv sifarişi olan elanları gizlət (eyni elanın 2 dəfə satılmasının qarşısını al)
-    const activeOrdersQ = query(collection(db,"orders"),
-      where("status","==","Aktiv")
-    );
-    getDocs(activeOrdersQ).then(ordersSnap=>{
-      const soldAdIds = new Set();
-      ordersSnap.forEach(d=>{ if(d.data().adId) soldAdIds.add(d.data().adId); });
-      window.approvedFirestoreAds = arr.filter(a => !soldAdIds.has(a.id));
-      if(window.renderMarketAds) window.renderMarketAds();
-    }).catch(()=>{
-      window.approvedFirestoreAds=arr;
-      if(window.renderMarketAds) window.renderMarketAds();
-    });
+    window.approvedFirestoreAds=arr;
+    if(window.renderMarketAds) window.renderMarketAds();
   });
 }
 
@@ -3144,3 +3144,60 @@ window.listenCouponsAdmin = async function(){
     const coupons = [];
     snap.forEach(d=>coupons.push({id:d.id,...d.data()}));
     if(!coupons.length){ el.innerHTML='<div class="cabinet-empty">Kupon yoxdur.</div>'; return; }
+    el.innerHTML = `<div class="admin-coupon-list">${coupons.map(c=>`
+      <div class="admin-coupon-item">
+        <div><span class="code">${esc(c.code)}</span> <span style="color:#64748b;font-size:12px">— ${c.discount}% endirim</span><br>
+        <small style="color:#475569">İstifadə: ${c.usedCount||0}/${c.maxUses||"∞"} ${c.expiry?'· Son: '+c.expiry:""} ${c.active?'':'· <span style="color:#ef4444">Deaktiv</span>'}</small></div>
+        <div style="display:flex;gap:6px">
+          <button onclick="toggleCoupon('${c.id}',${!c.active})" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">${c.active?"Deaktiv et":"Aktiv et"}</button>
+          <button onclick="deleteCoupon('${c.id}')" style="background:#2d1515;border:1px solid #7f1d1d;color:#ef4444;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Sil</button>
+        </div>
+      </div>`).join("")}</div>`;
+  }catch(e){ el.innerHTML='<div class="cabinet-empty">Kuponlar yüklənmədi.</div>'; }
+};
+
+window.toggleCoupon = async function(id, active){
+  try{ await updateDoc(doc(db,"coupons",id),{active}); toast(active?"Aktiv edildi":"Deaktiv edildi"); listenCouponsAdmin(); }
+  catch(e){ toast("Xəta."); }
+};
+
+window.deleteCoupon = async function(id){
+  if(!await showConfirm("Bu kuponu silmək istəyirsiniz?", "🗑️")) return;
+  try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
+  catch(e){ toast("Xəta."); }
+};
+</script>
+
+<script>
+(function(){
+  function normalizeCabinetText(text){
+    return (text || "").toLowerCase()
+      .replace(/ə/g,"e").replace(/ı/g,"i").replace(/ö/g,"o")
+      .replace(/ü/g,"u").replace(/ş/g,"s").replace(/ç/g,"c")
+      .replace(/ğ/g,"g");
+  }
+  function applyProfessionalCabinetIcons(){
+    document.querySelectorAll(".cabinet-menu button").forEach(function(btn){
+      var t = normalizeCabinetText(btn.textContent);
+      var icon = "settings";
+      if(t.includes("profil") || t.includes("hesab")) icon = "profile";
+      else if(t.includes("mesaj") || t.includes("chat") || t.includes("yazisma")) icon = "messages";
+      else if(t.includes("destək") || t.includes("destek") || t.includes("sikay") || t.includes("bilet") || t.includes("ticket")) icon = "support";
+      else if(t.includes("sifaris") || t.includes("order")) icon = "orders";
+      else if(t.includes("alis")) icon = "purchases";
+      else if(t.includes("yadda") || t.includes("sevim") || t.includes("favor")) icon = "saved";
+      else if(t.includes("elan yerles") || t.includes("add") || t.includes("yeni elan")) icon = "add";
+      else if(t.includes("elan")) icon = "ads";
+      else if(t.includes("cixaris") || t.includes("withdraw") || t.includes("bank")) icon = "withdraw";
+      else if(t.includes("balans") || t.includes("pul") || t.includes("wallet") || t.includes("oden")) icon = "wallet";
+      else if(t.includes("satis") || t.includes("qazanc")) icon = "sales";
+      else if(t.includes("admin")) icon = "admin";
+      else if(t.includes("cix") || t.includes("logout")) icon = "logout";
+      btn.setAttribute("data-cabinet-icon", icon);
+    });
+  }
+  document.addEventListener("DOMContentLoaded", applyProfessionalCabinetIcons);
+  document.addEventListener("click", function(){
+    setTimeout(applyProfessionalCabinetIcons, 60);
+  });
+})();

@@ -1230,7 +1230,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
   position:fixed;
   top:50%;left:50%;
   transform:translate(-50%,-50%);
-  z-index:99999;
+  z-index:9999999;
   background:#0d1117;
   border:1px solid #fb923c55;
   border-radius:16px;
