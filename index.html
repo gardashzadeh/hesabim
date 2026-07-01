@@ -4695,13 +4695,32 @@ window.createOrdersFromCart = async function(items){
 
     // 2. Hər item üçün sifariş yarat
     for(const item of items){
-      const orderRef = await addDoc(collection(db,"orders"),{
+      let adData = null;
+      let pendingCredentials = null;
+
+      // Satıcının elanda yerləşdirdiyi hesab məlumatlarını sifarişə kopyala.
+      // Vacib: bunu order yaradılan anda edirik ki, admin panelində itmə olmasın.
+      if(item.adId){
+        try{
+          const adSnap = await getDoc(doc(db,"ads",item.adId));
+          if(adSnap.exists()){
+            adData = adSnap.data() || {};
+            if(adData.accountCredentials && adData.accountCredentials.data){
+              pendingCredentials = adData.accountCredentials;
+            }
+          }
+        }catch(credReadErr){
+          console.warn("[creds] Elan hesab məlumatı oxunmadı:", credReadErr);
+        }
+      }
+
+      const orderPayload = {
         productTitle: item.name||"Məhsul",
         price: moneyToNumber(item.price),
         priceText: item.price||"",
         adId: item.adId||"",
-        sellerUid: item.sellerUid||"",
-        sellerEmail: item.sellerEmail||"GameSatış",
+        sellerUid: item.sellerUid || adData?.sellerUid || "",
+        sellerEmail: item.sellerEmail || adData?.sellerEmail || "GameSatış",
         buyerUid: currentUser.uid,
         buyerEmail: currentUser.email,
         status: "Aktiv",
@@ -4709,47 +4728,46 @@ window.createOrdersFromCart = async function(items){
         sellerConfirmed: false,
         payoutRequested: false,
         payoutDone: false,
+        credentialsStatus: pendingCredentials ? "Admin yoxlamasında" : "Yoxdur",
+        ...(pendingCredentials ? { pendingCredentials } : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
+      };
+
+      const orderRef = await addDoc(collection(db,"orders"), orderPayload);
 
       // Elanı rezervə alma — yalnız admin edə bilər, satıcı elanlarında buyer update etməsin
       // if(item.adId) await updateDoc(doc(db,"ads",item.adId),{...}).catch(()=>{});
 
-      // Credentials varsa — deşifrə et və adminə mesaj kimi göndər
-      if(item.adId){
+      // Admin panelinin yuxarı bildiriş bölməsi üçün əlavə bildiriş yaratmağa cəhd et.
+      // Bu alınmasa belə əsas məlumat artıq orders.pendingCredentials içində saxlanılıb.
+      if(pendingCredentials){
         try{
-          const adSnap = await getDoc(doc(db,"ads",item.adId));
-          if(adSnap.exists()){
-            const creds = adSnap.data().accountCredentials;
-            if(creds && creds.data){
-              // Deşifrə et və adminNotifications kolleksiyasına yaz
-              const c = await decryptCreds(creds);
-              if(c){
-                let credText = "";
-                if(c.mailEmail || c.mailPassword) credText += `📧 Mail: ${c.mailEmail}\n🔑 Mail şifrəsi: ${c.mailPassword}\n`;
-                if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n`;
-                if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
+          const c = await decryptCreds(pendingCredentials);
+          if(c){
+            let credText = "";
+            if(c.mailEmail || c.mailPassword) credText += `📧 Mail: ${c.mailEmail}\n🔑 Mail şifrəsi: ${c.mailPassword}\n`;
+            if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n`;
+            if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
 
-                await addDoc(collection(db,"adminNotifications"),{
-                  type: "credentials",
-                  orderId: orderRef.id,
-                  productTitle: item.name||"Məhsul",
-                  price: moneyToNumber(item.price),
-                  buyerUid: currentUser.uid,
-                  buyerEmail: currentUser.email||"",
-                  sellerUid: item.sellerUid||"",
-                  sellerEmail: item.sellerEmail||"",
-                  credentials: credText,
-                  status: "Gözləmədə",
-                  createdAt: serverTimestamp()
-                });
-                await updateDoc(doc(db,"ads",item.adId),{accountCredentials:deleteField()}).catch(()=>{});
-                console.log("[creds] ✅ adminNotifications-a yazıldı");
-              }
-            }
+            await addDoc(collection(db,"adminNotifications"),{
+              type: "credentials",
+              orderId: orderRef.id,
+              productTitle: item.name||"Məhsul",
+              price: moneyToNumber(item.price),
+              buyerUid: currentUser.uid,
+              buyerEmail: currentUser.email||"",
+              sellerUid: item.sellerUid || adData?.sellerUid || "",
+              sellerEmail: item.sellerEmail || adData?.sellerEmail || "",
+              credentials: credText,
+              status: "Gözləmədə",
+              createdAt: serverTimestamp()
+            });
+            console.log("[creds] ✅ adminNotifications-a yazıldı");
           }
-        }catch(credErr){ console.warn("[creds] Xəta:", credErr); }
+        }catch(credErr){
+          console.warn("[creds] Bildiriş yaradılmadı, amma məlumat order-də saxlanıldı:", credErr);
+        }
       }
     }
 
