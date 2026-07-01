@@ -5416,17 +5416,19 @@ async function _fetchOrdersAdmin(){
       const hasCreds = o.pendingCredentials && (o.pendingCredentials.data);
       const credCell = hasCreds ? `<td style="font-size:11px;color:#94a3b8;background:#0a1118;border-radius:6px;padding:6px">
         🔒 <i>Şifrəli saxlanılır</i><br>
-        <button class="approve-btn" style="margin-top:4px;font-size:10px" data-send-creds="${o.id}">📤 Deşifrə et və Alıcıya göndər</button>
+        <button class="approve-btn" style="margin-top:4px;font-size:10px" data-send-creds="${o.id}">👁️ Admin yoxlamasına aç</button>
       </td>` : `<td style="color:#475569;font-size:11px">—</td>`;
       return `<tr><td><b>${esc(o.productTitle)}</b></td><td><small>${esc(o.buyerEmail)}</small></td><td><small>${esc(o.sellerEmail)}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td>${credCell}<td><div class="order-actions"><button class="cancel-btn" data-admin-cancel="${o.id}">Qaytar</button></div></td></tr>`;
     }).join("")}</tbody></table>`:'<div class="cabinet-empty">Aktiv sifariş yoxdur.</div>')+`<div class="wallet-note"><b>Statistika:</b> Tamamlanan: ${done.length}, mübahisə: ${disputes}, həcm: ${walletNumber(adminStatsState.totalVolume)}</div>`;
     el.querySelectorAll("[data-admin-cancel]").forEach(b=>b.onclick=async()=>{await cancelOrder(b.dataset.adminCancel);_fetchOrdersAdmin();});
-    el.querySelectorAll("[data-send-creds]").forEach(b=>b.onclick=()=>sendCredsToByuer(b.dataset.sendCreds));
+    el.querySelectorAll("[data-send-creds]").forEach(b=>b.onclick=()=>prepareCredsForAdminApproval(b.dataset.sendCreds));
   }catch(e){ console.error("_fetchOrdersAdmin:",e); }
 }
 
-// Admin: hesab məlumatlarını yoxlayıb alıcıya göndər
-async function sendCredsToByuer(orderId){
+// Admin: sifarişdəki hesab məlumatlarını yalnız admin yoxlamasına çıxarır.
+// Buradan alıcıya mesaj getmir. Alıcıya yalnız adminNotifications bölməsindəki
+// "Təsdiqləyirəm, alıcıya göndər" düyməsi basılanda göndərilir.
+async function prepareCredsForAdminApproval(orderId){
   if(!isAdmin()) return;
   try{
     const oSnap = await getDoc(doc(db,"orders",orderId));
@@ -5434,49 +5436,44 @@ async function sendCredsToByuer(orderId){
     const o = oSnap.data();
     if(!o.pendingCredentials) { toast("Bu sifarişdə hesab məlumatı yoxdur."); return; }
 
-    // AES-256 ilə deşifrə et
     const c = await decryptCreds(o.pendingCredentials);
     if(!c){ toast("Deşifrə xətası — məlumatlar oxunmadı."); return; }
 
-    let msgText = "🔑 Hesab məlumatlarınız:\n\n";
-    if(c.mailEmail || c.mailPassword) msgText += `📧 Mail: ${c.mailEmail}\n🔑 Mail şifrəsi: ${c.mailPassword}\n\n`;
-    if(c.login || c.password)         msgText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n\n`;
-    if(c.extraInfo)                   msgText += `📝 Əlavə məlumat:\n${c.extraInfo}\n\n`;
-    msgText += "Xoş oyunlar! Problem olarsa admin ilə əlaqə saxlayın.";
+    let credText = "";
+    if(c.mailEmail || c.mailPassword) credText += `📧 Mail: ${c.mailEmail||""}\n🔑 Mail şifrəsi: ${c.mailPassword||""}\n`;
+    if(c.login || c.password)         credText += `🎮 Login: ${c.login||""}\n🔒 Şifrə: ${c.password||""}\n`;
+    if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
 
-    // Alıcı ilə chat yarat/tap
-    const chatId = [o.buyerUid, o.sellerUid||"site_admin", o.adId||orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
-    const chatRef = doc(db,"chats",chatId);
-    const chatSnap = await getDoc(chatRef).catch(()=>null);
-    if(!chatSnap || !chatSnap.exists()){
-      await setDoc(chatRef,{
-        buyerUid: o.buyerUid,
-        buyerEmail: o.buyerEmail||"",
-        sellerUid: o.sellerUid||"site_admin",
-        sellerEmail: o.sellerEmail||"",
-        productId: o.adId||"",
-        productTitle: o.productTitle||"Məhsul",
-        participants: [o.buyerUid, o.sellerUid||"site_admin"],
-        lastMessage:"",unreadBuyer:1,unreadSeller:0,
-        updatedAt:serverTimestamp(),createdAt:serverTimestamp()
-      });
-    }
-    await addDoc(collection(db,"chats",chatId,"messages"),{
-      senderId:"system",senderEmail:"system",
-      text: msgText,
+    await addDoc(collection(db,"adminNotifications"),{
       type:"credentials",
+      orderId,
+      productTitle:o.productTitle||"Məhsul",
+      price:Number(o.price||0),
+      buyerUid:o.buyerUid||"",
+      buyerEmail:o.buyerEmail||"",
+      sellerUid:o.sellerUid||"",
+      sellerEmail:o.sellerEmail||"",
+      credentials:credText,
+      status:"Admin təsdiqi gözləyir",
       createdAt:serverTimestamp()
     });
-    // Credentials-ı sifarişdən sil
+
     await updateDoc(doc(db,"orders",orderId),{
-      pendingCredentials: deleteField(),
-      credentialsStatus: "Göndərildi",
-      credentialsSentAt: serverTimestamp()
-    });
-    toast("✅ Hesab məlumatları alıcıya göndərildi.");
+      credentialsStatus:"Admin təsdiqi gözləyir",
+      updatedAt:serverTimestamp()
+    }).catch(()=>{});
+
+    toast("✅ Hesab məlumatı admin yoxlamasına əlavə edildi. Alıcıya göndərilmədi.");
+    if(typeof listenNotifAdmin === "function") listenNotifAdmin();
     _fetchOrdersAdmin();
   }catch(e){ console.error(e); toast("Xəta: "+e.message); }
 }
+
+// Köhnə ad saxlanılır ki, hardasa çağırılsa belə alıcıya birbaşa göndərməsin.
+async function sendCredsToByuer(orderId){
+  return prepareCredsForAdminApproval(orderId);
+}
+
 function listenOrdersAdmin(){
   _fetchOrdersAdmin();
   const t=setInterval(()=>{if(document.getElementById("adminOrders")&&isAdmin())_fetchOrdersAdmin();else clearInterval(t);},15000);
