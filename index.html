@@ -4193,7 +4193,7 @@ async function registerUser(){
     // ID-nin unikallığını yoxla — usernames/{userId} sənədi mövcuddursa, ID artıq götürülüb
     const usernameRef = doc(db,"usernames",userId);
     const usernameSnap = await getDoc(usernameRef);
-    if(usernameSnap.exists()){
+    if(usernameSnap.exists() && !usernameSnap.data()?.invalid){
       authStatus("Bu ID artıq götürülüb. Başqa ID seç.");
       return;
     }
@@ -4236,7 +4236,11 @@ async function registerUser(){
     }catch(fsErr){
       // Firestore yazması uğursuz oldu — hər şeyi geri al
       console.error("Qeydiyyat rollback:", fsErr);
-      try{ await deleteDoc(usernameRef); }catch(e){}
+      // Username-i sil (rules icazə verir - aşağıya bax)
+      try{ await deleteDoc(usernameRef); }catch(e){
+        // Silmək olmadısa, uid-i sıfırla ki növbəti cəhddə tutulsun
+        try{ await setDoc(usernameRef, {uid:"", invalid:true}); }catch(e2){}
+      }
       try{ await cred.user.delete(); }catch(e){}
       await signOut(auth).catch(()=>{});
       currentUser=null;

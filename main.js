@@ -1,3 +1,4 @@
+});
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
@@ -827,7 +828,7 @@ async function registerUser(){
     // ID-nin unikallığını yoxla — usernames/{userId} sənədi mövcuddursa, ID artıq götürülüb
     const usernameRef = doc(db,"usernames",userId);
     const usernameSnap = await getDoc(usernameRef);
-    if(usernameSnap.exists()){
+    if(usernameSnap.exists() && !usernameSnap.data()?.invalid){
       authStatus("Bu ID artıq götürülüb. Başqa ID seç.");
       return;
     }
@@ -870,7 +871,11 @@ async function registerUser(){
     }catch(fsErr){
       // Firestore yazması uğursuz oldu — hər şeyi geri al
       console.error("Qeydiyyat rollback:", fsErr);
-      try{ await deleteDoc(usernameRef); }catch(e){}
+      // Username-i sil (rules icazə verir - aşağıya bax)
+      try{ await deleteDoc(usernameRef); }catch(e){
+        // Silmək olmadısa, uid-i sıfırla ki növbəti cəhddə tutulsun
+        try{ await setDoc(usernameRef, {uid:"", invalid:true}); }catch(e2){}
+      }
       try{ await cred.user.delete(); }catch(e){}
       await signOut(auth).catch(()=>{});
       currentUser=null;
@@ -3148,56 +3153,3 @@ window.listenCouponsAdmin = async function(){
       <div class="admin-coupon-item">
         <div><span class="code">${esc(c.code)}</span> <span style="color:#64748b;font-size:12px">— ${c.discount}% endirim</span><br>
         <small style="color:#475569">İstifadə: ${c.usedCount||0}/${c.maxUses||"∞"} ${c.expiry?'· Son: '+c.expiry:""} ${c.active?'':'· <span style="color:#ef4444">Deaktiv</span>'}</small></div>
-        <div style="display:flex;gap:6px">
-          <button onclick="toggleCoupon('${c.id}',${!c.active})" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">${c.active?"Deaktiv et":"Aktiv et"}</button>
-          <button onclick="deleteCoupon('${c.id}')" style="background:#2d1515;border:1px solid #7f1d1d;color:#ef4444;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Sil</button>
-        </div>
-      </div>`).join("")}</div>`;
-  }catch(e){ el.innerHTML='<div class="cabinet-empty">Kuponlar yüklənmədi.</div>'; }
-};
-
-window.toggleCoupon = async function(id, active){
-  try{ await updateDoc(doc(db,"coupons",id),{active}); toast(active?"Aktiv edildi":"Deaktiv edildi"); listenCouponsAdmin(); }
-  catch(e){ toast("Xəta."); }
-};
-
-window.deleteCoupon = async function(id){
-  if(!await showConfirm("Bu kuponu silmək istəyirsiniz?", "🗑️")) return;
-  try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
-  catch(e){ toast("Xəta."); }
-};
-</script>
-
-<script>
-(function(){
-  function normalizeCabinetText(text){
-    return (text || "").toLowerCase()
-      .replace(/ə/g,"e").replace(/ı/g,"i").replace(/ö/g,"o")
-      .replace(/ü/g,"u").replace(/ş/g,"s").replace(/ç/g,"c")
-      .replace(/ğ/g,"g");
-  }
-  function applyProfessionalCabinetIcons(){
-    document.querySelectorAll(".cabinet-menu button").forEach(function(btn){
-      var t = normalizeCabinetText(btn.textContent);
-      var icon = "settings";
-      if(t.includes("profil") || t.includes("hesab")) icon = "profile";
-      else if(t.includes("mesaj") || t.includes("chat") || t.includes("yazisma")) icon = "messages";
-      else if(t.includes("destək") || t.includes("destek") || t.includes("sikay") || t.includes("bilet") || t.includes("ticket")) icon = "support";
-      else if(t.includes("sifaris") || t.includes("order")) icon = "orders";
-      else if(t.includes("alis")) icon = "purchases";
-      else if(t.includes("yadda") || t.includes("sevim") || t.includes("favor")) icon = "saved";
-      else if(t.includes("elan yerles") || t.includes("add") || t.includes("yeni elan")) icon = "add";
-      else if(t.includes("elan")) icon = "ads";
-      else if(t.includes("cixaris") || t.includes("withdraw") || t.includes("bank")) icon = "withdraw";
-      else if(t.includes("balans") || t.includes("pul") || t.includes("wallet") || t.includes("oden")) icon = "wallet";
-      else if(t.includes("satis") || t.includes("qazanc")) icon = "sales";
-      else if(t.includes("admin")) icon = "admin";
-      else if(t.includes("cix") || t.includes("logout")) icon = "logout";
-      btn.setAttribute("data-cabinet-icon", icon);
-    });
-  }
-  document.addEventListener("DOMContentLoaded", applyProfessionalCabinetIcons);
-  document.addEventListener("click", function(){
-    setTimeout(applyProfessionalCabinetIcons, 60);
-  });
-})();
