@@ -4431,7 +4431,7 @@ window.createOrdersFromCart = async function(items){
   try{
     // Wallet-ləri əvvəlcədən təmin et (transaction xaricində)
     await ensureWallet(currentUser.uid, currentUser.email);
-    const adminRef = doc(db,"wallets","admin_platform");
+    const adminRef = doc(db,"wallets","B4BLhevMihY5FE8WRv1tk1DuHNm2");
 
     // Transaction: bütün oxumalar əvvəl, sonra yazma
     await runTransaction(db, async (tx)=>{
@@ -4452,7 +4452,7 @@ window.createOrdersFromCart = async function(items){
         updatedAt: serverTimestamp()
       });
       tx.set(adminRef,{
-        uid: "admin_platform",
+        uid: "B4BLhevMihY5FE8WRv1tk1DuHNm2",
         balance: Number(a.balance||0)+total,
         totalEarned: Number(a.totalEarned||0)+total,
         updatedAt: serverTimestamp()
@@ -5655,7 +5655,7 @@ async function processPayoutAdmin(payoutId, sellerUid, amount, orderId){
       },{merge:true});
     }
     // Admin balansından çıx
-    const adminRef = doc(db,"wallets","admin_platform");
+    const adminRef = doc(db,"wallets","B4BLhevMihY5FE8WRv1tk1DuHNm2");
     const aSnap = await getDoc(adminRef).catch(()=>null);
     const a = aSnap?.exists() ? aSnap.data() : {balance:0};
     await setDoc(adminRef,{balance:Math.max(0,Number(a.balance||0)-amount), updatedAt:serverTimestamp()},{merge:true});
