@@ -4699,6 +4699,10 @@ window.submitAd = async function(){
     authStatus(editingId
       ? "✅ Elan yeniləndi! Admin təsdiqindən sonra bazara çıxacaq."
       : "✅ Elanınız göndərildi! Admin təsdiqindən sonra bazara çıxacaq.");
+    // Yeni elan gəldikdə Telegram bildirişi
+    if(!editingId){
+      tgNotify(`📋 <b>Yeni elan!</b>\n📦 ${title}\n🎮 Kateqoriya: ${category}\n💰 Qiymət: ${price} ₼\n👤 Satıcı: ${currentUser?.email||""}\n\nhesablar.net → Admin panel → Elan Təsdiqi`);
+    }
 
   }catch(e){
     console.error("submitAd error:", e);
