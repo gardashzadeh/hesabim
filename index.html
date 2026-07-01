@@ -4431,33 +4431,23 @@ window.createOrdersFromCart = async function(items){
   try{
     // Wallet-ləri əvvəlcədən təmin et (transaction xaricində)
     await ensureWallet(currentUser.uid, currentUser.email);
-    const adminRef = doc(db,"wallets","B4BLhevMihY5FE8WRv1tk1DuHNm2");
 
-    // Transaction: bütün oxumalar əvvəl, sonra yazma
+    // Transaction: yalnız alıcının öz wallet-indən çıx
     await runTransaction(db, async (tx)=>{
-      // 1. Əvvəlcə BÜTÜN oxumaları et
       const wSnap = await tx.get(buyerRef);
-      const aSnap = await tx.get(adminRef);
-
-      // 2. Dəyərləri hesabla
-      const w = wSnap.data()||{};
+      const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
       const bal = Number(w.balance||0);
       if(bal < total) throw new Error("INSUFFICIENT_BALANCE");
-      const a = aSnap.exists() ? (aSnap.data()||{}) : {balance:0,totalEarned:0};
-
-      // 3. Sonra BÜTÜN yazmaları et
-      tx.update(buyerRef,{
+      tx.set(buyerRef,{
+        uid: currentUser.uid,
+        email: currentUser.email||"",
         balance: bal-total,
         totalSpent: Number(w.totalSpent||0)+total,
         updatedAt: serverTimestamp()
-      });
-      tx.set(adminRef,{
-        uid: "B4BLhevMihY5FE8WRv1tk1DuHNm2",
-        balance: Number(a.balance||0)+total,
-        totalEarned: Number(a.totalEarned||0)+total,
-        updatedAt: serverTimestamp()
       },{merge:true});
     });
+    // Qeyd: admin-in qazancı orders kolleksiyasından hesablanır,
+    // ayrıca admin wallet-inə yazmağa ehtiyac yoxdur.
 
     // 2. Hər item üçün sifariş yarat
     for(const item of items){
@@ -5649,11 +5639,6 @@ async function processPayoutAdmin(payoutId, sellerUid, amount, orderId){
         updatedAt: serverTimestamp()
       },{merge:true});
     }
-    // Admin balansından çıx
-    const adminRef = doc(db,"wallets","B4BLhevMihY5FE8WRv1tk1DuHNm2");
-    const aSnap = await getDoc(adminRef).catch(()=>null);
-    const a = aSnap?.exists() ? aSnap.data() : {balance:0};
-    await setDoc(adminRef,{balance:Math.max(0,Number(a.balance||0)-amount), updatedAt:serverTimestamp()},{merge:true});
     // Payout request-i tamamla
     await updateDoc(doc(db,"payoutRequests",payoutId),{status:"Ödənildi",paidAt:serverTimestamp()});
     // Sifariş-i güncəllə
