@@ -2007,9 +2007,10 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
         <div id="cabAdd" style="display:none">
           <h3>Yeni elan yerləşdir</h3>
           <div class="cabinet-form">
-            <input id="adTitle" placeholder="Elan başlığı *">
+            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Elan başlığı <span style="color:#ef4444">*</span></label>
+            <input id="adTitle" placeholder="Elan başlığı">
 
-            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:2px;">Kateqoriya *</label>
+            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Kateqoriya <span style="color:#ef4444">*</span></label>
             <select id="adCategory" onchange="syncAdFormToCategory()">
               <option value="Hesab">Hesab</option>
               <option value="Skin">Skin</option>
@@ -2024,6 +2025,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
             <!-- HESAB: oyun + rank + level -->
             <div id="adSec_hesab" class="ad-form-section">
               <div class="ad-form-section-title">Oyun məlumatları</div>
+              <label style="font-size:11.5px;color:#9ca3af;display:block;margin-bottom:2px;">Oyun <span style="color:#ef4444">*</span></label>
               <select id="adGame" onchange="updateAdGameCustomVisibility()">
                 <option value="">Oyun seç</option>
                 <option>Valorant</option><option>PUBG Mobile</option><option>League of Legends</option>
@@ -2225,7 +2227,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
             <!-- QİYMƏT — hamı üçün -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
               <div>
-                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) *</label>
+                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
                 <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
               </div>
               <div>
@@ -2246,7 +2248,8 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
                 <input id="adVideo" placeholder="https://youtube.com/..." type="url">
               </div>
             </div>
-            <textarea id="adDesc" placeholder="Ətraflı məlumat (istəyə görə)"></textarea>
+            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
+            <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
             <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 5 ədəd)</label>
             <input id="adImageFile" type="file" accept="image/*" multiple>
             <div id="adImagePreview" class="ad-upload-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
@@ -4574,9 +4577,36 @@ window.submitAd = async function(){
   const desc     = document.getElementById("adDesc")?.value.trim() || "";
   const proFields = readAdProfessionalFields();
 
-  // Yalnız başlıq və qiymət məcburidir
-  if(!title){ toast("Elan başlığını yazın"); return; }
-  if(!price){ toast("Qiyməti yazın"); return; }
+  // Məcburi sahə yoxlaması — xətalı sahəni qırmızı işarələ
+  const requiredFields = [
+    {id:"adTitle", label:"Elan başlığı"},
+    {id:"adPrice", label:"Qiymət"},
+    {id:"adDesc", label:"Ətraflı məlumat"},
+  ];
+
+  // Kateqoriyaya görə oyun seçimi məcburidir
+  const gameVal = getSelectedGameValue();
+  const catVal = document.getElementById("adCategory")?.value || "";
+  if(["Hesab","Skin","Oyun Pulu","Oyun Boost","Hesab Kirayəsi"].includes(catVal) && !gameVal){
+    const gameEl = document.getElementById("adGame");
+    if(gameEl){ gameEl.style.border="2px solid #ef4444"; setTimeout(()=>gameEl.style.border="",3000); }
+    authStatus("⚠️ Oyun seçin.");
+    return;
+  }
+
+  let hasError = false;
+  requiredFields.forEach(({id, label})=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const val = el.value.trim();
+    if(!val){
+      el.style.border = "2px solid #ef4444";
+      el.style.boxShadow = "0 0 0 3px rgba(239,68,68,.15)";
+      setTimeout(()=>{ el.style.border=""; el.style.boxShadow=""; }, 3000);
+      if(!hasError){ el.focus(); hasError=true; }
+    }
+  });
+  if(hasError){ authStatus("⚠️ Zəruri sahələri doldurun."); return; }
 
   const submitBtn = document.getElementById("adSubmit");
   try{
