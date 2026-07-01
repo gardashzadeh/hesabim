@@ -4720,18 +4720,22 @@ window.createOrdersFromCart = async function(items){
       if(item.adId){
         try{
           const adSnap = await getDoc(doc(db,"ads",item.adId));
+          console.log("[creds] adId:", item.adId, "exists:", adSnap.exists());
           if(adSnap.exists()){
             const creds = adSnap.data().accountCredentials;
+            console.log("[creds] accountCredentials:", creds ? "var" : "yox", creds);
             if(creds && creds.data){
-              // Şifrəli blobu sifarişə köçür — deşifrə etmə, sadəcə köçür
               await updateDoc(orderRef,{
                 pendingCredentials: creds,
                 credentialsStatus: "Gözləmədə"
               });
               await updateDoc(doc(db,"ads",item.adId),{accountCredentials:deleteField()}).catch(()=>{});
+              console.log("[creds] ✅ Sifarişə köçürüldü");
+            } else {
+              console.log("[creds] ⚠️ creds.data yoxdur — elan köhnə formatda ola bilər");
             }
           }
-        }catch(credErr){ console.warn("Credentials saxlanmadı:", credErr); }
+        }catch(credErr){ console.warn("[creds] Xəta:", credErr); }
       }
     }
 
