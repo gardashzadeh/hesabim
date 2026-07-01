@@ -5079,7 +5079,7 @@ function listenHeaderNotifications(){
     draw();
   },e=>console.error(e)));
   // Admin bildirişləri — yalnız admin üçün
-  if(isAdmin()){
+  if(currentUserRole === "admin"){
     const qa=query(collection(db,"adminNotifications"),where("status","==","Admin təsdiqi gözləyir"));
     headerNotifUnsubs.push(onSnapshot(qa,s=>{
       adminUnread=s.size;
@@ -5090,7 +5090,7 @@ function listenHeaderNotifications(){
 window.openNotifications=function(){
   if(!currentUser){ openModal("loginModal"); return; }
   document.getElementById("cabinetModal")?.classList.add("show");
-  if(isAdmin()){
+  if(currentUserRole === "admin"){
     if(typeof window.showTab==="function") window.showTab("admin");
   } else {
     if(typeof window.showTab==="function") window.showTab("messages");
