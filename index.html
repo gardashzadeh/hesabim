@@ -1258,7 +1258,26 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 
 /* REGISTER PROFILE FIELDS */
 #registerStep input[type="date"]{color-scheme:dark}
-#authStatus{color:#ffb27a;font-size:13px;min-height:18px;margin-top:8px;margin-bottom:0;position:sticky;bottom:0;background:#10141c;padding:6px 0;font-weight:600}
+#authStatus{
+  display:none;
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:99999;
+  background:#0d1117;
+  border:1px solid #fb923c55;
+  border-radius:16px;
+  padding:28px 32px;
+  text-align:center;
+  max-width:340px;
+  width:90%;
+  box-shadow:0 24px 60px rgba(0,0,0,.7),0 0 0 1px rgba(251,146,60,.1);
+  font-size:15px;
+  font-weight:600;
+  color:#ffb27a;
+  line-height:1.6;
+}
+#authStatus.show{display:block}
 
 
 /* CLOUDINARY AD IMAGE UPLOAD */
@@ -3624,7 +3643,17 @@ let adminStatsState = {pendingAds:0,openTickets:0,activeOrders:0,balanceRequests
 let activeReviewProductKey = "";
 
 function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg); }
-function authStatus(msg){ const e=document.getElementById("authStatus"); if(e) e.textContent=msg||""; }
+function authStatus(msg){
+  const e=document.getElementById("authStatus");
+  if(!e) return;
+  if(!msg){ e.textContent=""; e.classList.remove("show"); return; }
+  e.innerHTML = `<div style="font-size:22px;margin-bottom:12px">${msg.includes("tamamlandı")||msg.includes("uğurlu")?"✅":"⚠️"}</div>${esc(msg)}<br><button onclick="document.getElementById('authStatus').classList.remove('show');document.getElementById('authStatus').textContent=''" style="margin-top:16px;background:#fb923c;border:none;color:#fff;font-weight:700;padding:8px 24px;border-radius:8px;cursor:pointer;font-size:13px">OK</button>`;
+  e.classList.add("show");
+  // Uğurlu mesajlarda 4 saniyə sonra avtomatik bağlan
+  if(msg.includes("tamamlandı")||msg.includes("uğurlu")){
+    setTimeout(()=>{ e.classList.remove("show"); e.textContent=""; }, 4000);
+  }
+}
 function validEmail(email){ return /^\S+@\S+\.\S+$/.test(email); }
 function esc(v){ return String(v||"").replace(/[<>&"]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[s])); }
 window.esc = esc; // non-module script-lər üçün export
