@@ -3263,7 +3263,7 @@ function removeCart(i){
 async function checkoutCart(){
   if(cart.length===0){showToast("Səbət boşdur");return}
   const itemList = cart.map(x=>`• ${x.name} — ${x.price}`).join("\n");
-  const confirmed = await showConfirm(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul balansınızdan çıxılacaq.`, "🛒");
+  const confirmed = await (window.showConfirm||window.confirm)(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul balansınızdan çıxılacaq.`, "🛒");
   if(!confirmed) return;
   if(typeof window.createOrdersFromCart === "function"){
     window.createOrdersFromCart(cart);
@@ -3673,6 +3673,7 @@ function showConfirm(msg, icon){
     };
   });
 }
+window.showConfirm = showConfirm;
 function authStatus(msg){
   const e=document.getElementById("authStatus");
   if(!e) return;
