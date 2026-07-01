@@ -4735,43 +4735,43 @@ window.createOrdersFromCart = async function(items){
                 if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n\n`;
                 credText += "━━━━━━━━━━━━━━━";
 
-                // Admin ilə satıcı arasında chat yarat (admin "alıcı" kimi görünür)
                 const ADMIN_UID = "B4BLhevMihY5FE8WRv1tk1DuHNm2";
-                const adminChatId = ["admin_cred", item.adId, orderRef.id].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+                // buyerUid=alıcı(cari istifadəçi), sellerUid=admin — Rules: buyerUid==auth.uid ✓
+                const adminChatId = ["cred_notify", ADMIN_UID, orderRef.id].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
                 const adminChatRef = doc(db,"chats",adminChatId);
                 const adminChatSnap = await getDoc(adminChatRef).catch(()=>null);
                 if(!adminChatSnap || !adminChatSnap.exists()){
                   await setDoc(adminChatRef,{
-                    buyerUid: ADMIN_UID,
-                    buyerEmail: "admin@hesablar.net",
-                    sellerUid: item.sellerUid||"site_admin",
-                    sellerEmail: item.sellerEmail||"",
+                    buyerUid: currentUser.uid,
+                    buyerEmail: currentUser.email||"",
+                    sellerUid: ADMIN_UID,
+                    sellerEmail: "admin@hesablar.net",
                     productId: item.adId,
                     productTitle: item.name||"Məhsul",
                     orderId: orderRef.id,
                     buyerUidActual: currentUser.uid,
                     buyerEmailActual: currentUser.email,
-                    participants: [ADMIN_UID, item.sellerUid||"site_admin"],
+                    sellerUidActual: item.sellerUid||"",
+                    sellerEmailActual: item.sellerEmail||"",
+                    participants: [currentUser.uid, ADMIN_UID],
                     isAdminCredChat: true,
                     lastMessage: "Yeni sifariş — hesab məlumatları",
-                    unreadBuyer: 1, unreadSeller: 0,
+                    unreadBuyer: 0, unreadSeller: 1,
                     updatedAt: serverTimestamp(), createdAt: serverTimestamp()
                   });
                 }
-                // Credentials mesajını adminə göndər
                 await addDoc(collection(db,"chats",adminChatId,"messages"),{
-                  senderId: item.sellerUid||"site_admin",
-                  senderEmail: item.sellerEmail||"",
+                  senderId: currentUser.uid,
+                  senderEmail: currentUser.email||"",
                   text: credText,
                   type: "credentials_admin",
                   orderId: orderRef.id,
                   buyerUid: currentUser.uid,
                   buyerEmail: currentUser.email||"",
+                  sellerUidActual: item.sellerUid||"",
                   createdAt: serverTimestamp()
                 });
-                // Sifarişdə sadəcə status saxla (credentials saxlanmır — artıq mesajda var)
-                await updateDoc(orderRef,{credentialsStatus:"Göndərildi"});
-                // Elan sənədindən sil
+                await updateDoc(orderRef,{credentialsStatus:"Adminə göndərildi"});
                 await updateDoc(doc(db,"ads",item.adId),{accountCredentials:deleteField()}).catch(()=>{});
                 console.log("[creds] ✅ Adminə mesaj göndərildi");
               }
@@ -5263,45 +5263,44 @@ function drawMessages(msgs,adminMode=false){
   el.scrollTop=el.scrollHeight;
 }
 
-// Admin: hesabı yoxlayıb alıcıya göndər
 window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
   if(!isAdmin()){ toast("Admin icazəsi lazımdır."); return; }
   if(!orderId || !buyerUid){ toast("Məlumat çatışmır."); return; }
   if(!await (window.showConfirm||window.confirm)("Hesab məlumatlarını alıcıya göndərirsiniz?","✅")) return;
 
   try{
-    // Hazırkı chat-dəki credentials mesajının mətni tapılır
-    // activeChatId-dən götürürük
-    const chatId = window.activeChatId || window.adminActiveChatId;
-    if(!chatId){ toast("Chat tapılmadı."); return; }
-    const msgsSnap = await getDocs(query(collection(db,"chats",chatId,"messages"),where("type","==","credentials_admin")));
-    if(msgsSnap.empty){ toast("Hesab məlumatı tapılmadı."); return; }
-    const credMsg = msgsSnap.docs[0].data();
-
-    // Alıcı ilə chat yarat/tap
     const ADMIN_UID = "B4BLhevMihY5FE8WRv1tk1DuHNm2";
+    // Admin notification chat-ini tap
+    const adminChatId = ["cred_notify", ADMIN_UID, orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+    const msgsSnap = await getDocs(collection(db,"chats",adminChatId,"messages"));
+    let credText = "";
+    msgsSnap.forEach(d=>{ if(d.data().type==="credentials_admin") credText = d.data().text; });
+    if(!credText){ toast("Hesab məlumatı tapılmadı."); return; }
+
+    // Alıcıya göndərmək üçün chat yarat
     const buyerChatId = [buyerUid, ADMIN_UID, orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
     const buyerChatRef = doc(db,"chats",buyerChatId);
     const buyerChatSnap = await getDoc(buyerChatRef).catch(()=>null);
     if(!buyerChatSnap||!buyerChatSnap.exists()){
       await setDoc(buyerChatRef,{
-        buyerUid,buyerEmail:buyerEmail||"",
-        sellerUid:ADMIN_UID, sellerEmail:"admin@hesablar.net",
-        productTitle:"Sifariş məlumatları",orderId,
-        participants:[buyerUid,ADMIN_UID],
+        buyerUid, buyerEmail: buyerEmail||"",
+        sellerUid: ADMIN_UID, sellerEmail:"admin@hesablar.net",
+        productTitle:"Sifariş məlumatları", orderId,
+        participants:[buyerUid, ADMIN_UID],
         lastMessage:"",unreadBuyer:1,unreadSeller:0,
         updatedAt:serverTimestamp(),createdAt:serverTimestamp()
       });
     }
-    // Alıcıya göndər
-    const buyerText = credMsg.text.replace("YENİ SİFARİŞ — Hesab məlumatları","Hesab məlumatlarınız").replace("━━━━━━━━━━━━━━━","").trim()
-      + "\n\nXoş oyunlar! Problem olarsa admin ilə əlaqə saxlayın.";
+    const buyerText = credText
+      .replace("YENİ SİFARİŞ — Hesab məlumatları","Hesab məlumatlarınız")
+      .replace("━━━━━━━━━━━━━━━","")
+      .trim() + "\n\nXoş oyunlar! Problem olarsa admin ilə əlaqə saxlayın.";
     await addDoc(collection(db,"chats",buyerChatId,"messages"),{
-      senderId:ADMIN_UID,senderEmail:"admin@hesablar.net",
-      text:buyerText,type:"credentials",createdAt:serverTimestamp()
+      senderId:ADMIN_UID, senderEmail:"admin@hesablar.net",
+      text:buyerText, type:"credentials",
+      createdAt:serverTimestamp()
     });
     await updateDoc(buyerChatRef,{lastMessage:"Hesab məlumatları göndərildi",unreadBuyer:1,updatedAt:serverTimestamp()}).catch(()=>{});
-    // Sifarişi yenilə
     if(orderId) await updateDoc(doc(db,"orders",orderId),{credentialsStatus:"Alıcıya göndərildi",updatedAt:serverTimestamp()}).catch(()=>{});
     toast("✅ Alıcıya göndərildi!");
   }catch(e){ console.error(e); toast("Xəta: "+e.message); }
