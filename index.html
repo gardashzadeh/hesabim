@@ -4479,16 +4479,11 @@ window.createOrdersFromCart = async function(items){
         updatedAt: serverTimestamp()
       });
 
-      // 3. Elanı rezervə al
-      if(item.adId){
-        await updateDoc(doc(db,"ads",item.adId),{
-          status:"Rezervdə",
-          buyerUid: currentUser.uid,
-          buyerEmail: currentUser.email,
-          updatedAt: serverTimestamp()
-        }).catch(()=>{});
+      // Elanı rezervə alma — yalnız admin edə bilər, satıcı elanlarında buyer update etməsin
+      // if(item.adId) await updateDoc(doc(db,"ads",item.adId),{...}).catch(()=>{});
 
-        // 4. Credentials varsa — alıcıya avtomatik göndər
+      // Credentials varsa — alıcıya avtomatik göndər
+      if(item.adId){
         try{
           const adSnap = await getDoc(doc(db,"ads",item.adId));
           if(adSnap.exists()){
