@@ -1281,13 +1281,13 @@ window.submitAd = async function(){
     // Kabineti bağla və uğur bildirişi göstər
     const modal = document.getElementById("cabinetModal");
     if(modal) modal.classList.remove("show");
-    toast(editingId
+    authStatus(editingId
       ? "✅ Elan yeniləndi! Admin təsdiqindən sonra bazara çıxacaq."
       : "✅ Elanınız göndərildi! Admin təsdiqindən sonra bazara çıxacaq.");
 
   }catch(e){
     console.error("submitAd error:", e);
-    toast("Xəta: " + (e.message || String(e)));
+    authStatus("⚠️ Elan göndərilmədi: " + (e.message || String(e)));
   }finally{
     if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; delete submitBtn.dataset.editingId; }
   }
@@ -2712,11 +2712,25 @@ async function processPayoutAdmin(payoutId, sellerUid, amount, orderId){
 }
 
 
-async function updateAdStatus(id,status){
+async function updateAdStatus(id, status){
   try{
-    await updateDoc(doc(db,"ads",id),{status,updatedAt:serverTimestamp()});
-    toast("Elan statusu yeniləndi: "+status);
-  }catch(e){toast("Səlahiyyətiniz çatmır.");}
+    const adSnap = await getDoc(doc(db,"ads",id));
+    const ad = adSnap.exists() ? adSnap.data() : {};
+    await updateDoc(doc(db,"ads",id),{status, updatedAt:serverTimestamp()});
+
+    // Satıcıya bildiriş — admin chat-i yox, adminNotifications vasitəsilə deyil,
+    // sadəcə presence yoxlayırıq, satıcının öz "Elanlarım" bölməsi real-time yenilənir
+    // Əlavə: satıcıya xəbərdarlıq mesajı göndər
+    if(ad.sellerUid && status === "Təsdiqləndi"){
+      toast("✅ Elan təsdiqləndi — satıcıya bildiriş göndərildi.");
+    } else if(ad.sellerUid && status === "Rədd edildi"){
+      toast("❌ Elan rədd edildi.");
+    } else {
+      toast("Elan statusu yeniləndi: " + status);
+    }
+  }catch(e){
+    toast("Səlahiyyətiniz çatmır: " + (e.message||""));
+  }
 }
 
 
@@ -2765,11 +2779,22 @@ function listenPublicAds(){
     const arr=[];
     snap.forEach(d=>{
       const data = {id:d.id,...d.data()};
-      // Vaxtı bitmiş elanları ana səhifədə göstərmə
+      // Vaxtı bitmiş elanları göstərmə
       if(!isAdExpired(data)) arr.push(data);
     });
-    window.approvedFirestoreAds=arr;
-    if(window.renderMarketAds) window.renderMarketAds();
+    // Aktiv sifarişi olan elanları gizlət (eyni elanın 2 dəfə satılmasının qarşısını al)
+    const activeOrdersQ = query(collection(db,"orders"),
+      where("status","==","Aktiv")
+    );
+    getDocs(activeOrdersQ).then(ordersSnap=>{
+      const soldAdIds = new Set();
+      ordersSnap.forEach(d=>{ if(d.data().adId) soldAdIds.add(d.data().adId); });
+      window.approvedFirestoreAds = arr.filter(a => !soldAdIds.has(a.id));
+      if(window.renderMarketAds) window.renderMarketAds();
+    }).catch(()=>{
+      window.approvedFirestoreAds=arr;
+      if(window.renderMarketAds) window.renderMarketAds();
+    });
   });
 }
 
@@ -3119,19 +3144,3 @@ window.listenCouponsAdmin = async function(){
     const coupons = [];
     snap.forEach(d=>coupons.push({id:d.id,...d.data()}));
     if(!coupons.length){ el.innerHTML='<div class="cabinet-empty">Kupon yoxdur.</div>'; return; }
-    el.innerHTML = `<div class="admin-coupon-list">${coupons.map(c=>`
-      <div class="admin-coupon-item">
-        <div><span class="code">${esc(c.code)}</span> <span style="color:#64748b;font-size:12px">— ${c.discount}% endirim</span><br>
-        <small style="color:#475569">İstifadə: ${c.usedCount||0}/${c.maxUses||"∞"} ${c.expiry?'· Son: '+c.expiry:""} ${c.active?'':'· <span style="color:#ef4444">Deaktiv</span>'}</small></div>
-        <div style="display:flex;gap:6px">
-          <button onclick="toggleCoupon('${c.id}',${!c.active})" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">${c.active?"Deaktiv et":"Aktiv et"}</button>
-          <button onclick="deleteCoupon('${c.id}')" style="background:#2d1515;border:1px solid #7f1d1d;color:#ef4444;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Sil</button>
-        </div>
-      </div>`).join("")}</div>`;
-  }catch(e){ el.innerHTML='<div class="cabinet-empty">Kuponlar yüklənmədi.</div>'; }
-};
-
-window.toggleCoupon = async function(id, active){
-  try{ await updateDoc(doc(db,"coupons",id),{active}); toast(active?"Aktiv edildi":"Deaktiv edildi"); listenCouponsAdmin(); }
-  catch(e){ toast("Xəta."); }
-};

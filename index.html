@@ -4645,13 +4645,13 @@ window.submitAd = async function(){
     // Kabineti bağla və uğur bildirişi göstər
     const modal = document.getElementById("cabinetModal");
     if(modal) modal.classList.remove("show");
-    toast(editingId
+    authStatus(editingId
       ? "✅ Elan yeniləndi! Admin təsdiqindən sonra bazara çıxacaq."
       : "✅ Elanınız göndərildi! Admin təsdiqindən sonra bazara çıxacaq.");
 
   }catch(e){
     console.error("submitAd error:", e);
-    toast("Xəta: " + (e.message || String(e)));
+    authStatus("⚠️ Elan göndərilmədi: " + (e.message || String(e)));
   }finally{
     if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; delete submitBtn.dataset.editingId; }
   }
@@ -6076,11 +6076,25 @@ async function processPayoutAdmin(payoutId, sellerUid, amount, orderId){
 }
 
 
-async function updateAdStatus(id,status){
+async function updateAdStatus(id, status){
   try{
-    await updateDoc(doc(db,"ads",id),{status,updatedAt:serverTimestamp()});
-    toast("Elan statusu yeniləndi: "+status);
-  }catch(e){toast("Səlahiyyətiniz çatmır.");}
+    const adSnap = await getDoc(doc(db,"ads",id));
+    const ad = adSnap.exists() ? adSnap.data() : {};
+    await updateDoc(doc(db,"ads",id),{status, updatedAt:serverTimestamp()});
+
+    // Satıcıya bildiriş — admin chat-i yox, adminNotifications vasitəsilə deyil,
+    // sadəcə presence yoxlayırıq, satıcının öz "Elanlarım" bölməsi real-time yenilənir
+    // Əlavə: satıcıya xəbərdarlıq mesajı göndər
+    if(ad.sellerUid && status === "Təsdiqləndi"){
+      toast("✅ Elan təsdiqləndi — satıcıya bildiriş göndərildi.");
+    } else if(ad.sellerUid && status === "Rədd edildi"){
+      toast("❌ Elan rədd edildi.");
+    } else {
+      toast("Elan statusu yeniləndi: " + status);
+    }
+  }catch(e){
+    toast("Səlahiyyətiniz çatmır: " + (e.message||""));
+  }
 }
 
 
@@ -6129,11 +6143,22 @@ function listenPublicAds(){
     const arr=[];
     snap.forEach(d=>{
       const data = {id:d.id,...d.data()};
-      // Vaxtı bitmiş elanları ana səhifədə göstərmə
+      // Vaxtı bitmiş elanları göstərmə
       if(!isAdExpired(data)) arr.push(data);
     });
-    window.approvedFirestoreAds=arr;
-    if(window.renderMarketAds) window.renderMarketAds();
+    // Aktiv sifarişi olan elanları gizlət (eyni elanın 2 dəfə satılmasının qarşısını al)
+    const activeOrdersQ = query(collection(db,"orders"),
+      where("status","==","Aktiv")
+    );
+    getDocs(activeOrdersQ).then(ordersSnap=>{
+      const soldAdIds = new Set();
+      ordersSnap.forEach(d=>{ if(d.data().adId) soldAdIds.add(d.data().adId); });
+      window.approvedFirestoreAds = arr.filter(a => !soldAdIds.has(a.id));
+      if(window.renderMarketAds) window.renderMarketAds();
+    }).catch(()=>{
+      window.approvedFirestoreAds=arr;
+      if(window.renderMarketAds) window.renderMarketAds();
+    });
   });
 }
 
