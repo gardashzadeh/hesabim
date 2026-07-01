@@ -5064,8 +5064,8 @@ function listenHeaderNotifications(){
   stopHeaderNotifications();
   setHeaderNotificationCount(0);
   if(!currentUser) return;
-  let buyerUnread=0, sellerUnread=0;
-  const draw=()=>setHeaderNotificationCount(buyerUnread+sellerUnread);
+  let buyerUnread=0, sellerUnread=0, adminUnread=0;
+  const draw=()=>setHeaderNotificationCount(buyerUnread+sellerUnread+adminUnread);
   const qb=query(collection(db,"chats"),where("buyerUid","==",currentUser.uid));
   const qs=query(collection(db,"chats"),where("sellerUid","==",currentUser.uid));
   headerNotifUnsubs.push(onSnapshot(qb,s=>{
@@ -5078,11 +5078,23 @@ function listenHeaderNotifications(){
     s.forEach(d=>{ sellerUnread+=Number((d.data()||{}).unreadSeller||0); });
     draw();
   },e=>console.error(e)));
+  // Admin bildirişləri — yalnız admin üçün
+  if(isAdmin()){
+    const qa=query(collection(db,"adminNotifications"),where("status","==","Admin təsdiqi gözləyir"));
+    headerNotifUnsubs.push(onSnapshot(qa,s=>{
+      adminUnread=s.size;
+      draw();
+    },e=>console.error(e)));
+  }
 }
 window.openNotifications=function(){
   if(!currentUser){ openModal("loginModal"); return; }
   document.getElementById("cabinetModal")?.classList.add("show");
-  if(typeof window.showTab==="function") window.showTab("messages");
+  if(isAdmin()){
+    if(typeof window.showTab==="function") window.showTab("admin");
+  } else {
+    if(typeof window.showTab==="function") window.showTab("messages");
+  }
 };
 
 // ============================================================
