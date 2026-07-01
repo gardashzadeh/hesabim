@@ -4614,7 +4614,6 @@ window.submitAd = async function(){
     const tags = tagsRaw ? tagsRaw.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
     const editingId = submitBtn?.dataset?.editingId || "";
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
-    const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
     // Çatdırılma üsulu və hesab məlumatları
@@ -4649,7 +4648,8 @@ window.submitAd = async function(){
       sellerUid: currentUser.uid,
       sellerEmail: currentUser.email,
       sellerUserId,
-      sellerVerified,
+      // sellerVerified burada yazılmır. Firestore rules bu field-i user-dən gələndə bloklayır.
+      // Təsdiq statusu users/presence kolleksiyasından ayrıca oxunur.
       ...(accountCredentials ? {accountCredentials} : {}),
       deliveryMode,
       chatMode: deliveryMode==="chat" ? chatMode : null,
@@ -4688,7 +4688,9 @@ window.submitAd = async function(){
 
   }catch(e){
     console.error("submitAd error:", e);
-    authStatus("⚠️ Elan göndərilmədi: " + (e.message || String(e)));
+    const msg = "⚠️ Elan göndərilmədi: " + (e?.message || e?.code || String(e));
+    toast(msg);
+    authStatus(msg);
   }finally{
     if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; delete submitBtn.dataset.editingId; }
   }
