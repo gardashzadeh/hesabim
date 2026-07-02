@@ -5150,18 +5150,34 @@ window.submitAd = async function(){
       sellerEmail: currentUser.email,
       sellerUserId,
       sellerVerified,
-      ...(accountCredentials ? {accountCredentials} : {}),
       deliveryMode,
       chatMode: deliveryMode==="chat" ? chatMode : null,
       updatedAt: serverTimestamp()
+      // DİQQƏT: accountCredentials artıq burada SAXLANILMIR.
+      // "ads" sənədi hər kəsə açıq oxunduğu üçün (allow read: if true),
+      // hesab məlumatları aşağıda ayrı, qorunan alt-kolleksiyaya yazılır.
     };
 
+    let adId = editingId;
     if(editingId){
       await updateDoc(doc(db,"ads",editingId), adPayload);
     } else {
       // Elan müddəti: 30 gün (1 ay)
       const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
-      await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp(), expiresAt});
+      const newAdRef = await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp(), expiresAt});
+      adId = newAdRef.id;
+    }
+
+    // Hesab məlumatlarını (varsa) qorunan alt-kolleksiyaya yaz.
+    // Bu sənədi yalnız admin, satıcının özü və (satışdan sonra) təsdiqlənmiş
+    // alıcı oxuya bilər — Firestore rules bunu təmin edir.
+    if(accountCredentials && adId){
+      try{
+        await setDoc(doc(db,"ads",adId,"secure","creds"), accountCredentials);
+      }catch(credSaveErr){
+        console.warn("[creds] Hesab məlumatı yazılmadı:", credSaveErr);
+        toast("Diqqət: hesab məlumatı saxlanmadı (" + (credSaveErr.code||credSaveErr.message||"xəta") + "). Elanı redaktə edib yenidən daxil edin.");
+      }
     }
 
     // Formu təmizlə
@@ -5237,21 +5253,16 @@ window.createOrdersFromCart = async function(items){
     // 2. Hər item üçün sifariş yarat
     for(const item of items){
       let adData = null;
-      let pendingCredentials = null;
 
-      // Satıcının elanda yerləşdirdiyi hesab məlumatlarını sifarişə kopyala.
-      // Vacib: bunu order yaradılan anda edirik ki, admin panelində itmə olmasın.
+      // "ads" sənədində artıq hesab məlumatı yoxdur (təhlükəsizlik üçün
+      // ayrı alt-kolleksiyaya köçürülüb) — burada sadəcə kateqoriya/oyun
+      // kimi ümumi məlumatı oxuyuruq.
       if(item.adId){
         try{
           const adSnap = await getDoc(doc(db,"ads",item.adId));
-          if(adSnap.exists()){
-            adData = adSnap.data() || {};
-            if(adData.accountCredentials && adData.accountCredentials.data){
-              pendingCredentials = adData.accountCredentials;
-            }
-          }
-        }catch(credReadErr){
-          console.warn("[creds] Elan hesab məlumatı oxunmadı:", credReadErr);
+          if(adSnap.exists()) adData = adSnap.data() || {};
+        }catch(adReadErr){
+          console.warn("[ads] Elan məlumatı oxunmadı:", adReadErr);
         }
       }
 
@@ -5289,8 +5300,9 @@ window.createOrdersFromCart = async function(items){
         sellerConfirmed: false,
         payoutRequested: false,
         payoutDone: false,
-        credentialsStatus: pendingCredentials ? "Admin yoxlamasında" : "Yoxdur",
-        ...(pendingCredentials ? { pendingCredentials } : {}),
+        // Hesab məlumatı hələ oxunmayıb (aşağıda, elan "satılmış" işarələndikdən
+        // SONRA oxunacaq — rules yalnız o zaman icazə verir). Ona görə əvvəlcə "Yoxdur".
+        credentialsStatus: "Yoxdur",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -5298,8 +5310,9 @@ window.createOrdersFromCart = async function(items){
       const orderRef = await addDoc(collection(db,"orders"), orderPayload);
 
       // Elanı satılmış kimi işarələ ki, ana səhifədən HƏMİŞƏLİK (bütün istifadəçilər üçün) itsin.
-      // Əvvəlki həll (window._reservedAdIds) yalnız cari brauzer sessiyasında işləyirdi;
-      // səhifə yenilənəndə və ya başqa istifadəçidə elan yenidən görünürdü.
+      // Bu, eyni zamanda alıcının "secure/creds" sənədini oxumaq hüququ qazanması
+      // üçün DƏ vacibdir — rules bu icazəni ads.sold==true && ads.buyerUid==mən
+      // şərtinə bağlayıb.
       if(item.adId){
         try{
           await updateDoc(doc(db,"ads",item.adId),{
@@ -5314,10 +5327,28 @@ window.createOrdersFromCart = async function(items){
         }
       }
 
-      // Admin panelinin yuxarı bildiriş bölməsi üçün əlavə bildiriş yaratmağa cəhd et.
-      // Bu alınmasa belə əsas məlumat artıq orders.pendingCredentials içində saxlanılıb.
+      // İndi (yalnız indi) alıcı ads/{adId}/secure/creds-i oxuya bilər,
+      // çünki elan bu an "sold=true, buyerUid=mən" kimi işarələndi.
+      let pendingCredentials = null;
+      if(item.adId){
+        try{
+          const credSnap = await getDoc(doc(db,"ads",item.adId,"secure","creds"));
+          if(credSnap.exists()) pendingCredentials = credSnap.data();
+        }catch(credReadErr){
+          console.warn("[creds] Hesab məlumatı oxunmadı (bəlkə bu elanda yoxdur):", credReadErr);
+        }
+      }
+
       if(pendingCredentials){
         try{
+          // Şifrəli bloku sifarişə köçür ki, admin panelində itməsin
+          // (satıcı elanı silsə belə order-də qalır).
+          await updateDoc(orderRef, {
+            pendingCredentials,
+            credentialsStatus: "Admin yoxlamasında",
+            updatedAt: serverTimestamp()
+          });
+
           const c = await decryptCreds(pendingCredentials);
           if(c){
             let credText = "";
@@ -5325,7 +5356,7 @@ window.createOrdersFromCart = async function(items){
             if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n`;
             if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
 
-            // Admin panelinə bildiriş göndər. Alıcı bu məlumatları görmür.
+            // Admin panelinə bildiriş göndər. Alıcı bu bölməni görmür.
             await addDoc(collection(db,"adminNotifications"),{
               type: "credentials",
               orderId: orderRef.id,
