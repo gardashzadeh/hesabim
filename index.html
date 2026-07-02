@@ -1946,6 +1946,12 @@ button.primary, .btn-primary,
 .games-oneline .game-img[data-game] svg{display:none !important}
 .games-oneline .game-img[data-game] img{display:none !important}
 .games-oneline .game-img[data-game]{box-shadow:none !important}
+
+
+/* HARD ADMIN VISIBILITY LOCK: admin panel button is hidden unless JS confirms admin */
+#adminTabBtn{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+body.gs-is-admin #adminTabBtn{display:block!important;visibility:visible!important;pointer-events:auto!important;}
+
 </style>
 
 <style>
@@ -4006,16 +4012,23 @@ let currentUser = null;
 let currentUserRole = "user"; // Firestore-dan cache-lənir, isAdmin() bunu istifadə edir
 
 function syncAdminPanelVisibility(){
+  const allowed = !!(currentUser && currentUserRole === "admin");
+
+  // CSS hard-lock: default hidden, only confirmed admin gets body class
+  document.body.classList.toggle("gs-is-admin", allowed);
+
   const adminTab = document.getElementById("adminTabBtn");
   if(!adminTab) return;
-  const allowed = !!(currentUser && currentUserRole === "admin" && ADMIN_EMAILS.includes((currentUser.email || "").toLowerCase()));
+
   adminTab.hidden = !allowed;
-  adminTab.style.display = allowed ? "" : "none";
+  adminTab.style.setProperty("display", allowed ? "block" : "none", "important");
+  adminTab.style.setProperty("visibility", allowed ? "visible" : "hidden", "important");
+  adminTab.style.setProperty("pointer-events", allowed ? "auto" : "none", "important");
   adminTab.setAttribute("aria-hidden", allowed ? "false" : "true");
 }
 
 async function loadCurrentUserRole(){
-  if(!currentUser){ currentUserRole="user"; return; }
+  if(!currentUser){ currentUserRole="user"; syncAdminPanelVisibility(); return; }
   try{
     const snap=await getDoc(doc(db,"users",currentUser.uid));
     currentUserRole=(snap.exists()&&snap.data()?.role)||"user";
@@ -4024,6 +4037,13 @@ async function loadCurrentUserRole(){
   syncAdminPanelVisibility();
 }
 
+
+
+// Initial lock before login state resolves
+document.addEventListener("DOMContentLoaded", function(){
+  currentUserRole = "user";
+  syncAdminPanelVisibility();
+});
 
 /* ONLINE STATUS SYSTEM - 1 dəqiqə yenilənmə */
 const ONLINE_ACTIVE_MS = 2 * 60 * 1000;
@@ -4262,7 +4282,7 @@ function safeIcon(raw, fallback){
 }
 // renderMarketAds adi script blokundadır — module-dan export lazımdır
 window.safeIcon = safeIcon;
-function isAdmin(){ return !!(currentUser && currentUserRole === "admin" && ADMIN_EMAILS.includes((currentUser.email || "").toLowerCase())); }
+function isAdmin(){ return !!(currentUser && currentUserRole === "admin"); }
 async function getUserProfile(uid){
   if(!uid) return {};
   const snap=await getDoc(doc(db,"users",uid)).catch(()=>null);
