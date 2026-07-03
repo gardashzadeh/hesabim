@@ -2093,6 +2093,199 @@ button.primary, .btn-primary,
 .skel-seller{background:#0d1117;border:1px solid #1e2d45;border-radius:10px;height:64px}
 </style>
 
+<style>
+
+/* ==========================================================
+   COMPLETE MOBILE RESPONSIVE PACK — 2026-07-03
+   Purpose: make the whole marketplace usable on phones without
+   changing Firebase / business logic.
+========================================================== */
+html,body{max-width:100%;overflow-x:hidden}
+img,svg,video,canvas{max-width:100%;height:auto}
+button,input,select,textarea{max-width:100%}
+
+@media (max-width: 900px){
+  body{font-size:14px;padding-bottom:86px}
+  .shell{width:100%;padding-left:12px!important;padding-right:12px!important}
+
+  /* Header */
+  .header{position:sticky;top:0;z-index:950;min-height:auto;padding:8px 0;background:rgba(3,4,4,.97)}
+  .header .shell{display:grid!important;grid-template-columns:1fr;gap:10px!important;align-items:center!important}
+  .logo{justify-content:center!important;width:100%}
+  .logo svg{width:135px!important;max-width:58vw!important}
+  .toplinks{display:none!important}
+  .actions{order:3;width:100%;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px!important;align-items:center!important;justify-content:stretch!important}
+  .actions .hbtn{width:100%;min-width:0;height:40px!important;padding:0 8px!important;font-size:11.5px!important;border-radius:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions .cart,.actions .notify-btn{width:100%!important;height:40px!important;border-radius:10px!important;font-size:18px!important}
+  .actions .cart b,.actions .notify-btn b{right:4px!important;top:-6px!important}
+
+  /* Search */
+  .search{order:2;width:100%!important;max-width:none!important;min-width:0!important;height:46px!important;border-radius:12px!important}
+  .search input{font-size:16px!important;min-width:0;padding:0 12px!important}
+  .search select{width:118px!important;font-size:13px!important;padding:0 6px!important}
+  .search button{width:48px!important;flex:0 0 48px!important}
+
+  /* Category nav */
+  .nav{position:sticky!important;top:118px!important;z-index:860;height:auto!important;min-height:52px;overflow:hidden}
+  .nav .shell{display:flex!important;gap:7px!important;overflow-x:auto!important;padding:8px 12px!important;scroll-snap-type:x proximity}
+  .nav button,.nav a{height:36px!important;padding:0 12px!important;font-size:11.5px!important;border-radius:999px!important;scroll-snap-align:start}
+
+  /* Main layout */
+  .main{padding-top:10px!important}
+  .layout{display:block!important}
+  .side{display:block!important;margin-top:12px}
+  .side .box{margin-bottom:12px}
+
+  /* Hero */
+  .hero{height:auto!important;min-height:160px!important;padding:22px 16px!important;border-radius:14px!important;margin-bottom:12px}
+  .hero-title{position:relative!important;left:auto!important;top:auto!important;padding:0 40px 0 0!important}
+  .hero-title h1{font-size:23px!important;line-height:1.15!important;letter-spacing:-.2px!important}
+  .hero-title span{font-size:23px!important}
+  .hero-title p{font-size:13px!important;line-height:1.5!important;margin-top:8px!important}
+  .hero-features{display:none!important}
+  .arr{width:34px!important;height:34px!important;top:50%!important}
+  .arr.l{left:10px!important}.arr.r{right:10px!important}
+
+  /* Panels and sections */
+  .panel{border-radius:14px!important;margin-top:12px!important;overflow:hidden!important}
+  .panel-head{height:auto!important;min-height:48px!important;padding:11px 12px!important;gap:8px!important;flex-wrap:wrap!important}
+  .panel h2{font-size:14px!important;line-height:1.25!important}
+  .panel-head-actions{width:100%!important;display:flex!important;gap:8px!important;overflow-x:auto!important;padding-top:4px!important}
+  .sort-control{width:100%!important}.sort-select{width:100%!important;height:38px!important}
+
+  /* Horizontal tabs */
+  .tabs{gap:7px!important;padding:10px 12px!important;overflow-x:auto!important;scrollbar-width:none!important}
+  .tabs::-webkit-scrollbar{display:none!important}
+  .tab{height:38px!important;min-height:38px!important;padding:0 14px!important;font-size:12px!important;border-radius:999px!important;white-space:nowrap!important;flex:0 0 auto!important}
+
+  /* Game / epin grids */
+  .games{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;padding:10px!important}
+  .game{padding:8px!important;border-radius:12px!important}
+  .game-img{height:58px!important;padding:7px!important}
+  .game b{font-size:11px!important;line-height:1.25!important}
+  .epins{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;padding:10px!important}
+  .epin-img{height:78px!important;padding:10px!important}
+  .epin-body{padding:8px!important}.epin b{font-size:12px!important}.price{font-size:14px!important}
+
+  /* Ads: single-column product cards */
+  .ads{grid-template-columns:1fr!important;gap:12px!important;padding:0 10px 12px!important}
+  .ad{display:grid!important;grid-template-columns:92px 1fr!important;gap:10px!important;padding:10px!important;border-radius:14px!important;min-width:0!important}
+  .ad-img{width:92px!important;height:104px!important;border-radius:10px!important}
+  .ad b{font-size:13px!important;line-height:1.35!important}
+  .ad p{font-size:12px!important;line-height:1.45!important;max-height:38px;overflow:hidden}
+  .ad .aprice{font-size:14px!important}
+  .user{font-size:11.5px!important;margin-top:8px!important}
+  .ad-views{font-size:11px!important}
+
+  /* Floating WhatsApp */
+  .whats{right:12px!important;bottom:78px!important;padding:8px 12px 8px 8px!important;border-radius:999px!important;z-index:870!important}
+  .whats i{width:42px!important;height:42px!important;padding:9px!important}
+  .whats b{font-size:12px!important}.whats span{font-size:10.5px!important}
+
+  /* Modals */
+  .modal{align-items:flex-end!important;padding:0!important;z-index:99999!important}
+  .modal-box{width:100%!important;max-width:none!important;max-height:92vh!important;overflow:auto!important;border-radius:18px 18px 0 0!important;padding:16px!important}
+  .modal-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .modal-actions button,.fullbtn{min-height:44px!important;border-radius:12px!important}
+
+  /* Product detail modal */
+  .product-detail-box{width:100%!important;max-width:none!important;max-height:94vh!important;border-radius:18px 18px 0 0!important;overflow:auto!important}
+  .product-detail-head{padding:14px 16px!important;position:sticky!important;top:0!important;z-index:4!important}
+  .product-detail-head h3{font-size:14px!important;max-width:calc(100vw - 74px)!important}
+  .product-detail-grid{grid-template-columns:1fr!important}
+  .product-detail-image{min-height:190px!important;border-right:0!important;border-bottom:1px solid #161b24!important;padding:18px!important}
+  .pd-actions,.product-detail-actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+
+  /* Cart */
+  .cart-panel{left:10px!important;right:10px!important;top:auto!important;bottom:76px!important;width:auto!important;max-width:none!important;max-height:72vh!important;overflow:auto!important;border-radius:16px!important;z-index:99990!important}
+
+  /* Cabinet: full-screen mobile app style */
+  .cabinet-modal{padding:0!important;align-items:stretch!important;justify-content:stretch!important;z-index:99998!important}
+  .cabinet-box{width:100vw!important;height:100dvh!important;max-height:100dvh!important;max-width:none!important;border-radius:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
+  .cabinet-head{height:60px!important;padding:10px 12px!important;flex:0 0 auto!important;position:sticky!important;top:0!important;z-index:3!important;background:#0d1013!important}
+  .cabinet-head h3{font-size:14px!important}
+  .cabinet-body{display:flex!important;flex-direction:column!important;min-height:0!important;flex:1 1 auto!important;overflow:hidden!important}
+  .cabinet-menu{display:flex!important;gap:8px!important;overflow-x:auto!important;flex-wrap:nowrap!important;border-right:0!important;border-bottom:1px solid #252b32!important;padding:10px!important;flex:0 0 auto!important;scrollbar-width:none!important}
+  .cabinet-menu::-webkit-scrollbar{display:none!important}
+  .cabinet-menu button{height:42px!important;min-width:max-content!important;width:auto!important;flex:0 0 auto!important;padding:0 12px!important;font-size:12px!important;border-radius:12px!important;margin:0!important;white-space:nowrap!important}
+  .cabinet-content{padding:12px!important;overflow:auto!important;flex:1 1 auto!important;min-height:0!important}
+  .cabinet-table{display:block!important;width:100%!important;overflow-x:auto!important;white-space:nowrap!important}
+  .cabinet-table th,.cabinet-table td{font-size:12px!important;padding:9px 8px!important}
+  .cabinet-form input,.cabinet-form select,.cabinet-form textarea,.request-form input,.request-form select,.profile-form input,.review-form input,.review-form select{font-size:16px!important;min-height:44px!important;border-radius:12px!important}
+
+  /* Admin dashboard */
+  .admin-section{overflow:visible!important}
+  .admin-filter-row{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .admin-filter-row input,.admin-filter-row select{width:100%!important;min-width:0!important;height:44px!important;font-size:16px!important}
+  .admin-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+  .admin-actions button{height:38px!important;font-size:12px!important;border-radius:9px!important}
+
+  /* Admin stat cards, trade cards and generic cards */
+  .admin-stats,.stats-grid,.dashboard-stats{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important}
+  .trade-card,.admin-trade-card,.order-card,.admin-order-card{display:block!important;width:100%!important;overflow:hidden!important;border-radius:14px!important;padding:12px!important;margin:10px 0!important}
+  .trade-grid,.admin-trade-grid,.order-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .trade-card pre,.admin-trade-card pre,.credentials-box,pre{white-space:pre-wrap!important;word-break:break-word!important;max-width:100%!important;overflow:auto!important}
+
+  /* Chat */
+  .chat-layout{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;min-height:0!important}
+  .chat-list{max-height:210px!important}
+  .chat-box{min-height:430px!important}
+  .chat-messages{max-height:310px!important}
+  .chat-msg{max-width:92%!important}
+  .chat-form{grid-template-columns:1fr 48px!important}
+  .chat-form input{font-size:16px!important}
+
+  /* Mobile bottom navigation for main actions */
+  .mobile-bottom-nav{position:fixed;left:10px;right:10px;bottom:10px;height:58px;background:rgba(10,12,15,.96);border:1px solid #252b32;border-radius:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;z-index:920;box-shadow:0 18px 50px rgba(0,0,0,.45);backdrop-filter:blur(12px)}
+  .mobile-bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:13px;color:#9ca3af;font-size:10px;font-weight:700}
+  .mobile-bottom-nav button svg{width:18px;height:18px}
+  .mobile-bottom-nav button.active,.mobile-bottom-nav button:hover{background:#151a21;color:#fb923c}
+}
+
+@media (min-width: 901px){.mobile-bottom-nav{display:none!important}}
+
+@media (max-width: 430px){
+  .actions{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  .actions .hbtn{font-size:10.5px!important;padding:0 5px!important}
+  .search select{width:104px!important;font-size:12px!important}
+  .games{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .ad{grid-template-columns:82px 1fr!important}
+  .ad-img{width:82px!important;height:96px!important}
+  .admin-stats,.stats-grid,.dashboard-stats{grid-template-columns:1fr!important}
+}
+</style>
+
+<script>
+/* Mobile helper nav: added without changing existing functions */
+(function(){
+  function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }
+  ready(function(){
+    if(document.querySelector('.mobile-bottom-nav')) return;
+    var nav=document.createElement('div');
+    nav.className='mobile-bottom-nav';
+    nav.innerHTML=''
+      +'<button type="button" data-mob="home" class="active">🏠<span>Ana səhifə</span></button>'
+      +'<button type="button" data-mob="search">🔎<span>Axtar</span></button>'
+      +'<button type="button" data-mob="post">➕<span>Elan</span></button>'
+      +'<button type="button" data-mob="cabinet">👤<span>Kabinet</span></button>';
+    document.body.appendChild(nav);
+    nav.addEventListener('click',function(e){
+      var b=e.target.closest('button'); if(!b) return;
+      nav.querySelectorAll('button').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      var t=b.getAttribute('data-mob');
+      if(t==='home') window.scrollTo({top:0,behavior:'smooth'});
+      if(t==='search') document.querySelector('.search input')?.focus();
+      if(t==='post'){
+        var postBtn=[].slice.call(document.querySelectorAll('button')).find(function(x){return /elan yerləşdir/i.test(x.textContent||'')});
+        if(postBtn) postBtn.click(); else document.getElementById('cabinetBtn')?.click();
+      }
+      if(t==='cabinet') document.getElementById('cabinetBtn')?.click() || document.getElementById('loginBtn')?.click();
+    });
+  });
+})();
+</script>
+
 </head>
 <body>
 
