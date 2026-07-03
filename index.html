@@ -1946,12 +1946,6 @@ button.primary, .btn-primary,
 .games-oneline .game-img[data-game] svg{display:none !important}
 .games-oneline .game-img[data-game] img{display:none !important}
 .games-oneline .game-img[data-game]{box-shadow:none !important}
-
-
-/* HARD ADMIN VISIBILITY LOCK: admin panel button is hidden unless JS confirms admin */
-#adminTabBtn{display:none!important;visibility:hidden!important;pointer-events:none!important;}
-body.gs-is-admin #adminTabBtn{display:block!important;visibility:visible!important;pointer-events:auto!important;}
-
 </style>
 
 <style>
@@ -2356,7 +2350,7 @@ body.gs-is-admin #adminTabBtn{display:block!important;visibility:visible!importa
         <button type="button" data-tab="wallet" onclick="showTab('wallet')">Balansım</button>
         <button type="button" data-tab="withdraw" onclick="showTab('withdraw')">Çıxarış</button>
         <button type="button" data-tab="support" onclick="showTab('support')">Dəstək / Şikayət</button>
-        <button type="button" data-tab="admin" id="adminTabBtn" hidden style="display:none" onclick="showTab('admin')">Admin panel</button>
+        <button type="button" data-tab="admin" id="adminTabBtn" style="display:none" onclick="showTab('admin')">Admin panel</button>
       </div>
       <div class="cabinet-content">
         <div id="cabProfile"></div>
@@ -2477,12 +2471,37 @@ body.gs-is-admin #adminTabBtn{display:block!important;visibility:visible!importa
             <!-- SKIN: oyun seçimi -->
             <div id="adSec_skin" class="ad-form-section" style="display:none;">
               <div class="ad-form-section-title">Oyun</div>
-              <select id="adGameSkin">
+              <select id="adGameSkin" onchange="updateSkinDeliveryHint()">
                 <option value="">Oyun seç</option>
                 <option>Valorant</option><option>Counter-Strike 2</option><option>PUBG Mobile</option>
                 <option>Fortnite</option><option>Dota 2</option><option>Free Fire</option>
                 <option>League of Legends</option><option>Digər</option>
               </select>
+
+              <!-- Skin çatdırılma izahı — oyuna görə dəyişir -->
+              <div id="skinDeliveryHint" style="margin-top:14px;display:none">
+                <!-- Steam trade modeli -->
+                <div id="skinTradeInfo" style="display:none;background:#0a0e14;border:1px solid #38bdf833;border-radius:10px;padding:14px">
+                  <div style="font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                    STEAM TRADE MODELİ
+                  </div>
+                  <p style="font-size:11.5px;color:#5b6678;margin:0;line-height:1.6">
+                    Bu oyun <b style="color:#94a3b8">Steam trade</b> ilə işləyir. Satış olduqda alıcı öz <b style="color:#94a3b8">Steam trade linkini</b> daxil edəcək, sən skini həmin ünvana göndərəcəksən. Alıcı skini aldığını təsdiqlədikdən sonra pul sənə keçəcək.
+                    <br><br>⚠️ Qeyd: Steam trade bəzən 7-15 gün hold-da qala bilər.
+                  </p>
+                </div>
+                <!-- Hesab modeli (Riot/Valorant) -->
+                <div id="skinAccountInfo" style="display:none;background:#0a0e14;border:1px solid #a78bfa33;border-radius:10px;padding:14px">
+                  <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    HESAB MODELİ
+                  </div>
+                  <p style="font-size:11.5px;color:#5b6678;margin:0;line-height:1.6">
+                    Bu oyunda skinlər <b style="color:#94a3b8">ayrıca köçürülə bilmir</b>. Ona görə satış <b style="color:#94a3b8">hesab təhvili</b> ilə olur: hesab məlumatları admin yoxlamasından keçib alıcıya çatdırılır (Hesab kateqoriyası kimi).
+                  </p>
+                </div>
+              </div>
             </div>
 
             <!-- OYUN PULU: oyun + valyuta növü -->
@@ -3078,6 +3097,22 @@ function syncAdFormToCategory(){
     const el = document.getElementById("adSec_"+sec);
     if(el) el.style.display = cfg.sections.includes(sec) ? "" : "none";
   });
+  if(cat==="Skin") updateSkinDeliveryHint();
+}
+
+// Skin oyununa görə trade və ya hesab modelini göstər
+function updateSkinDeliveryHint(){
+  const game = (document.getElementById("adGameSkin")?.value || "").toLowerCase();
+  const hint = document.getElementById("skinDeliveryHint");
+  const tradeBox = document.getElementById("skinTradeInfo");
+  const accBox = document.getElementById("skinAccountInfo");
+  if(!hint || !tradeBox || !accBox) return;
+  if(!game){ hint.style.display = "none"; return; }
+  const steamGames = ["counter-strike","cs2","csgo","dota","rust","team fortress","tf2"];
+  const isSteam = steamGames.some(g => game.indexOf(g) > -1);
+  hint.style.display = "";
+  tradeBox.style.display = isSteam ? "" : "none";
+  accBox.style.display   = isSteam ? "none" : "";
 }
 
 function readAdProfessionalFields(){
@@ -3878,7 +3913,7 @@ const firebaseConfig = {
 // Admin emailləri birbaşa source-da saxlanmır — Firestore role sahəsi əsas götürülür.
 // İlkin qeydiyyat üçün gizlədilmiş formada saxlanır.
 const _ae = atob("Z2FyZGFzaHphZGVoQGdtYWlsLmNvbQ==");
-const ADMIN_EMAILS = [_ae.toLowerCase()];
+const ADMIN_EMAILS = [_ae];
 
 // ===== TELEGRAM BİLDİRİŞ =====
 const TG_WORKER = "https://tg.gardashzadeh.workers.dev";
@@ -3959,12 +3994,12 @@ async function ensureUserProfile(user, extra={}){
       uid:user.uid,name:extra.name||"",surname:extra.surname||"",
       fullName:((extra.name||"")+" "+(extra.surname||"")).trim(),
       birthDate:extra.birthDate||"",email,
-      role: "user",
+      role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
       createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     });
   }else{
     const d=snap.data()||{};
-    await setDoc(ref,{uid:user.uid,email,role:d.role || "user",updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+    await setDoc(ref,{uid:user.uid,email,role:d.role || (ADMIN_EMAILS.includes(email) ? "admin" : "user"),updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
   }
 }
 
@@ -4011,39 +4046,17 @@ async function uploadAdImageToCloudinary(){
 let currentUser = null;
 let currentUserRole = "user"; // Firestore-dan cache-lənir, isAdmin() bunu istifadə edir
 
-function syncAdminPanelVisibility(){
-  const allowed = !!(currentUser && currentUserRole === "admin");
-
-  // CSS hard-lock: default hidden, only confirmed admin gets body class
-  document.body.classList.toggle("gs-is-admin", allowed);
-
-  const adminTab = document.getElementById("adminTabBtn");
-  if(!adminTab) return;
-
-  adminTab.hidden = !allowed;
-  adminTab.style.setProperty("display", allowed ? "block" : "none", "important");
-  adminTab.style.setProperty("visibility", allowed ? "visible" : "hidden", "important");
-  adminTab.style.setProperty("pointer-events", allowed ? "auto" : "none", "important");
-  adminTab.setAttribute("aria-hidden", allowed ? "false" : "true");
-}
-
 async function loadCurrentUserRole(){
-  if(!currentUser){ currentUserRole="user"; syncAdminPanelVisibility(); return; }
+  if(!currentUser){ currentUserRole="user"; return; }
   try{
     const snap=await getDoc(doc(db,"users",currentUser.uid));
     currentUserRole=(snap.exists()&&snap.data()?.role)||"user";
   }catch(e){ currentUserRole="user"; }
   // Admin tab düyməsi rol yüklənən kimi sinxronlaşır — qeyri-adminlərdə heç vaxt görünmür
-  syncAdminPanelVisibility();
+  const _at=document.getElementById("adminTabBtn");
+  if(_at) _at.style.display = (currentUserRole==="admin") ? "" : "none";
 }
 
-
-
-// Initial lock before login state resolves
-document.addEventListener("DOMContentLoaded", function(){
-  currentUserRole = "user";
-  syncAdminPanelVisibility();
-});
 
 /* ONLINE STATUS SYSTEM - 1 dəqiqə yenilənmə */
 const ONLINE_ACTIVE_MS = 2 * 60 * 1000;
@@ -4282,7 +4295,7 @@ function safeIcon(raw, fallback){
 }
 // renderMarketAds adi script blokundadır — module-dan export lazımdır
 window.safeIcon = safeIcon;
-function isAdmin(){ return !!(currentUser && currentUserRole === "admin"); }
+function isAdmin(){ return currentUser && currentUserRole === "admin"; }
 async function getUserProfile(uid){
   if(!uid) return {};
   const snap=await getDoc(doc(db,"users",uid)).catch(()=>null);
@@ -4726,7 +4739,7 @@ async function registerUser(){
         birthDate,
         userId,
         email,
-        role: "user",
+        role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
         createdAt:serverTimestamp(),
         updatedAt:serverTimestamp()
       });
@@ -4921,7 +4934,6 @@ async function logoutUser(){
 }
 
 window.showTab = function(tab){
-  syncAdminPanelVisibility();
   if(tab==="admin" && !isAdmin()) tab="profile"; // qeyri-adminlər üçün admin tabı mövcud deyil
   const map={profile:"cabProfile",add:"cabAdd",ads:"cabAds",sales:"cabSales",purchases:"cabPurchases",messages:"cabMessages",saved:"cabSaved",wallet:"cabWallet",withdraw:"cabWithdraw",support:"cabSupport",admin:"cabAdmin"};
   Object.entries(map).forEach(([key,id])=>{ const el=document.getElementById(id); if(el) el.style.display=key===tab?"":"none"; });
@@ -4983,7 +4995,7 @@ window.updateProfileInfo = async function(){
   const birthDate=document.getElementById("profileBirthDate")?.value || "";
   if(!name || !surname || !birthDate){ toast("Ad, soyad və doğum tarixi boş qalmasın."); return; }
   try{
-    await setDoc(doc(db,"users",currentUser.uid),{uid:currentUser.uid,name,surname,fullName:(name+" "+surname).trim(),birthDate,email:currentUser.email,updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(db,"users",currentUser.uid),{uid:currentUser.uid,name,surname,fullName:(name+" "+surname).trim(),birthDate,email:currentUser.email,role: ADMIN_EMAILS.includes(currentUser.email) ? "admin" : "user",updatedAt:serverTimestamp()},{merge:true});
     toast("Profil yeniləndi"); renderProfile();
   }catch(e){ console.error(e); toast("Profil yenilənmədi."); }
 }
@@ -5009,8 +5021,8 @@ async function openCabinet(){
     return;
   }
   if(await blockGuard("Kabinet")) return;
-  await loadCurrentUserRole();
-  syncAdminPanelVisibility();
+  const adminTab=document.getElementById("adminTabBtn");
+  if(adminTab) adminTab.style.display=isAdmin()?"":"none";
   document.getElementById("cabinetModal")?.classList.add("show");
   window.showTab("profile");
 }
@@ -5150,34 +5162,18 @@ window.submitAd = async function(){
       sellerEmail: currentUser.email,
       sellerUserId,
       sellerVerified,
+      ...(accountCredentials ? {accountCredentials} : {}),
       deliveryMode,
       chatMode: deliveryMode==="chat" ? chatMode : null,
       updatedAt: serverTimestamp()
-      // DİQQƏT: accountCredentials artıq burada SAXLANILMIR.
-      // "ads" sənədi hər kəsə açıq oxunduğu üçün (allow read: if true),
-      // hesab məlumatları aşağıda ayrı, qorunan alt-kolleksiyaya yazılır.
     };
 
-    let adId = editingId;
     if(editingId){
       await updateDoc(doc(db,"ads",editingId), adPayload);
     } else {
       // Elan müddəti: 30 gün (1 ay)
       const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
-      const newAdRef = await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp(), expiresAt});
-      adId = newAdRef.id;
-    }
-
-    // Hesab məlumatlarını (varsa) qorunan alt-kolleksiyaya yaz.
-    // Bu sənədi yalnız admin, satıcının özü və (satışdan sonra) təsdiqlənmiş
-    // alıcı oxuya bilər — Firestore rules bunu təmin edir.
-    if(accountCredentials && adId){
-      try{
-        await setDoc(doc(db,"ads",adId,"secure","creds"), accountCredentials);
-      }catch(credSaveErr){
-        console.warn("[creds] Hesab məlumatı yazılmadı:", credSaveErr);
-        toast("Diqqət: hesab məlumatı saxlanmadı (" + (credSaveErr.code||credSaveErr.message||"xəta") + "). Elanı redaktə edib yenidən daxil edin.");
-      }
+      await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp(), expiresAt});
     }
 
     // Formu təmizlə
@@ -5253,16 +5249,21 @@ window.createOrdersFromCart = async function(items){
     // 2. Hər item üçün sifariş yarat
     for(const item of items){
       let adData = null;
+      let pendingCredentials = null;
 
-      // "ads" sənədində artıq hesab məlumatı yoxdur (təhlükəsizlik üçün
-      // ayrı alt-kolleksiyaya köçürülüb) — burada sadəcə kateqoriya/oyun
-      // kimi ümumi məlumatı oxuyuruq.
+      // Satıcının elanda yerləşdirdiyi hesab məlumatlarını sifarişə kopyala.
+      // Vacib: bunu order yaradılan anda edirik ki, admin panelində itmə olmasın.
       if(item.adId){
         try{
           const adSnap = await getDoc(doc(db,"ads",item.adId));
-          if(adSnap.exists()) adData = adSnap.data() || {};
-        }catch(adReadErr){
-          console.warn("[ads] Elan məlumatı oxunmadı:", adReadErr);
+          if(adSnap.exists()){
+            adData = adSnap.data() || {};
+            if(adData.accountCredentials && adData.accountCredentials.data){
+              pendingCredentials = adData.accountCredentials;
+            }
+          }
+        }catch(credReadErr){
+          console.warn("[creds] Elan hesab məlumatı oxunmadı:", credReadErr);
         }
       }
 
@@ -5300,9 +5301,8 @@ window.createOrdersFromCart = async function(items){
         sellerConfirmed: false,
         payoutRequested: false,
         payoutDone: false,
-        // Hesab məlumatı hələ oxunmayıb (aşağıda, elan "satılmış" işarələndikdən
-        // SONRA oxunacaq — rules yalnız o zaman icazə verir). Ona görə əvvəlcə "Yoxdur".
-        credentialsStatus: "Yoxdur",
+        credentialsStatus: pendingCredentials ? "Admin yoxlamasında" : "Yoxdur",
+        ...(pendingCredentials ? { pendingCredentials } : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -5310,9 +5310,8 @@ window.createOrdersFromCart = async function(items){
       const orderRef = await addDoc(collection(db,"orders"), orderPayload);
 
       // Elanı satılmış kimi işarələ ki, ana səhifədən HƏMİŞƏLİK (bütün istifadəçilər üçün) itsin.
-      // Bu, eyni zamanda alıcının "secure/creds" sənədini oxumaq hüququ qazanması
-      // üçün DƏ vacibdir — rules bu icazəni ads.sold==true && ads.buyerUid==mən
-      // şərtinə bağlayıb.
+      // Əvvəlki həll (window._reservedAdIds) yalnız cari brauzer sessiyasında işləyirdi;
+      // səhifə yenilənəndə və ya başqa istifadəçidə elan yenidən görünürdü.
       if(item.adId){
         try{
           await updateDoc(doc(db,"ads",item.adId),{
@@ -5327,28 +5326,10 @@ window.createOrdersFromCart = async function(items){
         }
       }
 
-      // İndi (yalnız indi) alıcı ads/{adId}/secure/creds-i oxuya bilər,
-      // çünki elan bu an "sold=true, buyerUid=mən" kimi işarələndi.
-      let pendingCredentials = null;
-      if(item.adId){
-        try{
-          const credSnap = await getDoc(doc(db,"ads",item.adId,"secure","creds"));
-          if(credSnap.exists()) pendingCredentials = credSnap.data();
-        }catch(credReadErr){
-          console.warn("[creds] Hesab məlumatı oxunmadı (bəlkə bu elanda yoxdur):", credReadErr);
-        }
-      }
-
+      // Admin panelinin yuxarı bildiriş bölməsi üçün əlavə bildiriş yaratmağa cəhd et.
+      // Bu alınmasa belə əsas məlumat artıq orders.pendingCredentials içində saxlanılıb.
       if(pendingCredentials){
         try{
-          // Şifrəli bloku sifarişə köçür ki, admin panelində itməsin
-          // (satıcı elanı silsə belə order-də qalır).
-          await updateDoc(orderRef, {
-            pendingCredentials,
-            credentialsStatus: "Admin yoxlamasında",
-            updatedAt: serverTimestamp()
-          });
-
           const c = await decryptCreds(pendingCredentials);
           if(c){
             let credText = "";
@@ -5356,7 +5337,7 @@ window.createOrdersFromCart = async function(items){
             if(c.login || c.password)         credText += `🎮 Login: ${c.login}\n🔒 Şifrə: ${c.password}\n`;
             if(c.extraInfo)                   credText += `📝 Əlavə: ${c.extraInfo}\n`;
 
-            // Admin panelinə bildiriş göndər. Alıcı bu bölməni görmür.
+            // Admin panelinə bildiriş göndər. Alıcı bu məlumatları görmür.
             await addDoc(collection(db,"adminNotifications"),{
               type: "credentials",
               orderId: orderRef.id,
