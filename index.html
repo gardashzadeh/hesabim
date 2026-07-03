@@ -1740,6 +1740,17 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 .ad-fav-btn:hover{border-color:#ef4444;color:#ef4444;transform:scale(1.06)}
 .ad-fav-btn.active{background:rgba(239,68,68,.16);border-color:#ef4444;color:#ef4444}
 .ad-fav-btn.active svg{fill:#ef4444;stroke:#ef4444}
+.ad-number-badge{
+  position:absolute;top:10px;left:10px;z-index:2;
+  background:rgba(8,10,14,.65);
+  backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:11px;font-weight:700;letter-spacing:.2px;
+  color:#cbd5e1;
+  font-family:'DM Sans',Arial,sans-serif;
+}
 
 .ad-body{padding:12px}
 .ad-seller-row{display:flex;align-items:center;gap:9px;margin-bottom:2px}
@@ -2985,6 +2996,10 @@ button,input,select,textarea{max-width:100%}
       </div>
       <div class="product-detail-info" style="padding:22px 24px 20px;">
         <div class="badge-row">
+          <span class="badge" id="pdAdNumber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+            <span id="pdAdNumberText">#00000</span>
+          </span>
           <span class="badge" id="pdCategory">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             <span id="pdCategoryText">Kateqoriya</span>
@@ -3613,6 +3628,15 @@ window.matchGameImageKey = function(a){
   }
   return null;
 };
+// Elan nömrəsi: adId-dən sabit (hər dəfə eyni qalan) 5 rəqəmli görüntü nömrəsi yaradır — DB dəyişikliyi tələb etmir
+window.adDisplayNumber = function(a){
+  var key = String((a && (a.adId || a.id || a.title)) || "0");
+  var hash = 0;
+  for(var i=0;i<key.length;i++){ hash = (hash*31 + key.charCodeAt(i)) >>> 0; }
+  var num = 10000 + (hash % 90000); // 10000–99999 aralığında
+  return "#" + num;
+};
+
 // Avtomatik şəkil HTML-i qaytarır (satıcı şəkli yoxdursa)
 window.autoGameAdIcon = function(a){
   var key = window.matchGameImageKey(a);
@@ -3762,6 +3786,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'onclick="window._openAdDetail(this)">'
         + '<div class="ad-banner">'
           + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+safeIcon(a.icon)+'</div>'
+          + '<span class="ad-number-badge">'+window.adDisplayNumber(a)+'</span>'
           + '<span class="ad-fav-btn'+(_savedIdSet.has(a.adId||a.title)?' active':'')+'" role="button" tabindex="0" onclick="event.stopPropagation();window.quickToggleSaveAd(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();window.quickToggleSaveAd(this)}" aria-label="Yadda saxla">'
             + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
           + '</span>'
@@ -3826,6 +3851,8 @@ function openProductDetail(p){
   const modal=document.getElementById("productModal");
   if(!modal) return;
   document.getElementById("pdTitle").textContent = currentDetailProduct.title || "Məhsul";
+  const _pdNumEl = document.getElementById("pdAdNumberText");
+  if(_pdNumEl) _pdNumEl.textContent = window.adDisplayNumber(currentDetailProduct);
   const _bcCat = document.getElementById("pdBreadcrumbCat");
   if(_bcCat) _bcCat.textContent = currentDetailProduct.category || "Kateqoriya";
   const _bcTitle = document.getElementById("pdBreadcrumbTitle");
