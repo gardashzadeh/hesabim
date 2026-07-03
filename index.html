@@ -5830,6 +5830,9 @@ async function openChat(chatId,adminMode=false){
 
   activeChatId=chatId; if(adminMode) adminActiveChatId=chatId;
   const isBuyer=currentUser&&c.buyerUid===currentUser.uid;
+  if(!adminMode && isBuyer && c.orderId){
+    updateDoc(doc(db,"orders",c.orderId),{credentialsViewedAt:serverTimestamp(),updatedAt:serverTimestamp()}).catch(()=>{});
+  }
   const canWrite=!adminMode && currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid || isAdmin());
   if(!adminMode && currentUser){ await updateDoc(ref,isBuyer?{unreadBuyer:0}:{unreadSeller:0}).catch(()=>{}); }
   box.innerHTML=`<div class="chat-head"><b>${esc(c.productTitle||"Yazışma")}</b><small>Alıcı: ${esc(c.buyerEmail||'-')} • Satıcı: ${esc(c.sellerEmail||'-')}</small></div><div class="chat-messages" id="${adminMode?'adminChatMessages':'chatMessages'}"><div class="cabinet-empty">Mesajlar yüklənir...</div></div>${canWrite?`<div class="chat-form"><input id="${adminMode?'adminChatInput':'chatInput'}" maxlength="700" placeholder="Mesaj yaz..."><button class="fullbtn" type="button" onclick="sendChatMessage('${esc(chatId)}',${adminMode})">Göndər</button></div>`:`<div class="chat-form"><input disabled placeholder="Bu yazışma yalnız baxış üçündür"><button class="hbtn" disabled>Göndər</button></div>`}`;
@@ -5904,6 +5907,7 @@ window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
       pendingCredentials: deleteField(),
       credentialsStatus:"Alıcıya göndərildi",
       credentialsApprovedAt:serverTimestamp(),
+      credentialsSentToBuyerAt:serverTimestamp(),
       credentialsApprovedBy:currentUser.uid||"",
       updatedAt:serverTimestamp()
     }).catch(()=>{});
@@ -5966,6 +5970,7 @@ function adminShell(){
   <div id="adminStatsGrid" class="admin-mini-grid"></div>
   <div class="admin-cat-tabs">
     <button type="button" class="active" data-admincat="orders" onclick="showAdminCat('orders')">📋 Sifarişlər</button>
+    <button type="button" data-admincat="trades" onclick="showAdminCat('trades')">🧾 Alış / Satış</button>
     <button type="button" data-admincat="ads" onclick="showAdminCat('ads')">📦 Elanlar</button>
     <button type="button" data-admincat="finance" onclick="showAdminCat('finance')">💰 Maliyyə</button>
     <button type="button" data-admincat="users" onclick="showAdminCat('users')">👥 İstifadəçilər</button>
@@ -5974,6 +5979,9 @@ function adminShell(){
   <div id="adminCatOrders" class="admin-cat">
     <div id="adminNotifSection" class="admin-section"></div>
     <div id="adminOrders" class="admin-section"></div>
+  </div>
+  <div id="adminCatTrades" class="admin-cat" style="display:none">
+    <div id="adminCompletedTrades" class="admin-section"></div>
   </div>
   <div id="adminCatAds" class="admin-cat" style="display:none">
     <div id="adminPendingAds" class="admin-section"></div>
@@ -5999,7 +6007,7 @@ function adminShell(){
 }
 
 window.showAdminCat = function(cat){
-  const cats = {orders:"adminCatOrders", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", supportcat:"adminCatSupportcat"};
+  const cats = {orders:"adminCatOrders", trades:"adminCatTrades", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", supportcat:"adminCatSupportcat"};
   Object.entries(cats).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = key===cat ? "" : "none";
@@ -6041,6 +6049,101 @@ async function processBalanceRequest(id,approve,arr){
     toast(approve?"Müraciət təsdiqləndi":"Müraciət rədd edildi");
   }catch(e){ console.error(e); toast("Balans əməliyyatı alınmadı."); }
 }
+
+function adminDateTime(v){
+  try{
+    if(!v) return "—";
+    const d = v && v.toDate ? v.toDate() : (v.seconds ? new Date(v.seconds*1000) : new Date(v));
+    if(!d || isNaN(d.getTime())) return "—";
+    return d.toLocaleString("az-AZ",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+  }catch(e){ return "—"; }
+}
+async function adminOrderCredentialsText(order, notifMap){
+  try{
+    const fromNotif = notifMap && notifMap[order.id];
+    if(fromNotif && fromNotif.credentials) return String(fromNotif.credentials||"").trim();
+    if(order.pendingCredentials && order.pendingCredentials.data){
+      const c = await decryptCreds(order.pendingCredentials);
+      if(!c) return "Şifrəli məlumat oxunmadı";
+      let t="";
+      if(c.mailEmail || c.mailPassword) t += `Mail: ${c.mailEmail||""}\nMail şifrəsi: ${c.mailPassword||""}\n`;
+      if(c.login || c.password) t += `Login: ${c.login||""}\nŞifrə: ${c.password||""}\n`;
+      if(c.extraInfo) t += `Əlavə: ${c.extraInfo}\n`;
+      return t.trim() || "—";
+    }
+  }catch(e){ console.warn("adminOrderCredentialsText:", e); }
+  return "—";
+}
+
+async function _fetchCompletedTradesAdmin(){
+  const el=document.getElementById("adminCompletedTrades");
+  if(!el||!isAdmin()) return;
+  try{
+    el.innerHTML='<h3>Alış / Satış</h3><div class="cabinet-empty">Yüklənir...</div>';
+    const [ordersSnap, notifSnap] = await Promise.all([
+      getDocs(query(collection(db,"orders"))),
+      getDocs(query(collection(db,"adminNotifications")))
+    ]);
+    const notifMap={};
+    notifSnap.forEach(d=>{
+      const n={id:d.id,...d.data()};
+      if(n.orderId) notifMap[n.orderId]=n;
+    });
+    const all=[];
+    ordersSnap.forEach(d=>all.push({id:d.id,...d.data()}));
+    all.sort((a,b)=>(b.completedAt?.seconds||b.updatedAt?.seconds||b.createdAt?.seconds||0)-(a.completedAt?.seconds||a.updatedAt?.seconds||a.createdAt?.seconds||0));
+    const completed=all.filter(o=>String(o.status||"")==="Tamamlandı");
+    window.adminCompletedTradesCache=completed;
+    await renderCompletedTradesAdmin(completed, notifMap);
+  }catch(e){
+    console.error("_fetchCompletedTradesAdmin:",e);
+    el.innerHTML='<h3>Alış / Satış</h3><div class="cabinet-empty" style="color:#f87171">Tamamlanmış sifarişlər yüklənmədi: '+esc(String(e.message||e))+'</div>';
+  }
+}
+
+async function renderCompletedTradesAdmin(arr, notifMap){
+  const el=document.getElementById("adminCompletedTrades");
+  if(!el) return;
+  const q=(document.getElementById("adminCompletedTradesSearch")?.value||"").toLowerCase().trim();
+  const filtered=(arr||[]).filter(o=>{
+    const hay=[o.productTitle,o.buyerEmail,o.sellerEmail,o.category,o.adId,o.id].join(" ").toLowerCase();
+    return !q || hay.includes(q);
+  });
+  const rows=[];
+  for(const o of filtered.slice(0,120)){
+    const cred=await adminOrderCredentialsText(o, notifMap);
+    const sellerSentAt = o.credentialsSellerSentAt || o.createdAt;
+    const buyerViewedAt = o.credentialsViewedAt || o.buyerConfirmedAt || o.credentialsSentToBuyerAt;
+    rows.push(`<tr>
+      <td><b>${esc(o.buyerEmail||"-")}</b><br><small>${esc(o.buyerUid||"")}</small></td>
+      <td><b>${esc(o.sellerEmail||"-")}</b><br><small>${esc(o.sellerUid||"")}</small></td>
+      <td>${Number(o.price||0).toFixed(2)} ₼</td>
+      <td><b>${esc(o.productTitle||"Məhsul")}</b><br><small>ID: ${esc(o.id)}${o.adId?` • Elan: ${esc(o.adId)}`:""}</small></td>
+      <td><pre style="white-space:pre-wrap;margin:0;max-width:260px;font-size:11px;color:#dbeafe;background:#08111f;border:1px solid #1e2d45;border-radius:8px;padding:8px">${esc(cred||"—")}</pre></td>
+      <td>${adminDateTime(o.createdAt)}</td>
+      <td>${cred && cred!=="—" ? adminDateTime(sellerSentAt) : "—"}</td>
+      <td>${cred && cred!=="—" ? adminDateTime(buyerViewedAt) : "—"}</td>
+    </tr>`);
+  }
+  const total=filtered.reduce((s,o)=>s+Number(o.price||0),0);
+  el.innerHTML=`<h3>Alış / Satış</h3>
+    <div class="admin-filter-row">
+      <input id="adminCompletedTradesSearch" placeholder="Alıcı, satıcı, məhsul və ya ID axtar">
+      <button class="hbtn" type="button" id="adminCompletedTradesRefresh">Yenilə</button>
+      <span class="admin-tag">Tamamlanmış: ${arr.length}</span>
+      <span class="admin-tag">Göstərilən: ${filtered.length}</span>
+      <span class="admin-tag">Həcm: ${walletNumber(total)}</span>
+    </div>`+(rows.length?`<table class="cabinet-table"><thead><tr>
+      <th>Alıcı adı</th><th>Satıcı adı</th><th>Qiymət</th><th>Məhsul</th><th>Hesab detalları</th><th>Alış vaxtı</th><th>Satıcı məlumat göndərdi</th><th>Alıcı məlumatı gördü</th>
+    </tr></thead><tbody>${rows.join("")}</tbody></table>${filtered.length>120?`<div class="cabinet-empty">${filtered.length} nəticədən ilk 120-si göstərilir. Axtarışı daralt.</div>`:""}`:'<div class="cabinet-empty">Tamamlanmış sifariş tapılmadı.</div>');
+  const search=document.getElementById("adminCompletedTradesSearch");
+  if(search){ search.value=q; search.oninput=()=>renderCompletedTradesAdmin(arr, notifMap); }
+  document.getElementById("adminCompletedTradesRefresh")?.addEventListener("click", _fetchCompletedTradesAdmin);
+}
+function listenCompletedTradesAdmin(){
+  _fetchCompletedTradesAdmin();
+}
+
 async function _fetchOrdersAdmin(){
   const el=document.getElementById("adminOrders"); if(!el||!isAdmin()) return;
   try{
@@ -6618,7 +6721,7 @@ async function buyerConfirmOrder(id){
     if(!oSnap.exists()) return;
     const o = oSnap.data();
     if(o.buyerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
-    const newData = {buyerConfirmed:true, updatedAt:serverTimestamp()};
+    const newData = {buyerConfirmed:true, buyerConfirmedAt:serverTimestamp(), credentialsViewedAt:serverTimestamp(), updatedAt:serverTimestamp()};
     // Hər ikisi təsdiqləyibsə — sifariş tamamlandı
     if(o.sellerConfirmed) newData.status = "Tamamlandı";
     await updateDoc(oRef, newData);
@@ -6635,7 +6738,7 @@ async function sellerConfirmOrder(id){
     if(!oSnap.exists()) return;
     const o = oSnap.data();
     if(o.sellerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
-    const newData = {sellerConfirmed:true, updatedAt:serverTimestamp()};
+    const newData = {sellerConfirmed:true, sellerConfirmedAt:serverTimestamp(), updatedAt:serverTimestamp()};
     if(o.buyerConfirmed) newData.status = "Tamamlandı";
     await updateDoc(oRef, newData);
     // Satıcı öz elanını "Satıldı" olaraq işarələyir
@@ -6727,6 +6830,7 @@ function listenAdmin(){
   listenAllAdsAdmin();
   listenBalanceRequestsAdmin();
   listenOrdersAdmin();
+  listenCompletedTradesAdmin();
   listenChatsAdmin();
   listenTicketsAdmin();
   listenUsersAdmin();
@@ -6795,6 +6899,7 @@ async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
       pendingCredentials: deleteField(),
       credentialsStatus:"Alıcıya göndərildi",
       credentialsApprovedAt:serverTimestamp(),
+      credentialsSentToBuyerAt:serverTimestamp(),
       credentialsApprovedBy:currentUser.uid||"",
       updatedAt:serverTimestamp()
     }).catch(()=>{});
