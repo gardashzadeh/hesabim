@@ -956,6 +956,26 @@ body{
   .cart-panel{bottom:calc(70px + env(safe-area-inset-bottom))}
 }
 
+
+/* ADMIN ALIŞ / SATIŞ — readable completed order cards */
+.admin-trade-list{display:grid;gap:12px;margin-top:12px}
+.admin-trade-filters{align-items:center}
+.admin-trade-card{background:#0b0f14;border:1px solid #1f2937;border-radius:14px;padding:14px;box-shadow:0 10px 28px rgba(0,0,0,.18)}
+.admin-trade-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border-bottom:1px solid #1f2937;padding-bottom:12px;margin-bottom:12px}
+.admin-trade-top b{display:block;color:#f8fafc;font-size:14px;line-height:1.35}
+.admin-trade-top small{display:block;color:#64748b;font-size:11px;margin-top:4px;word-break:break-word}
+.admin-trade-top strong{color:#fb923c;font-family:'Space Grotesk',monospace;font-size:18px;white-space:nowrap}
+.admin-trade-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.trade-info-box{background:#080b10;border:1px solid #18202b;border-radius:11px;padding:10px;min-width:0}
+.trade-info-box span,.admin-trade-creds span{display:block;color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.trade-info-box b{display:block;color:#e5e7eb;font-size:12.5px;line-height:1.35;word-break:break-word}
+.trade-info-box small{display:block;color:#475569;font-size:10.5px;line-height:1.35;margin-top:4px;word-break:break-word}
+.admin-trade-creds{background:#08111f;border:1px solid #1e2d45;border-radius:12px;padding:10px}
+.admin-trade-creds pre{white-space:pre-wrap;margin:0;color:#dbeafe;font-size:12px;line-height:1.55;font-family:'DM Sans',Arial,sans-serif;word-break:break-word}
+@media(max-width:900px){.admin-trade-grid{grid-template-columns:1fr 1fr}.admin-trade-top{flex-direction:column}.admin-trade-top strong{font-size:16px}}
+@media(max-width:560px){.admin-trade-grid{grid-template-columns:1fr}.admin-trade-card{padding:12px}.admin-trade-creds pre{font-size:11.5px}}
+
+
 /* ADMIN PANEL EXTENSION */
 .admin-section{margin-top:14px;padding-top:12px;border-top:1px solid #252b32}
 .admin-section h3{margin:0 0 10px;font-size:17px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
@@ -5295,15 +5315,17 @@ window.createOrdersFromCart = async function(items){
         ...(_deliveryType === "trade" ? { tradeInfo: null, tradeStatus: "Alıcı trade linki gözlənilir" } : {}),
         sellerUid: item.sellerUid || adData?.sellerUid || "",
         sellerEmail: item.sellerEmail || adData?.sellerEmail || "GameSatış",
+        sellerName: adData?.sellerName || adData?.sellerUsername || adData?.sellerUserId || item.seller || item.sellerEmail || adData?.sellerEmail || "Satıcı",
         buyerUid: currentUser.uid,
         buyerEmail: currentUser.email,
+        buyerName: currentUser.displayName || currentUser.email || "Alıcı",
         status: "Aktiv",
         buyerConfirmed: false,
         sellerConfirmed: false,
         payoutRequested: false,
         payoutDone: false,
         credentialsStatus: pendingCredentials ? "Admin yoxlamasında" : "Yoxdur",
-        ...(pendingCredentials ? { pendingCredentials } : {}),
+        ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -5347,10 +5369,13 @@ window.createOrdersFromCart = async function(items){
               price: moneyToNumber(item.price),
               buyerUid: currentUser.uid,
               buyerEmail: currentUser.email||"",
+              buyerName: currentUser.displayName || currentUser.email || "Alıcı",
               sellerUid: item.sellerUid || adData?.sellerUid || "",
               sellerEmail: item.sellerEmail || adData?.sellerEmail || "",
+              sellerName: adData?.sellerName || adData?.sellerUsername || adData?.sellerUserId || item.seller || item.sellerEmail || adData?.sellerEmail || "Satıcı",
               credentials: credText,
               status: "Admin təsdiqi gözləyir",
+              credentialsSellerSentAt: serverTimestamp(),
               createdAt: serverTimestamp()
             });
             // Telegram bildirişi
@@ -5908,6 +5933,7 @@ window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
       credentialsStatus:"Alıcıya göndərildi",
       credentialsApprovedAt:serverTimestamp(),
       credentialsSentToBuyerAt:serverTimestamp(),
+      credentialsSellerSentAt:n.credentialsSellerSentAt || serverTimestamp(),
       credentialsApprovedBy:currentUser.uid||"",
       updatedAt:serverTimestamp()
     }).catch(()=>{});
@@ -6106,36 +6132,47 @@ async function renderCompletedTradesAdmin(arr, notifMap){
   if(!el) return;
   const q=(document.getElementById("adminCompletedTradesSearch")?.value||"").toLowerCase().trim();
   const filtered=(arr||[]).filter(o=>{
-    const hay=[o.productTitle,o.buyerEmail,o.sellerEmail,o.category,o.adId,o.id].join(" ").toLowerCase();
+    const hay=[o.productTitle,o.buyerEmail,o.sellerEmail,o.buyerName,o.sellerName,o.category,o.adId,o.id].join(" ").toLowerCase();
     return !q || hay.includes(q);
   });
-  const rows=[];
+  const total=filtered.reduce((s,o)=>s+Number(o.price||0),0);
+  const cards=[];
   for(const o of filtered.slice(0,120)){
     const cred=await adminOrderCredentialsText(o, notifMap);
-    const sellerSentAt = o.credentialsSellerSentAt || o.createdAt;
-    const buyerViewedAt = o.credentialsViewedAt || o.buyerConfirmedAt || o.credentialsSentToBuyerAt;
-    rows.push(`<tr>
-      <td><b>${esc(o.buyerEmail||"-")}</b><br><small>${esc(o.buyerUid||"")}</small></td>
-      <td><b>${esc(o.sellerEmail||"-")}</b><br><small>${esc(o.sellerUid||"")}</small></td>
-      <td>${Number(o.price||0).toFixed(2)} ₼</td>
-      <td><b>${esc(o.productTitle||"Məhsul")}</b><br><small>ID: ${esc(o.id)}${o.adId?` • Elan: ${esc(o.adId)}`:""}</small></td>
-      <td><pre style="white-space:pre-wrap;margin:0;max-width:260px;font-size:11px;color:#dbeafe;background:#08111f;border:1px solid #1e2d45;border-radius:8px;padding:8px">${esc(cred||"—")}</pre></td>
-      <td>${adminDateTime(o.createdAt)}</td>
-      <td>${cred && cred!=="—" ? adminDateTime(sellerSentAt) : "—"}</td>
-      <td>${cred && cred!=="—" ? adminDateTime(buyerViewedAt) : "—"}</td>
-    </tr>`);
+    const sellerSentAt = o.credentialsSellerSentAt || o.credentialsSentAt || o.credentialsSubmittedAt || (cred && cred!=="—" ? o.createdAt : null);
+    const buyerViewedAt = o.credentialsViewedAt || o.buyerViewedAt || o.buyerConfirmedAt;
+    const buyerName = o.buyerName || o.buyerUsername || o.buyerEmail || "—";
+    const sellerName = o.sellerName || o.sellerUsername || o.sellerEmail || "—";
+    cards.push(`<div class="admin-trade-card">
+      <div class="admin-trade-top">
+        <div>
+          <b>${esc(o.productTitle||"Məhsul")}</b>
+          <small>Sifariş ID: ${esc(o.id)}${o.adId?` • Elan ID: ${esc(o.adId)}`:""}</small>
+        </div>
+        <strong>${Number(o.price||0).toFixed(2)} ₼</strong>
+      </div>
+      <div class="admin-trade-grid">
+        <div class="trade-info-box"><span>Alıcı adı</span><b>${esc(buyerName)}</b><small>${esc(o.buyerUid||"")}</small></div>
+        <div class="trade-info-box"><span>Satıcı adı</span><b>${esc(sellerName)}</b><small>${esc(o.sellerUid||"")}</small></div>
+        <div class="trade-info-box"><span>Alış vaxtı</span><b>${adminDateTime(o.createdAt)}</b></div>
+        <div class="trade-info-box"><span>Satıcı məlumat göndərdi</span><b>${cred && cred!=="—" ? adminDateTime(sellerSentAt) : "Hesab detalı yoxdur"}</b></div>
+        <div class="trade-info-box"><span>Alıcı məlumatı gördü</span><b>${cred && cred!=="—" ? (buyerViewedAt ? adminDateTime(buyerViewedAt) : "Hələ təsdiqləməyib") : "Hesab detalı yoxdur"}</b></div>
+      </div>
+      <div class="admin-trade-creds">
+        <span>Hesab detalları</span>
+        <pre>${esc(cred||"—")}</pre>
+      </div>
+    </div>`);
   }
-  const total=filtered.reduce((s,o)=>s+Number(o.price||0),0);
   el.innerHTML=`<h3>Alış / Satış</h3>
-    <div class="admin-filter-row">
+    <div class="admin-filter-row admin-trade-filters">
       <input id="adminCompletedTradesSearch" placeholder="Alıcı, satıcı, məhsul və ya ID axtar">
       <button class="hbtn" type="button" id="adminCompletedTradesRefresh">Yenilə</button>
       <span class="admin-tag">Tamamlanmış: ${arr.length}</span>
       <span class="admin-tag">Göstərilən: ${filtered.length}</span>
       <span class="admin-tag">Həcm: ${walletNumber(total)}</span>
-    </div>`+(rows.length?`<table class="cabinet-table"><thead><tr>
-      <th>Alıcı adı</th><th>Satıcı adı</th><th>Qiymət</th><th>Məhsul</th><th>Hesab detalları</th><th>Alış vaxtı</th><th>Satıcı məlumat göndərdi</th><th>Alıcı məlumatı gördü</th>
-    </tr></thead><tbody>${rows.join("")}</tbody></table>${filtered.length>120?`<div class="cabinet-empty">${filtered.length} nəticədən ilk 120-si göstərilir. Axtarışı daralt.</div>`:""}`:'<div class="cabinet-empty">Tamamlanmış sifariş tapılmadı.</div>');
+    </div>
+    ${cards.length?`<div class="admin-trade-list">${cards.join("")}</div>${filtered.length>120?`<div class="cabinet-empty">${filtered.length} nəticədən ilk 120-si göstərilir. Axtarışı daralt.</div>`:""}`:'<div class="cabinet-empty">Tamamlanmış sifariş tapılmadı.</div>'}`;
   const search=document.getElementById("adminCompletedTradesSearch");
   if(search){ search.value=q; search.oninput=()=>renderCompletedTradesAdmin(arr, notifMap); }
   document.getElementById("adminCompletedTradesRefresh")?.addEventListener("click", _fetchCompletedTradesAdmin);
@@ -6195,15 +6232,19 @@ async function prepareCredsForAdminApproval(orderId){
       price:Number(o.price||0),
       buyerUid:o.buyerUid||"",
       buyerEmail:o.buyerEmail||"",
+      buyerName:o.buyerName||o.buyerEmail||"Alıcı",
       sellerUid:o.sellerUid||"",
       sellerEmail:o.sellerEmail||"",
+      sellerName:o.sellerName||o.sellerEmail||"Satıcı",
       credentials:credText,
       status:"Admin təsdiqi gözləyir",
+      credentialsSellerSentAt:o.credentialsSellerSentAt||o.createdAt||serverTimestamp(),
       createdAt:serverTimestamp()
     });
 
     await updateDoc(doc(db,"orders",orderId),{
       credentialsStatus:"Admin təsdiqi gözləyir",
+      credentialsSellerSentAt:o.credentialsSellerSentAt || serverTimestamp(),
       updatedAt:serverTimestamp()
     }).catch(()=>{});
 
@@ -6723,7 +6764,7 @@ async function buyerConfirmOrder(id){
     if(o.buyerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
     const newData = {buyerConfirmed:true, buyerConfirmedAt:serverTimestamp(), credentialsViewedAt:serverTimestamp(), updatedAt:serverTimestamp()};
     // Hər ikisi təsdiqləyibsə — sifariş tamamlandı
-    if(o.sellerConfirmed) newData.status = "Tamamlandı";
+    if(o.sellerConfirmed){ newData.status = "Tamamlandı"; newData.completedAt = serverTimestamp(); }
     await updateDoc(oRef, newData);
     toast("Təsdiq edildi.");
   }catch(e){ console.error(e); toast("Xəta baş verdi."); }
@@ -6739,7 +6780,7 @@ async function sellerConfirmOrder(id){
     const o = oSnap.data();
     if(o.sellerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
     const newData = {sellerConfirmed:true, sellerConfirmedAt:serverTimestamp(), updatedAt:serverTimestamp()};
-    if(o.buyerConfirmed) newData.status = "Tamamlandı";
+    if(o.buyerConfirmed){ newData.status = "Tamamlandı"; newData.completedAt = serverTimestamp(); }
     await updateDoc(oRef, newData);
     // Satıcı öz elanını "Satıldı" olaraq işarələyir
     if(o.adId){
@@ -6900,6 +6941,7 @@ async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
       credentialsStatus:"Alıcıya göndərildi",
       credentialsApprovedAt:serverTimestamp(),
       credentialsSentToBuyerAt:serverTimestamp(),
+      credentialsSellerSentAt:n.credentialsSellerSentAt || serverTimestamp(),
       credentialsApprovedBy:currentUser.uid||"",
       updatedAt:serverTimestamp()
     }).catch(()=>{});
