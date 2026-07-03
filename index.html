@@ -6364,6 +6364,7 @@ function adminShell(){
     <button type="button" data-admincat="ads" onclick="showAdminCat('ads')">📦 Elanlar</button>
     <button type="button" data-admincat="finance" onclick="showAdminCat('finance')">💰 Maliyyə</button>
     <button type="button" data-admincat="users" onclick="showAdminCat('users')">👥 İstifadəçilər</button>
+    <button type="button" data-admincat="reports" onclick="showAdminCat('reports')">🚩 Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="supportcat" onclick="showAdminCat('supportcat')">💬 Dəstək</button>
   </div>
   <div id="adminCatOrders" class="admin-cat">
@@ -6388,6 +6389,8 @@ function adminShell(){
   </div>
   <div id="adminCatUsers" class="admin-cat" style="display:none">
     <div id="adminUsers" class="admin-section"></div>
+  </div>
+  <div id="adminCatReports" class="admin-cat" style="display:none">
     <div id="adminReports" class="admin-section"></div>
   </div>
   <div id="adminCatSupportcat" class="admin-cat" style="display:none">
@@ -6397,7 +6400,7 @@ function adminShell(){
 }
 
 window.showAdminCat = function(cat){
-  const cats = {orders:"adminCatOrders", trades:"adminCatTrades", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", supportcat:"adminCatSupportcat"};
+  const cats = {orders:"adminCatOrders", trades:"adminCatTrades", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", reports:"adminCatReports", supportcat:"adminCatSupportcat"};
   Object.entries(cats).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = key===cat ? "" : "none";
@@ -7627,7 +7630,7 @@ window.submitReport = async function(){
     });
     closeModal("reportModal");
     toast("Şikayətiniz göndərildi. Admin baxacaq.");
-  }catch(e){ console.error(e); toast("Şikayət göndərilmədi."); }
+  }catch(e){ console.error("Şikayət göndərilə bilmədi:", e); toast("Şikayət göndərilmədi: " + (e.message || e.code || "naməlum xəta")); }
 };
 
 // Admin panelindən şikayətlərə baxmaq
@@ -7638,8 +7641,13 @@ window.listenReportsAdmin = function(){
   onSnapshot(q, snap=>{
     const arr = [];
     snap.forEach(d=>arr.push({id:d.id,...d.data()}));
-    if(!arr.length){ el.innerHTML='<div class="cabinet-empty">Baxılmamış şikayət yoxdur.</div>'; return; }
-    el.innerHTML = arr.map(r=>`
+    const badge = document.getElementById("adminReportsBadge");
+    if(badge){
+      if(arr.length){ badge.textContent = arr.length; badge.style.display = "inline-block"; }
+      else { badge.style.display = "none"; }
+    }
+    if(!arr.length){ el.innerHTML='<h3>Şikayətlər</h3><div class="cabinet-empty">Baxılmamış şikayət yoxdur.</div>'; return; }
+    el.innerHTML = '<h3>Şikayətlər ('+arr.length+')</h3>' + arr.map(r=>`
       <div style="background:#0d1117;border:1px solid #1e2d45;border-radius:10px;padding:14px;margin-bottom:8px;font-size:13px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div>
@@ -7651,7 +7659,10 @@ window.listenReportsAdmin = function(){
           <button onclick="resolveReport('${r.id}')" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12px">Baxıldı ✓</button>
         </div>
       </div>`).join("");
-  }, err=>console.warn("Reports:", err));
+  }, err=>{
+    console.warn("Reports:", err);
+    el.innerHTML = '<h3>Şikayətlər</h3><div class="cabinet-empty">Şikayətlər yüklənmədi: '+esc(err.message||"icazə xətası")+'. Firestore Rules-da "reports" kolleksiyasına admin oxuma icazəsini yoxla.</div>';
+  });
 };
 
 window.resolveReport = async function(id){
