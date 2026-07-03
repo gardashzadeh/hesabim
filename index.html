@@ -1001,8 +1001,22 @@ body.light-mode .admin-tag{background:#f5f7fa;border:1px solid #dde1e7;color:#4a
 .chat-head b{display:block;color:#f8fafc}
 .chat-head small{display:block;color:#9ca3af;margin-top:3px}
 .chat-messages{padding:12px;overflow:auto;max-height:390px}
-.chat-msg{max-width:78%;margin:7px 0;padding:9px 11px;border-radius:12px;background:#111827;color:#e5e7eb;word-break:break-word}
+.chat-msg{max-width:78%;margin:7px 0;padding:9px 11px;border-radius:12px;background:#111827;color:#e5e7eb;word-break:break-word;position:relative}
 .chat-msg.me{margin-left:auto;background:#ea580c;color:#fff}
+.chat-msg-delete{
+  position:absolute;top:4px;right:4px;
+  width:22px;height:22px;padding:0;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;color:#fff;cursor:pointer;
+  transition:all .15s ease;
+}
+.chat-msg:hover .chat-msg-delete{display:flex}
+.chat-msg-delete:hover{background:#ef4444;border-color:#ef4444}
+@media(max-width:700px){
+  .chat-msg-delete{display:flex;background:rgba(0,0,0,.25)}
+}
 .chat-msg small{display:block;opacity:.75;font-size:10px;margin-top:5px}
 .chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;border-top:1px solid #1f2937}
 .chat-form input{height:42px;background:#0c0d0d;border:1px solid #333636;border-radius:10px;color:#fff;padding:0 12px;font-family:inherit}
@@ -3628,12 +3642,25 @@ window.matchGameImageKey = function(a){
   }
   return null;
 };
-// Elan nömrəsi: adId-dən sabit (hər dəfə eyni qalan) 5 rəqəmli görüntü nömrəsi yaradır — DB dəyişikliyi tələb etmir
+// Elan nömrəsi: adId-dən sabit (hər dəfə eyni qalan) unikal 6 rəqəmli görüntü nömrəsi
+// yaradır. İki fərqli hash funksiyası birləşdirilir ki, toqquşma ehtimalı minimumda olsun.
+// DB dəyişikliyi tələb etmir — köhnə elanlar da dərhal nömrə alır.
 window.adDisplayNumber = function(a){
+  if(a && a.adNumber){ return "#" + String(a.adNumber); }
   var key = String((a && (a.adId || a.id || a.title)) || "0");
-  var hash = 0;
-  for(var i=0;i<key.length;i++){ hash = (hash*31 + key.charCodeAt(i)) >>> 0; }
-  var num = 10000 + (hash % 90000); // 10000–99999 aralığında
+  // FNV-1a variant hash
+  var h1 = 2166136261 >>> 0;
+  for(var i=0;i<key.length;i++){
+    h1 = ((h1 ^ key.charCodeAt(i)) * 16777619) >>> 0;
+  }
+  // djb2 variant hash
+  var h2 = 5381 >>> 0;
+  for(var j=0;j<key.length;j++){
+    h2 = (((h2 << 5) + h2) + key.charCodeAt(j)) >>> 0;
+  }
+  // İki hash-ı birləşdir və 6 rəqəmə sıxışdır (100000–999999)
+  var combined = ((h1 ^ (h2 * 2654435761)) >>> 0);
+  var num = 100000 + (combined % 900000);
   return "#" + num;
 };
 
@@ -3677,7 +3704,8 @@ window.renderMarketAds = function renderMarketAds(){
     sellerVerified: !!a.sellerVerified,
     imageUrls: a.imageUrls || [],
     stock: Number(a.stock || 1),
-    video: a.video || ""
+    video: a.video || "",
+    adNumber: a.adNumber || ""
   }));
 
   const base = baseAds.map(x => ({
@@ -3733,6 +3761,7 @@ window.renderMarketAds = function renderMarketAds(){
       contact: btn.dataset.contact,
       tags: tags,
       imageUrls: imageUrls,
+      adNumber: btn.dataset.adnumber,
       icon: btn.querySelector(".ad-img").innerHTML
     });
   };
@@ -3783,10 +3812,10 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-contact="'+attr(a.contact)+'" '
         + 'data-tags="'+tagsB64+'" '
         + 'data-imgs="'+imgsB64+'" '
+        + 'data-adnumber="'+attr(a.adNumber||'')+'" '
         + 'onclick="window._openAdDetail(this)">'
         + '<div class="ad-banner">'
           + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+safeIcon(a.icon)+'</div>'
-          + '<span class="ad-number-badge">'+window.adDisplayNumber(a)+'</span>'
           + '<span class="ad-fav-btn'+(_savedIdSet.has(a.adId||a.title)?' active':'')+'" role="button" tabindex="0" onclick="event.stopPropagation();window.quickToggleSaveAd(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();window.quickToggleSaveAd(this)}" aria-label="Yadda saxla">'
             + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
           + '</span>'
@@ -5585,7 +5614,21 @@ window.submitAd = async function(){
     } else {
       // Elan müddəti: 30 gün (1 ay)
       const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
-      await addDoc(collection(db,"ads"), {...adPayload, views:0, createdAt:serverTimestamp(), expiresAt});
+      // Unikal 6 rəqəmli elan nömrəsi yarat (100000–999999). Ən çox 5 cəhdə mövcud olmayan tap.
+      let adNumber = "";
+      try{
+        for(let tryNo=0; tryNo<5; tryNo++){
+          const candidate = String(100000 + Math.floor(Math.random()*900000));
+          const existing = await getDocs(query(collection(db,"ads"), where("adNumber","==",candidate)));
+          if(existing.empty){ adNumber = candidate; break; }
+        }
+        if(!adNumber){ adNumber = String(Date.now()).slice(-6); }
+      }catch(numErr){
+        // Yoxlama uğursuz olsa da elanı bloklama — sadəcə timestamp-based nömrə ver
+        console.warn("adNumber yoxlanmadı:", numErr);
+        adNumber = String(Date.now()).slice(-6);
+      }
+      await addDoc(collection(db,"ads"), {...adPayload, adNumber, views:0, createdAt:serverTimestamp(), expiresAt});
     }
 
     // Formu təmizlə
@@ -6245,6 +6288,7 @@ async function openChat(chatId,adminMode=false){
   }
 
   activeChatId=chatId; if(adminMode) adminActiveChatId=chatId;
+  window._currentChatId = chatId;
   const isBuyer=currentUser&&c.buyerUid===currentUser.uid;
   if(!adminMode && isBuyer && c.orderId){
     updateDoc(doc(db,"orders",c.orderId),{credentialsViewedAt:serverTimestamp(),updatedAt:serverTimestamp()}).catch(()=>{});
@@ -6271,7 +6315,15 @@ function drawMessages(msgs,adminMode=false){
           padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;width:100%">
           ✅ Təsdiqləyirəm, alıcıya göndər
         </button>` : "";
+    // Silmə düyməsi: yalnız öz mesajını silmək olur (kredensial mesajları istisna)
+    const canDelete = isMe && !isCredMsg;
+    const currentChatId = window._currentChatId || "";
+    const delBtn = canDelete
+      ? `<button class="chat-msg-delete" title="Mesajı sil" onclick="deleteChatMessage('${esc(currentChatId)}','${esc(m.id)}',${adminMode})">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+         </button>` : "";
     return `<div class="chat-msg ${isMe?'me':''}${isCredMsg?' style="background:#0a1a0a;border:1px solid #22c55e33"':''}" ${isCredMsg?'style="background:#0a1a0a;border:1px solid #22c55e33;border-radius:10px"':''}>
+      ${delBtn}
       <span style="white-space:pre-line">${esc(m.text||"")}</span>
       ${sendBtn}
       <small>${esc(m.senderEmail||"")} • ${messageTime(m.createdAt)}</small>
@@ -6279,6 +6331,19 @@ function drawMessages(msgs,adminMode=false){
   }).join("");
   el.scrollTop=el.scrollHeight;
 }
+
+window.deleteChatMessage = async function(chatId, msgId, adminMode){
+  if(!chatId || !msgId){ toast("Mesaj ID tapılmadı."); return; }
+  const ok = await (window.showConfirm ? window.showConfirm("Bu mesajı silmək istədiyinə əminsən?","🗑️") : Promise.resolve(window.confirm("Bu mesajı silmək istədiyinə əminsən?")));
+  if(!ok) return;
+  try{
+    await deleteDoc(doc(db,"chats",chatId,"messages",msgId));
+    toast("Mesaj silindi.");
+  }catch(e){
+    console.error("Mesaj silinmədi:", e);
+    toast("Mesaj silinmədi: " + (e.message || e.code || "icazə xətası"));
+  }
+};
 
 window.sendCredsToBuyer = async function(orderId, buyerUid, buyerEmail){
   if(!isAdmin()){ toast("Admin icazəsi lazımdır."); return; }
