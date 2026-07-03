@@ -5977,6 +5977,7 @@ function adminShell(){
   </div>
   <div id="adminCatAds" class="admin-cat" style="display:none">
     <div id="adminPendingAds" class="admin-section"></div>
+    <div id="adminAllAds" class="admin-section"></div>
   </div>
   <div id="adminCatFinance" class="admin-cat" style="display:none">
     <div id="adminBalanceRequests" class="admin-section"></div>
@@ -6230,6 +6231,79 @@ function listenPendingAdsAdmin(){
   _fetchPendingAds();
   
   adminUnsubs.push(()=>clearInterval(t));
+}
+
+
+async function _fetchAllAdsAdmin(){
+  const el=document.getElementById("adminAllAds");
+  if(!el||!isAdmin()) return;
+  try{
+    const snap=await getDocs(query(collection(db,"ads")));
+    const arr=[];
+    snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    arr.sort((a,b)=>(b.createdAt?.seconds||b.updatedAt?.seconds||0)-(a.createdAt?.seconds||a.updatedAt?.seconds||0));
+    window.adminAllAdsCache=arr;
+    renderAllAdsAdmin(arr);
+  }catch(e){
+    console.error("_fetchAllAdsAdmin:",e);
+    el.innerHTML='<h3>Saytdakı bütün elanlar</h3><div class="cabinet-empty" style="color:#f87171;">Elanlar yüklənmədi: '+esc(String(e.message||e))+'</div>';
+  }
+}
+
+function renderAllAdsAdmin(arr){
+  const el=document.getElementById("adminAllAds");
+  if(!el) return;
+  const q=(document.getElementById("adminAllAdsSearch")?.value||"").toLowerCase().trim();
+  const st=(document.getElementById("adminAllAdsStatus")?.value||"all");
+  const filtered=(arr||[]).filter(a=>{
+    const hay=[a.title,a.game,a.platform,a.category,a.sellerEmail,a.sellerName,a.status,a.id].join(" ").toLowerCase();
+    const okQ=!q || hay.includes(q);
+    const okS=st==="all" || (st==="sold" ? !!a.sold : String(a.status||"")===st);
+    return okQ && okS;
+  });
+  const rows=filtered.slice(0,150);
+  const counts={all:arr.length,pending:arr.filter(a=>a.status==="Gözləmədə").length,approved:arr.filter(a=>a.status==="Təsdiqləndi"&&!a.sold).length,rejected:arr.filter(a=>a.status==="Rədd edildi").length,sold:arr.filter(a=>a.sold).length};
+  el.innerHTML=`<h3>Saytdakı bütün elanlar</h3>
+    <div class="admin-filter-row">
+      <input id="adminAllAdsSearch" placeholder="Başlıq, satıcı, oyun və ya ID axtar">
+      <select id="adminAllAdsStatus">
+        <option value="all">Hamısı</option>
+        <option value="Gözləmədə">Gözləmədə</option>
+        <option value="Təsdiqləndi">Təsdiqləndi</option>
+        <option value="Rədd edildi">Rədd edildi</option>
+        <option value="sold">Satılmış</option>
+      </select>
+      <button class="hbtn" type="button" id="adminAllAdsRefresh">Yenilə</button>
+      <span class="admin-tag">Hamısı: ${counts.all}</span>
+      <span class="admin-tag">Gözləmədə: ${counts.pending}</span>
+      <span class="admin-tag">Aktiv: ${counts.approved}</span>
+      <span class="admin-tag">Satılmış: ${counts.sold}</span>
+    </div>`+(rows.length?`<table class="cabinet-table"><thead><tr><th>Elan</th><th>Kateqoriya</th><th>Satıcı</th><th>Qiymət</th><th>Status</th><th>Baxış</th><th>Əməliyyat</th></tr></thead><tbody>${rows.map(a=>`<tr>
+      <td><b>${esc(a.title||'-')}</b><br><small>ID: ${esc(a.id)} ${a.sold?' • Satılıb':''}</small></td>
+      <td>${esc(a.category||'')}<br><small>${esc(a.game||a.platform||'')}</small></td>
+      <td>${esc(a.sellerEmail||a.sellerName||'-')}</td>
+      <td>${Number(a.price||0).toFixed(2)} ₼</td>
+      <td>${statusHtml(a.sold?'Satıldı':(a.status||'Gözləmədə'))}</td>
+      <td>${Number(a.views||0)}</td>
+      <td><div class="admin-actions">
+        ${a.status!=="Təsdiqləndi"?`<button class="approve-btn" data-all-approve="${a.id}">Təsdiqlə</button>`:''}
+        ${a.status!=="Rədd edildi"?`<button class="reject-btn" data-all-reject="${a.id}">Rədd et</button>`:''}
+        ${!a.sold?`<button class="warn-btn" data-all-sold="${a.id}">Satıldı</button>`:''}
+        <button class="delete-btn" data-all-delete="${a.id}">Sil</button>
+      </div></td>
+    </tr>`).join("")}</tbody></table>${filtered.length>150?`<div class="cabinet-empty">${filtered.length} nəticədən ilk 150-si göstərilir. Axtarışı daralt.</div>`:''}`:'<div class="cabinet-empty">Elan tapılmadı.</div>');
+  const search=document.getElementById("adminAllAdsSearch");
+  const select=document.getElementById("adminAllAdsStatus");
+  if(search){ search.value=q; search.oninput=()=>renderAllAdsAdmin(arr); }
+  if(select){ select.value=st; select.onchange=()=>renderAllAdsAdmin(arr); }
+  document.getElementById("adminAllAdsRefresh")?.addEventListener("click",_fetchAllAdsAdmin);
+  el.querySelectorAll("[data-all-approve]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.allApprove,"Təsdiqləndi");_fetchPendingAds();_fetchAllAdsAdmin();});
+  el.querySelectorAll("[data-all-reject]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.allReject,"Rədd edildi");_fetchPendingAds();_fetchAllAdsAdmin();});
+  el.querySelectorAll("[data-all-sold]").forEach(b=>b.onclick=async()=>{try{await updateDoc(doc(db,"ads",b.dataset.allSold),{sold:true,soldAt:serverTimestamp(),updatedAt:serverTimestamp()});toast("Elan satılmış kimi işarələndi");_fetchAllAdsAdmin();}catch(e){toast("Əməliyyat alınmadı: "+(e.message||""));}});
+  el.querySelectorAll("[data-all-delete]").forEach(b=>b.onclick=async()=>{if(!await showConfirm("Bu elan silinsin?","🗑️"))return;await deleteDoc(doc(db,"ads",b.dataset.allDelete));toast("Elan silindi");_fetchPendingAds();_fetchAllAdsAdmin();});
+}
+function listenAllAdsAdmin(){
+  _fetchAllAdsAdmin();
 }
 
 
@@ -6650,6 +6724,7 @@ function listenAdmin(){
   listenNotifAdmin();
   listenPayoutsAdmin();
   listenPendingAdsAdmin();
+  listenAllAdsAdmin();
   listenBalanceRequestsAdmin();
   listenOrdersAdmin();
   listenChatsAdmin();
