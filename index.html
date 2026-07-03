@@ -1365,6 +1365,109 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 #productModal.show{display:flex!important}
 #productModal .product-detail-box{z-index:1000001!important}
 
+/* PRODUCT DETAIL — FULL PAGE (not popup window) */
+#productModal{
+  padding:0!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  background:#080a0e!important;
+}
+#productModal .product-detail-box{
+  width:100vw!important;
+  height:100vh!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  border-radius:0!important;
+  border:none!important;
+  box-shadow:none!important;
+  overflow-y:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+#productModal .product-detail-head{
+  position:sticky!important;
+  top:0!important;
+  z-index:5!important;
+  flex:none;
+}
+#productModal .product-detail-grid{
+  flex:1;
+}
+@media(min-width:681px){
+  #productModal .product-detail-grid{grid-template-columns:360px 1fr!important;}
+  #productModal .product-detail-image{min-height:100%!important;}
+}
+
+/* PRODUCT DETAIL — breadcrumb topbar */
+.pd-topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 22px;
+  border-bottom:1px solid #161b24;
+  background:#0a0c10;
+}
+.pd-back-btn{
+  background:#11151c;border:1px solid #232b38;color:#8b95a8;
+  border-radius:9px;width:34px;height:34px;padding:0;flex:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .15s ease;
+}
+.pd-back-btn:hover{background:#1a212e;border-color:#3a4456;color:#f1f5f9}
+.pd-back-btn svg{width:16px;height:16px}
+.pd-breadcrumb{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#5b6678;min-width:0;overflow:hidden;white-space:nowrap;font-family:'DM Sans',Arial,sans-serif;}
+.pd-breadcrumb a{color:#8b95a8;text-decoration:none;transition:color .15s;cursor:pointer;}
+.pd-breadcrumb a:hover{color:#fb923c}
+.pd-bc-sep{color:#333c4a}
+.pd-bc-current{color:#e2e8f0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* PRODUCT DETAIL — 3 column layout */
+#productModal .pd-grid-3col{grid-template-columns:300px 1fr 280px!important;align-items:stretch;}
+.pd-gallery-col{border-right:1px solid #161b24;display:flex;flex-direction:column;min-width:0;}
+.pd-gallery-col .product-detail-image{border-right:0;flex:1;}
+.pd-thumbs{display:flex;gap:8px;padding:14px 18px;flex-wrap:wrap;background:#0a0c10;border-top:1px solid #161b24;}
+.pd-thumb{width:52px;height:52px;border-radius:8px;overflow:hidden;border:1px solid #232b38;padding:0;cursor:pointer;background:#11151c;flex:none;transition:border-color .15s;}
+.pd-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pd-thumb.active{border-color:#fb923c}
+.pd-thumb-more{width:52px;height:52px;border-radius:8px;background:#11151c;border:1px solid #232b38;display:flex;align-items:center;justify-content:center;color:#8b95a8;font-size:12px;font-weight:700;flex:none}
+
+.pd-seller-col{border-left:1px solid #161b24;padding:20px 18px;display:flex;flex-direction:column;gap:10px;background:#0a0c10;min-width:0;}
+.pd-seller-col .seller-card{background:#11151c;border:1px solid #1c2330;border-radius:12px;padding:14px;margin:0;}
+.pd-seller-col .pd-action-btn{
+  width:100%;flex:none;min-width:0;
+  height:40px;border-radius:10px;
+  font-size:12.5px;font-weight:600;letter-spacing:0;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  cursor:pointer;border:1px solid #1c2330;background:#0d1118;color:#8b95a8;
+  transition:all .15s ease;white-space:nowrap;
+}
+.pd-seller-col .pd-action-btn:hover{background:#151b25;border-color:#2d3648;color:#e2e8f0}
+.pd-seller-col .pd-action-btn svg{width:14px;height:14px;flex:none}
+.pd-seller-col .report-btn{
+  width:100%;margin-top:4px;
+  height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  background:#150c0c;border:1px solid #3a1c1c;color:#f28b8b;
+  font-size:12px;font-weight:600;padding:0 10px;
+  cursor:pointer;transition:all .15s ease;
+}
+.pd-seller-col .report-btn:hover{background:#1c0f0f;border-color:#5a2323;color:#ff9d9d}
+
+/* PRODUCT DETAIL — benefits strip footer */
+.pd-benefits-strip{display:flex;flex-wrap:wrap;border-top:1px solid #161b24;background:#0a0c10;}
+.pd-benefit{flex:1;min-width:180px;display:flex;align-items:center;gap:10px;padding:16px 20px;border-right:1px solid #161b24;font-size:12.5px;font-weight:600;color:#8b95a8;}
+.pd-benefit:last-child{border-right:0}
+.pd-benefit svg{width:18px;height:18px;color:#fb923c;flex:none}
+
+@media(max-width:900px){
+  #productModal .pd-grid-3col{grid-template-columns:1fr!important;}
+  .pd-gallery-col{border-right:0;border-bottom:1px solid #161b24;}
+  .pd-seller-col{border-left:0;border-top:1px solid #161b24;}
+  .pd-benefit{min-width:50%;border-bottom:1px solid #161b24;}
+}
+@media(max-width:480px){
+  .pd-breadcrumb{font-size:11px}
+  .pd-topbar{padding:12px 14px}
+}
+
 /* ===================== LIGHT MODE ===================== */
 body.light-mode{
   background:
@@ -2862,15 +2965,24 @@ button,input,select,textarea{max-width:100%}
 
 <div class="modal" id="productModal">
   <div class="modal-box product-detail-box">
-    <div class="product-detail-head">
-      <h3 id="pdTitle">Məhsul detalları</h3>
-      <button class="pd-close-btn" type="button" onclick="closeModal('productModal')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        Bağla
+    <div class="pd-topbar">
+      <button class="pd-back-btn" type="button" onclick="closeModal('productModal')" title="Geri qayıt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
+      <div class="pd-breadcrumb">
+        <a href="#" onclick="closeModal('productModal');goHome(event);return false;">Ana səhifə</a>
+        <span class="pd-bc-sep">›</span>
+        <a href="#" id="pdBreadcrumbCat" onclick="return false;">Kateqoriya</a>
+        <span class="pd-bc-sep">›</span>
+        <span id="pdBreadcrumbTitle" class="pd-bc-current">Elan</span>
+      </div>
+      <h3 id="pdTitle" style="display:none">Məhsul detalları</h3>
     </div>
-    <div class="product-detail-grid">
-      <div class="product-detail-image" id="pdImage"></div>
+    <div class="product-detail-grid pd-grid-3col">
+      <div class="pd-gallery-col">
+        <div class="product-detail-image" id="pdImage"></div>
+        <div class="pd-thumbs" id="pdThumbs" style="display:none"></div>
+      </div>
       <div class="product-detail-info" style="padding:22px 24px 20px;">
         <div class="badge-row">
           <span class="badge" id="pdCategory">
@@ -2921,42 +3033,38 @@ button,input,select,textarea{max-width:100%}
               WhatsApp
             </a>
           </div>
-          <div class="pd-secondary-row">
-            <button class="pd-action-btn" type="button" id="pdSellerProfile" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Satıcı profili
-            </button>
-            <button class="pd-action-btn" type="button" id="pdShare" onclick="shareCurrentProduct()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              Paylaş
-            </button>
-          </div>
-          <div class="pd-report-row">
-            <button class="report-btn" type="button" id="pdReport" onclick="closeModal('productModal');openReportModal('ad',currentDetailProduct?.adId||'',currentDetailProduct?.title||'Elan')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;flex:none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-              Elanı şikayət et
-            </button>
-          </div>
         </div>
       </div>
-    </div>
-    <div style="padding:0 24px 4px;background:#080a0e;">
-      <div class="seller-card" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
-        <div style="position:relative;flex:none;">
-          <div class="seller-card-icon" id="pdSellerIcon">G</div>
-          <span id="pdSellerOnline" style="display:none;position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #0d1118;box-shadow:0 0 0 1px #22c55e44;"></span>
-        </div>
-        <div class="seller-card-body">
-          <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-            <span class="seller-card-name" id="pdSeller">GameSatış</span>
-            <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
+      <div class="pd-seller-col">
+        <div class="seller-card" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
+          <div style="position:relative;flex:none;">
+            <div class="seller-card-icon" id="pdSellerIcon">G</div>
+            <span id="pdSellerOnline" style="display:none;position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #0d1118;box-shadow:0 0 0 1px #22c55e44;"></span>
           </div>
-          <div class="seller-card-meta">
-            <span class="rating">★★★★★ 100%</span>
-            <span class="seller-sales-count" id="pdSellerSales">0 satış</span>
+          <div class="seller-card-body">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <span class="seller-card-name" id="pdSeller">GameSatış</span>
+              <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
+            </div>
+            <div class="seller-card-meta">
+              <span class="rating">★★★★★ 100%</span>
+              <span class="seller-sales-count" id="pdSellerSales">0 satış</span>
+            </div>
           </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
         </div>
-        <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
+        <button class="pd-action-btn" type="button" id="pdSellerProfile" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Satıcı profili
+        </button>
+        <button class="pd-action-btn" type="button" id="pdShare" onclick="shareCurrentProduct()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Paylaş
+        </button>
+        <button class="report-btn" type="button" id="pdReport" onclick="closeModal('productModal');openReportModal('ad',currentDetailProduct?.adId||'',currentDetailProduct?.title||'Elan')" style="width:100%;justify-content:center;margin-top:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;flex:none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          Elanı şikayət et
+        </button>
       </div>
     </div>
     <div class="reviews-box">
@@ -2981,6 +3089,24 @@ button,input,select,textarea{max-width:100%}
         </button>
       </div>
       <div class="review-login-note" id="pdReviewNote"></div>
+    </div>
+    <div class="pd-benefits-strip">
+      <div class="pd-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Təhlükəsiz alış-veriş</span>
+      </div>
+      <div class="pd-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        <span>24/7 Dəstək</span>
+      </div>
+      <div class="pd-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Etibarlı satıcılar</span>
+      </div>
+      <div class="pd-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        <span>Ani çatdırılma</span>
+      </div>
     </div>
   </div>
 </div>
@@ -3179,6 +3305,46 @@ function detectPlatformLogoKey(text){
   }
   return null;
 }
+
+function renderPdThumbs(product){
+  const wrap = document.getElementById("pdThumbs");
+  if(!wrap) return;
+  const imgs = Array.isArray(product.imageUrls) ? product.imageUrls.filter(Boolean) : [];
+  if(imgs.length < 2){
+    wrap.innerHTML = "";
+    wrap.style.display = "none";
+    window._pdGalleryImages = [];
+    return;
+  }
+  window._pdGalleryImages = imgs;
+  const maxShow = 4;
+  let html = "";
+  imgs.slice(0, maxShow).forEach(function(url, i){
+    html += '<button type="button" class="pd-thumb'+(i===0?' active':'')+'" data-idx="'+i+'" onclick="setPdMainImage('+i+')">'
+      + '<img src="'+String(url).replace(/"/g,'%22')+'" alt="" loading="lazy">'
+      + '</button>';
+  });
+  if(imgs.length > maxShow){
+    html += '<div class="pd-thumb-more">+'+(imgs.length - maxShow)+'</div>';
+  }
+  wrap.innerHTML = html;
+  wrap.style.display = "flex";
+}
+window.setPdMainImage = function(idx){
+  const imgs = window._pdGalleryImages || [];
+  const url = imgs[idx];
+  if(!url) return;
+  const pdImg = document.getElementById("pdImage");
+  if(!pdImg) return;
+  const catLabel = (currentDetailProduct && currentDetailProduct.category) || "";
+  pdImg.innerHTML = '<img src="'+String(url).replace(/"/g,'%22')+'" alt="" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">'
+    + (catLabel ? '<div class="pd-img-cat-label">'+esc(catLabel)+'</div>' : '');
+  renderPdPlatformBadge(currentDetailProduct || {});
+  document.querySelectorAll("#pdThumbs .pd-thumb").forEach(function(el, i){
+    el.classList.toggle("active", i === idx);
+  });
+};
+
 
 function renderPdPlatformBadge(product){
   const wrap = document.getElementById("pdImage");
@@ -3660,6 +3826,10 @@ function openProductDetail(p){
   const modal=document.getElementById("productModal");
   if(!modal) return;
   document.getElementById("pdTitle").textContent = currentDetailProduct.title || "Məhsul";
+  const _bcCat = document.getElementById("pdBreadcrumbCat");
+  if(_bcCat) _bcCat.textContent = currentDetailProduct.category || "Kateqoriya";
+  const _bcTitle = document.getElementById("pdBreadcrumbTitle");
+  if(_bcTitle) _bcTitle.textContent = currentDetailProduct.title || "Elan";
   document.getElementById("pdPrice").textContent = currentDetailProduct.price || "0.00 ₼";
   const _opEl = document.getElementById("pdOldPrice");
   if(_opEl){
@@ -3700,6 +3870,7 @@ function openProductDetail(p){
   document.getElementById("pdImage").innerHTML = _iconHtml
     + (_catLabel ? '<div class="pd-img-cat-label">'+esc(_catLabel)+'</div>' : '');
   renderPdPlatformBadge(currentDetailProduct);
+  renderPdThumbs(currentDetailProduct);
 
   // Stok badge
   const stockBadge = document.getElementById("pdStockBadge");
