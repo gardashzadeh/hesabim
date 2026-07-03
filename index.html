@@ -5318,6 +5318,7 @@ window.createOrdersFromCart = async function(items){
             sold: true,
             soldAt: serverTimestamp(),
             buyerUid: currentUser.uid,
+            orderId: orderRef.id,
             updatedAt: serverTimestamp()
           });
         }catch(soldErr){
