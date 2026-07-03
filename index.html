@@ -3561,16 +3561,17 @@ function openProductDetail(p){
   const _chatBtnEl = document.getElementById("pdChat");
   if(_chatBtnEl){
     _chatBtnEl.onclick = async function(){
-      if(!currentUser){
-        closeModal("productModal");
-        openModal("loginModal");
-        toast("Mesaj göndərmək üçün giriş et.");
-        return;
-      }
-      if(typeof window.openChatFromProduct === "function"){
-        await window.openChatFromProduct(currentDetailProduct);
-      }else{
-        showToast("Mesaj sistemi hələ yüklənməyib.");
+      try{
+        // currentUser module daxilindədir, bu yuxarı script blokunda görünmür.
+        // Ona görə login yoxlamasını openChatFromProduct / ensureChatForProduct özü edir.
+        if(typeof window.openChatFromProduct === "function"){
+          await window.openChatFromProduct(currentDetailProduct);
+        }else{
+          toast("Mesaj sistemi hələ yüklənməyib.");
+        }
+      }catch(e){
+        console.error("Satıcıya yaz xətası:", e);
+        toast("Mesaj açılmadı: " + (e.message || "naməlum xəta"));
       }
     };
   }
