@@ -1835,6 +1835,8 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
 body.light-mode .mobile-bottom-nav{background:#fff;border-top:1px solid #e2e8f0;box-shadow:0 -2px 12px rgba(0,0,0,.08)}
 body.light-mode .mobile-bottom-nav button{color:#94a3b8}
 body.light-mode .mobile-bottom-nav button.active{color:#ea580c}
+body.light-mode .cab-menu-toggle{background:#fff;border-bottom-color:#e2e8f0;color:#ea580c}
+body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8f0}
 /* ===================== END LIGHT MODE ===================== */
 
 @media(max-width:700px){
@@ -2518,7 +2520,7 @@ button,input,select,textarea{max-width:100%}
   .mob-cart-badge{position:absolute;top:2px;right:50%;transform:translateX(14px);min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
 }
 
-@media (min-width: 901px){.mobile-bottom-nav{display:none!important}}
+@media (min-width: 901px){.mobile-bottom-nav{display:none!important}.cab-menu-toggle{display:none!important}}
 
 @media (max-width: 430px){
   .actions{grid-template-columns:repeat(5,minmax(0,1fr))!important}
@@ -2790,21 +2792,45 @@ button,input,select,textarea{max-width:100%}
   .pd-benefits-strip{flex-wrap:wrap}
   .pd-benefit{min-width:50%!important;flex-basis:50%!important;padding:12px 14px!important;font-size:11.5px!important}
 
-  /* Kabinet menyusu — üfüqi scroll */
+  /* Kabinet menyusu — mobil dropdown */
   .cabinet-menu{
-    display:flex!important;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    flex-wrap:nowrap!important;
-    gap:6px!important;
+    display:none!important;
+    position:absolute;
+    top:0;left:0;right:0;
+    background:#0b0d10;
+    border-bottom:1px solid #1e2128;
+    border-radius:0 0 14px 14px;
+    padding:14px!important;
+    z-index:10;
+    flex-direction:column!important;
+    gap:4px!important;
+    box-shadow:0 12px 40px rgba(0,0,0,.6);
+    max-height:70vh;
+    overflow-y:auto;
   }
-  .cabinet-menu::-webkit-scrollbar{display:none}
+  .cabinet-menu.mob-open{display:flex!important}
   .cabinet-menu button{
-    flex:0 0 auto!important;
-    min-width:120px!important;
+    flex:none!important;
+    width:100%!important;
+    min-width:0!important;
+    text-align:left!important;
     white-space:nowrap;
+    height:42px!important;
+    font-size:13px!important;
   }
+  .cabinet-body{position:relative}
+  .cab-menu-toggle{
+    display:flex!important;
+    position:sticky;top:0;z-index:11;
+    align-items:center;gap:10px;
+    width:100%;height:48px;
+    background:#0b0d10;
+    border:none;border-bottom:1px solid #1e2128;
+    color:#fb923c;font-size:14px;font-weight:700;
+    padding:0 16px;cursor:pointer;
+    font-family:'DM Sans',Arial,sans-serif;
+  }
+  .cab-menu-toggle svg{width:20px;height:20px;flex:none}
 
   /* Səbət paneli tam bottom-sheet */
   .cart-panel{
@@ -2842,12 +2868,14 @@ button,input,select,textarea{max-width:100%}
   .toast{
     bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;
     left:12px!important;right:12px!important;max-width:calc(100vw - 24px)!important;
+    transform:none!important;
   }
 
-  /* Elan kartları — 2 sütun */
+  /* Elan kartları — 2 sütun, böyük şəkil */
   .ads{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0 10px 10px!important}
   .ad{grid-template-columns:1fr!important;padding:0!important}
-  .ad-banner{aspect-ratio:16/10}
+  .ad-banner{aspect-ratio:1/1!important;min-height:160px}
+  .ad-banner .ad-img svg{width:72px!important;height:72px!important}
   .ad-body{padding:10px!important}
 
   /* Bottom nav safe-area */
@@ -3201,6 +3229,10 @@ button,input,select,textarea{max-width:100%}
       <button class="hbtn" type="button" id="cabClose" onclick="closeModal('cabinetModal')">Bağla</button>
     </div>
     <div class="cabinet-body">
+      <button type="button" class="cab-menu-toggle" onclick="document.querySelector('.cabinet-menu').classList.toggle('mob-open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span id="cabMenuLabel">Menyu</span>
+      </button>
       <div class="cabinet-menu">
         <button type="button" class="active" data-tab="profile" onclick="showTab('profile')">Profil</button>
         <button type="button" data-tab="add" onclick="showTab('add')">Elan yerləşdir</button>
@@ -6014,14 +6046,19 @@ async function logoutUser(){
 
 window.showTab = function(tab){
   if(tab==="admin" && !isAdmin()){
-    // Adi istifadəçi admin tab-a heç bir yolla keçə bilməz (URL, JS, hash və s.).
-    // Body class-i də təzələ ki, mümkün rəqib halda tab görünməsin.
     syncAdminBodyClass();
     tab="profile";
   }
   const map={profile:"cabProfile",add:"cabAdd",ads:"cabAds",sales:"cabSales",purchases:"cabPurchases",messages:"cabMessages",saved:"cabSaved",wallet:"cabWallet",withdraw:"cabWithdraw",support:"cabSupport",admin:"cabAdmin"};
   Object.entries(map).forEach(([key,id])=>{ const el=document.getElementById(id); if(el) el.style.display=key===tab?"":"none"; });
   document.querySelectorAll(".cabinet-menu button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  // Mobil: dropdown-u bağla və label-i yenilə
+  var mobMenu=document.querySelector(".cabinet-menu");
+  if(mobMenu) mobMenu.classList.remove("mob-open");
+  var tabNames={profile:"Profil",add:"Elan yerləşdir",ads:"Elanlarım",sales:"Satışlarım",purchases:"Alışlarım",messages:"Mesajlar",saved:"Saxlanılanlar",wallet:"Balansım",withdraw:"Çıxarış",support:"Dəstək",admin:"Admin"};
+  var label=document.getElementById("cabMenuLabel");
+  if(label) label.textContent=tabNames[tab]||"Menyu";
+
   if(tab==="profile") renderProfile();
   if(tab==="ads") listenMyAds();
   if(tab==="wallet") renderWallet();
