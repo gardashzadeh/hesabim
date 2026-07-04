@@ -2637,6 +2637,7 @@ button,input,select,textarea{max-width:100%}
     gap:8px!important;
     padding:10px!important;
     scroll-snap-type:x mandatory;
+    -webkit-tap-highlight-color:transparent!important;
   }
   .games::-webkit-scrollbar{display:none}
   .game{
@@ -2645,9 +2646,15 @@ button,input,select,textarea{max-width:100%}
     scroll-snap-align:start;
     -webkit-tap-highlight-color:transparent!important;
     -webkit-touch-callout:none;
+    /* iOS GPU fix: kartlar scroll zamanı qara olmasın */
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+    will-change:transform;
   }
   .game:hover, .game:active, .game:focus{
-    transform:none!important;
+    transform:translateZ(0)!important;
     opacity:1!important;
     filter:none!important;
   }
@@ -2657,6 +2664,11 @@ button,input,select,textarea{max-width:100%}
     border-radius:10px!important;
     padding:0!important;
     overflow:hidden;
+    /* iOS GPU fix: şəkil qara görsənməsin */
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
+    filter:none!important;
+    background:#0f1115!important;
   }
   .game-img img, .game-img svg{
     width:100%!important;
@@ -3154,7 +3166,10 @@ button,input,select,textarea{max-width:100%}
 </div>
 
 <div class="cart-panel" id="cartPanel">
-  <h3 style="margin:0 0 8px">Səbət</h3>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 8px">
+    <h3 style="margin:0">Səbət</h3>
+    <button type="button" onclick="document.getElementById('cartPanel').classList.remove('show')" style="background:#1e2128;border:1px solid #2d3340;color:#9ca3af;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;padding:0;transition:all .15s" onmouseover="this.style.background='#2d3340';this.style.color='#fff'" onmouseout="this.style.background='#1e2128';this.style.color='#9ca3af'">✕</button>
+  </div>
   <div id="cartItems"></div>
   <div class="cart-total"><span>Cəmi</span><span id="cartTotal">0.00 ₼</span></div>
   <div id="couponStatus"></div>
