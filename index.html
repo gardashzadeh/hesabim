@@ -2342,15 +2342,7 @@ button.primary, .btn-primary,
 .seller-ad-card .ad-price{color:#fb923c;font-weight:700;font-size:15px}
 .report-btn{background:none;border:1px solid #334155;color:#64748b;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;transition:.2s}
 .report-btn:hover{border-color:#ef4444;color:#ef4444}
-.coupon-row{display:flex;gap:8px;margin-bottom:12px}
-.coupon-row input{flex:1}
-.coupon-row button{white-space:nowrap;padding:0 14px;background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s}
-.coupon-row button:hover{background:#2a3d5a}
-.coupon-applied{background:#0f2d1a;border:1px solid #22c55e;border-radius:8px;padding:8px 12px;font-size:13px;color:#22c55e;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.coupon-applied button{background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0}
-.admin-coupon-list{margin-top:12px}
-.admin-coupon-item{display:flex;justify-content:space-between;align-items:center;background:#0d1117;border:1px solid #1e2d45;border-radius:8px;padding:10px 14px;margin-bottom:6px;font-size:13px}
-.admin-coupon-item .code{font-weight:700;color:#fb923c;font-family:monospace;font-size:15px}
+/* coupon system removed */
 .seller-name-link{cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:.2s}
 .seller-name-link:hover{text-decoration-color:#fb923c;color:#fb923c}
 .pagination-hidden{display:none!important}
@@ -2390,13 +2382,13 @@ button,input,select,textarea{max-width:100%}
   .logo{justify-content:center!important;width:100%}
   .logo svg{width:135px!important;max-width:58vw!important}
   .toplinks{display:none!important}
-  .actions{order:3;width:100%;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px!important;align-items:center!important;justify-content:stretch!important}
+  .actions{order:2;width:100%;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px!important;align-items:center!important;justify-content:stretch!important}
   .actions .hbtn{width:100%;min-width:0;height:40px!important;padding:0 8px!important;font-size:11.5px!important;border-radius:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .actions .cart,.actions .notify-btn{width:100%!important;height:40px!important;border-radius:10px!important;font-size:18px!important}
   .actions .cart b,.actions .notify-btn b{right:4px!important;top:-6px!important}
 
   /* Search */
-  .search{order:2;width:100%!important;max-width:none!important;min-width:0!important;height:46px!important;border-radius:12px!important}
+  .search{order:3;width:100%!important;max-width:none!important;min-width:0!important;height:46px!important;border-radius:12px!important}
   .search input{font-size:16px!important;min-width:0;padding:0 12px!important}
   .search select{width:118px!important;font-size:13px!important;padding:0 6px!important}
   .search button{width:48px!important;flex:0 0 48px!important}
@@ -3216,11 +3208,6 @@ button,input,select,textarea{max-width:100%}
   </div>
   <div id="cartItems"></div>
   <div class="cart-total"><span>Cəmi</span><span id="cartTotal">0.00 ₼</span></div>
-  <div id="couponStatus"></div>
-  <div class="coupon-row">
-    <input id="couponInput" placeholder="Kupon kodu" style="text-transform:uppercase" maxlength="20">
-    <button onclick="applyCoupon()">Tətbiq et</button>
-  </div>
   <button class="fullbtn" onclick="checkoutCart()">Sifarişi Tamamla</button>
 </div>
 
@@ -3782,19 +3769,7 @@ button,input,select,textarea{max-width:100%}
 </div>
 
 <!-- ===== KUPON MODALI (admin yaradır) ===== -->
-<div class="modal" id="createCouponModal">
-  <div class="modal-box" style="max-width:400px">
-    <button class="modal-close" onclick="closeModal('createCouponModal')">✕</button>
-    <h3 style="margin-bottom:16px">Yeni kupon yarat</h3>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <input id="couponCode" placeholder="Kupon kodu (məs: YENI10)" style="text-transform:uppercase">
-      <input id="couponDiscount" type="number" min="1" max="100" placeholder="Endirim % (1-100)">
-      <input id="couponMaxUses" type="number" min="1" placeholder="Maksimum istifadə sayı">
-      <input id="couponExpiry" type="date" placeholder="Son istifadə tarixi">
-      <button class="fullbtn" type="button" onclick="createCoupon()">Kuponu yarat</button>
-    </div>
-  </div>
-</div>
+<!-- coupon modal removed -->
 
 <script>
 let cart = JSON.parse(localStorage.getItem("gs_cart") || "[]");
@@ -7204,11 +7179,7 @@ function adminShell(){
   <div id="adminCatFinance" class="admin-cat" style="display:none">
     <div id="adminBalanceRequests" class="admin-section"></div>
     <div id="adminPayouts" class="admin-section"></div>
-    <div id="adminCouponsSection" class="admin-section">
-      <h3>Kupon idarəsi</h3>
-      <button class="fullbtn" style="max-width:220px;margin-bottom:12px" onclick="openModal('createCouponModal')">+ Yeni kupon yarat</button>
-      <div id="adminCoupons"></div>
-    </div>
+    <!-- coupon admin removed -->
   </div>
   <div id="adminCatUsers" class="admin-cat" style="display:none">
     <div id="adminUsers" class="admin-section"></div>
@@ -8586,120 +8557,16 @@ window.resolveReport = async function(id){
 };
 
 // ============================================================
-// 3. KUPON / ENDİRİM SİSTEMİ
+// 3. KUPON SİSTEMİ LƏĞV EDİLDİ
 // ============================================================
-let activeCoupon = null; // {code, discount, id}
-
-window.applyCoupon = async function(){
-  const code = (document.getElementById("couponInput")?.value||"").trim().toUpperCase();
-  if(!code){ toast("Kupon kodu yaz."); return; }
-  if(!currentUser){ openModal("loginModal"); return; }
-  try{
-    const q = query(collection(db,"coupons"), where("code","==",code), where("active","==",true));
-    const snap = await getDocs(q);
-    if(snap.empty){ toast("Bu kupon kodu mövcud deyil və ya deaktivdir."); return; }
-    const couponDoc = snap.docs[0];
-    const c = couponDoc.data();
-    // Müddəti yoxla
-    if(c.expiry && new Date(c.expiry) < new Date()){ toast("Bu kuponun müddəti bitib."); return; }
-    // Maksimum istifadə yoxla
-    if(c.maxUses && (c.usedCount||0) >= c.maxUses){ toast("Bu kupon artıq maksimum sayda istifadə edilib."); return; }
-    activeCoupon = {code, discount: c.discount, id: couponDoc.id};
-    renderCouponStatus();
-    toast(`✓ ${code} kuponu tətbiq edildi — ${c.discount}% endirim`);
-  }catch(e){ console.error(e); toast("Kupon yoxlanmadı."); }
-};
-
-window.removeCoupon = function(){
-  activeCoupon = null;
-  renderCouponStatus();
-  const inp = document.getElementById("couponInput");
-  if(inp) inp.value = "";
-  toast("Kupon silindi.");
-};
-
-function renderCouponStatus(){
-  const el = document.getElementById("couponStatus");
-  if(!el) return;
-  if(activeCoupon){
-    el.innerHTML = `<div class="coupon-applied"><span>🏷️ <b>${esc(activeCoupon.code)}</b> — ${activeCoupon.discount}% endirim tətbiq edildi</span><button onclick="removeCoupon()">✕</button></div>`;
-  } else {
-    el.innerHTML = "";
-  }
-  // Məbləği yenilə
-  if(typeof updateCart === "function") updateCart();
-}
-
-// Kupon endirimi tətbiq et (cart-dan çağırılır)
-window.getCouponDiscount = function(total){
-  if(!activeCoupon || !total) return 0;
-  return Math.round(total * activeCoupon.discount / 100 * 100) / 100;
-};
-
-// Sifarişdə kuponu işlət (usedCount artır)
-async function useCoupon(){
-  if(!activeCoupon) return;
-  try{
-    await updateDoc(doc(db,"coupons",activeCoupon.id),{
-      usedCount: increment(1)
-    });
-  }catch(e){ console.warn("Kupon istifadə sayı artmadı:", e); }
-}
-
-// Admin: kupon yarat
-window.createCoupon = async function(){
-  if(!isAdmin()){ toast("Yalnız admin kupon yarada bilər."); return; }
-  const code = (document.getElementById("couponCode")?.value||"").trim().toUpperCase();
-  const discount = Number(document.getElementById("couponDiscount")?.value);
-  const maxUses = Number(document.getElementById("couponMaxUses")?.value) || 0;
-  const expiry = document.getElementById("couponExpiry")?.value || "";
-  if(!code || !discount || discount<1 || discount>100){ toast("Kodu və endirimi düzgün doldur."); return; }
-  try{
-    // Eyni kod varsa yoxla
-    const q = query(collection(db,"coupons"), where("code","==",code));
-    const exists = await getDocs(q);
-    if(!exists.empty){ toast("Bu kod artıq mövcuddur."); return; }
-    await addDoc(collection(db,"coupons"),{
-      code, discount, maxUses: maxUses||null, expiry: expiry||null,
-      active:true, usedCount:0, createdAt:serverTimestamp()
-    });
-    closeModal("createCouponModal");
-    toast(`✓ ${code} kuponu yaradıldı!`);
-    listenCouponsAdmin();
-  }catch(e){ console.error(e); toast("Kupon yaradılmadı."); }
-};
-
-// Admin: kuponları göstər
-window.listenCouponsAdmin = async function(){
-  const el = document.getElementById("adminCoupons");
-  if(!el || !isAdmin()) return;
-  try{
-    const snap = await getDocs(collection(db,"coupons"));
-    const coupons = [];
-    snap.forEach(d=>coupons.push({id:d.id,...d.data()}));
-    if(!coupons.length){ el.innerHTML='<div class="cabinet-empty">Kupon yoxdur.</div>'; return; }
-    el.innerHTML = `<div class="admin-coupon-list">${coupons.map(c=>`
-      <div class="admin-coupon-item">
-        <div><span class="code">${esc(c.code)}</span> <span style="color:#64748b;font-size:12px">— ${c.discount}% endirim</span><br>
-        <small style="color:#475569">İstifadə: ${c.usedCount||0}/${c.maxUses||"∞"} ${c.expiry?'· Son: '+c.expiry:""} ${c.active?'':'· <span style="color:#ef4444">Deaktiv</span>'}</small></div>
-        <div style="display:flex;gap:6px">
-          <button onclick="toggleCoupon('${c.id}',${!c.active})" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">${c.active?"Deaktiv et":"Aktiv et"}</button>
-          <button onclick="deleteCoupon('${c.id}')" style="background:#2d1515;border:1px solid #7f1d1d;color:#ef4444;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Sil</button>
-        </div>
-      </div>`).join("")}</div>`;
-  }catch(e){ el.innerHTML='<div class="cabinet-empty">Kuponlar yüklənmədi.</div>'; }
-};
-
-window.toggleCoupon = async function(id, active){
-  try{ await updateDoc(doc(db,"coupons",id),{active}); toast(active?"Aktiv edildi":"Deaktiv edildi"); listenCouponsAdmin(); }
-  catch(e){ toast("Xəta."); }
-};
-
-window.deleteCoupon = async function(id){
-  if(!await showConfirm("Bu kuponu silmək istəyirsiniz?", "🗑️")) return;
-  try{ await deleteDoc(doc(db,"coupons",id)); toast("Kupon silindi."); listenCouponsAdmin(); }
-  catch(e){ toast("Xəta."); }
-};
+let activeCoupon = null;
+window.applyCoupon = function(){};
+window.removeCoupon = function(){};
+window.getCouponDiscount = function(){ return 0; };
+window.createCoupon = function(){};
+window.listenCouponsAdmin = function(){};
+window.toggleCoupon = function(){};
+window.deleteCoupon = function(){};
 </script>
 
 <script>
