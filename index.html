@@ -2,7 +2,11 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d10">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2519,6 +2523,181 @@ button,input,select,textarea{max-width:100%}
   .ad{grid-template-columns:82px 1fr!important}
   .ad-img{width:82px!important;height:96px!important}
   .admin-stats,.stats-grid,.dashboard-stats{grid-template-columns:1fr!important}
+}
+
+/* =========================================================================
+   MOBİL VERSİYA — TAM SƏNAYE MÜDAFİƏSİ (son media query blokları)
+   Bütün yuxarıdakı media query-lərin ÜSTƏLİYİ üçün: horizontal overflow,
+   tap-target minimumu (44x44), form-input zoom fix (iOS 16px), tam-səhifə
+   elan detalları mobil rejim, sticky bottom nav ilə content spacing.
+   ========================================================================= */
+@media (max-width: 900px){
+  html, body{
+    max-width:100vw;
+    overflow-x:hidden;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
+  body{
+    /* iOS safe area + mobile bottom nav üçün alt boşluq */
+    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));
+  }
+  /* Bütün image və konteynerlərdə horizontal overflow qorunması */
+  img, video, iframe, canvas, svg{ max-width:100%; height:auto }
+  .shell, .main, .layout, .panel, .box, .modal-box, .cabinet-box, .product-detail-box{
+    max-width:100vw; box-sizing:border-box;
+  }
+
+  /* iOS Safari zoom-in ETMƏSİN: bütün input/select/textarea >= 16px */
+  input[type="text"],input[type="email"],input[type="password"],input[type="number"],
+  input[type="tel"],input[type="search"],input[type="url"],input[type="date"],
+  input:not([type]), select, textarea{
+    font-size:16px!important;
+    -webkit-appearance:none;
+    appearance:none;
+    border-radius:10px;
+  }
+
+  /* Tap-target minimumu — Apple/Google tövsiyəsi 44px */
+  button, .hbtn, .fullbtn, .cta, a.btn, .tab, .cabinet-menu button, .pd-action-btn{
+    min-height:44px;
+    touch-action:manipulation;
+  }
+
+  /* Elan detalları — tam mobil pəncərə */
+  #productModal{padding:0!important}
+  #productModal .product-detail-box{
+    width:100vw!important;
+    height:100vh!important;
+    height:100dvh!important;
+    max-height:100vh!important;
+    max-height:100dvh!important;
+    border-radius:0!important;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  }
+  #productModal .pd-grid-3col{
+    grid-template-columns:1fr!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  #productModal .pd-gallery-col{
+    border-right:0!important;
+    border-bottom:1px solid #161b24;
+    aspect-ratio:16/10;
+    min-height:220px;
+  }
+  #productModal .pd-gallery-col .product-detail-image{
+    min-height:220px!important;
+  }
+  #productModal .pd-gallery-col .product-detail-image svg,
+  #productModal .pd-gallery-col .product-detail-image img{
+    max-width:60vw!important;
+    max-height:180px!important;
+  }
+  #productModal .pd-seller-col{
+    border-left:0!important;
+    border-top:1px solid #161b24;
+    padding:14px!important;
+  }
+  #productModal .product-detail-info{padding:16px!important}
+  .pd-topbar{padding:10px 12px!important;gap:8px!important}
+  .pd-breadcrumb{font-size:11px!important}
+  .pd-benefits-strip{flex-wrap:wrap}
+  .pd-benefit{min-width:50%!important;flex-basis:50%!important;padding:12px 14px!important;font-size:11.5px!important}
+
+  /* Kabinet menyusu mobil — üfüqi kaydırma xəttinə çevir */
+  .cabinet-menu{
+    display:flex!important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    flex-wrap:nowrap!important;
+    gap:6px!important;
+  }
+  .cabinet-menu::-webkit-scrollbar{display:none}
+  .cabinet-menu button{
+    flex:0 0 auto!important;
+    min-width:120px!important;
+    white-space:nowrap;
+  }
+
+  /* Səbət paneli tam ekran */
+  .cart-panel{
+    left:0!important;right:0!important;
+    top:auto!important;bottom:0!important;
+    width:100vw!important;
+    max-width:100vw!important;
+    max-height:80vh!important;
+    border-radius:20px 20px 0 0!important;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  /* Modal-lar mobildə tam ekrana yaxın */
+  .modal{padding:0!important;align-items:flex-end!important}
+  .modal-box{
+    width:100vw!important;
+    max-width:100vw!important;
+    max-height:92vh!important;
+    border-radius:18px 18px 0 0!important;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  /* Cədvəllər overflow scroll ilə */
+  table:not(.no-mobile-scroll){
+    display:block;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    max-width:100%;
+  }
+
+  /* WhatsApp düyməsi bottom-nav ilə üst-üstə düşməsin */
+  .whats{bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}
+
+  /* Toast notify altdan tam görünsün */
+  .toast{
+    bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;
+    left:12px!important;right:12px!important;max-width:calc(100vw - 24px)!important;
+  }
+
+  /* Elan kartları — mobildə 2 sütun daha estetik */
+  .ads{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0 10px 10px!important}
+  .ad{grid-template-columns:1fr!important;padding:0!important}
+  .ad-banner{aspect-ratio:16/10}
+  .ad-body{padding:10px!important}
+
+  /* Səhifə başlığı stik olmasın (mobildə real estate az) */
+  .pd-topbar{position:sticky!important;top:0!important;z-index:5;background:#0a0c10}
+
+  /* Bottom nav-in özü — iOS safe-area */
+  .mobile-bottom-nav{
+    left:8px!important;right:8px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+  }
+}
+
+/* Çox kiçik ekranlar (iPhone SE və s.) */
+@media (max-width: 380px){
+  .ads{grid-template-columns:1fr!important}
+  .ad{grid-template-columns:82px 1fr!important;padding:9px!important}
+  .ad-banner{aspect-ratio:auto}
+  .pd-benefit{min-width:100%!important;flex-basis:100%!important}
+  .cabinet-menu button{min-width:105px!important;font-size:11.5px!important}
+  .hbtn{font-size:11px!important;padding:0 10px!important}
+  .header .shell{padding:8px 10px!important}
+  h1{font-size:20px!important}
+  h2{font-size:16px!important}
+  h3{font-size:14px!important}
+}
+
+/* Landscape / horizontal mobil — hero sıxılmasın */
+@media (max-width:900px) and (orientation:landscape){
+  .hero{min-height:120px!important;padding:14px 16px!important}
+  .hero-title h1{font-size:18px!important}
+  #productModal .pd-gallery-col{aspect-ratio:auto;min-height:180px}
 }
 </style>
 
