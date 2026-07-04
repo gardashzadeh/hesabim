@@ -2838,7 +2838,7 @@ button,input,select,textarea{max-width:100%}
   }
 
   /* WhatsApp və toast bottom-nav ilə üst-üstə düşməsin */
-  .whats{bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}
+  .whats{display:none!important}
   .toast{
     bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;
     left:12px!important;right:12px!important;max-width:calc(100vw - 24px)!important;
@@ -2906,8 +2906,8 @@ button,input,select,textarea{max-width:100%}
       if(t==='home') window.scrollTo({top:0,behavior:'smooth'});
       if(t==='cabinet') document.getElementById('cabinetBtn')?.click() || document.getElementById('loginBtn')?.click();
       if(t==='market'){
-        var bazarEl=document.getElementById('adsPanel') || document.querySelector('.panel');
-        if(bazarEl) bazarEl.scrollIntoView({behavior:'smooth',block:'start'});
+        var adsEl=document.getElementById('ads') || document.querySelector('.ads');
+        if(adsEl) adsEl.scrollIntoView({behavior:'smooth',block:'start'});
       }
       if(t==='cart'){
         var cartPanel=document.getElementById('cartPanel');
@@ -2915,10 +2915,7 @@ button,input,select,textarea{max-width:100%}
         else { document.getElementById('cartToggleBtn')?.click(); }
       }
       if(t==='support'){
-        // Kabineti aç → Dəstək tabına keç
-        var cabBtn=document.getElementById('cabinetBtn') || document.getElementById('loginBtn');
-        if(cabBtn) cabBtn.click();
-        setTimeout(function(){ if(typeof showTab==='function') showTab('support'); },300);
+        window.open('https://wa.me/994555707071?text=Salam%2C%20kömək%20lazımdır','_blank');
       }
     });
     // Səbətdəki say sayğacını sinxronlaşdır — mövcud .cart-badge və ya #cartCount-i izlə
@@ -3021,7 +3018,7 @@ button,input,select,textarea{max-width:100%}
     <div class="hero-bg-right" id="heroBgRight"></div>
     <div class="arr l" onclick="showToast('Əvvəlki slayd')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
     <div class="arr r" onclick="showToast('Növbəti slayd')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
-    <div class="hero-title"><h1>ƏN ETİBARLI <span>OYUNÇU BAZARI</span></h1><p>Minlərlə elan arasından istədiyini seç<br>Təhlükəsiz alış-verişin rahatlığını yaşa!</p></div>
+    <div class="hero-title"><h1>ƏN ETİBARLI <span>ELAN BAZARI</span></h1><p>Minlərlə elan arasından istədiyini seç<br>Təhlükəsiz alış-verişin rahatlığını yaşa!</p></div>
     <div class="hero-features">
       <div class="feature">
         <i>
@@ -3083,7 +3080,7 @@ button,input,select,textarea{max-width:100%}
 
 <section class="panel" style="margin-top:12px">
   <div class="panel-head">
-    <h2>OYUNÇU BAZARI</h2>
+    <h2>ELAN BAZARI</h2>
     <div class="panel-head-actions">
       <div class="sort-control">
         <label for="marketSort" class="sort-control-label">Sırala</label>
