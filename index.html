@@ -2796,7 +2796,7 @@ button,input,select,textarea{max-width:100%}
   .cabinet-menu{
     display:none!important;
     position:absolute;
-    top:0;left:0;right:0;
+    top:48px;left:0;right:0;
     background:#0b0d10;
     border-bottom:1px solid #1e2128;
     border-radius:0 0 14px 14px;
@@ -2805,7 +2805,7 @@ button,input,select,textarea{max-width:100%}
     flex-direction:column!important;
     gap:4px!important;
     box-shadow:0 12px 40px rgba(0,0,0,.6);
-    max-height:70vh;
+    max-height:60vh;
     overflow-y:auto;
   }
   .cabinet-menu.mob-open{display:flex!important}
@@ -2871,11 +2871,13 @@ button,input,select,textarea{max-width:100%}
     transform:none!important;
   }
 
-  /* Elan kartları — 2 sütun, böyük şəkil */
+  /* Elan kartları — 2 sütun */
   .ads{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0 10px 10px!important}
   .ad{grid-template-columns:1fr!important;padding:0!important}
-  .ad-banner{aspect-ratio:1/1!important;min-height:160px}
-  .ad-banner .ad-img svg{width:72px!important;height:72px!important}
+  .ad-banner{aspect-ratio:4/3!important;min-height:0}
+  .ad-banner .ad-img{padding:0!important}
+  .ad-banner .ad-img svg{width:64px!important;height:64px!important}
+  .ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important}
   .ad-body{padding:10px!important}
 
   /* Bottom nav safe-area */
