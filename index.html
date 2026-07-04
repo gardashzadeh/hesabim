@@ -364,10 +364,9 @@ button{background:none;border:none;font-family:inherit;padding:0}
   .search select{width:110px;font-size:16px;padding:0 6px}
   .search button{width:48px;font-size:20px}
   .toplinks{display:none}
-  .actions{justify-content:center;order:2;gap:8px;flex-wrap:wrap}
-  .hbtn{height:38px;padding:0 14px;font-size:12px}
-  .cart{width:42px;height:42px;font-size:20px}
-  .notify-btn{width:42px;height:42px;font-size:19px}
+  .actions{justify-content:space-between;order:2;gap:6px;flex-wrap:nowrap;width:100%}
+  .actions .hbtn{flex:1 1 0;min-width:0;height:40px;padding:0 6px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions .cart,.actions .notify-btn,.actions .theme-toggle{flex:0 0 40px;width:40px;height:40px;font-size:17px}
   .hero{height:auto;min-height:160px;padding:20px 16px}
   .hero-title{position:static;padding:0}
   .hero-title h1{font-size:22px;line-height:1.2}
@@ -2205,6 +2204,7 @@ button.primary, .btn-primary,
 
 /* Populyar Oyunlar — bir sıra (8 oyun) */
 .games-oneline{grid-template-columns:repeat(9,1fr) !important}
+.games-oneline .game-img{height:auto !important;aspect-ratio:3/4 !important;padding:0 !important;border-radius:0 !important}
 
 /* E-PİN + Bizi izləyin yan-yana */
 .epin-follow-row{
@@ -2385,9 +2385,9 @@ button,input,select,textarea{max-width:100%}
   .logo{justify-content:center!important;width:100%}
   .logo svg{width:135px!important;max-width:58vw!important}
   .toplinks{display:none!important}
-  .actions{order:3;width:100%;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px!important;align-items:center!important;justify-content:stretch!important}
-  .actions .hbtn{width:100%;min-width:0;height:40px!important;padding:0 8px!important;font-size:11.5px!important;border-radius:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .actions .cart,.actions .notify-btn{width:100%!important;height:40px!important;border-radius:10px!important;font-size:18px!important}
+  .actions{order:3;width:100%;display:flex!important;flex-wrap:nowrap!important;gap:6px!important;align-items:center!important;justify-content:space-between!important}
+  .actions .hbtn{flex:1 1 0;min-width:0;height:40px!important;padding:0 6px!important;font-size:11px!important;border-radius:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions .cart,.actions .notify-btn,.actions .theme-toggle{flex:0 0 40px!important;width:40px!important;height:40px!important;border-radius:10px!important;font-size:17px!important;display:grid!important;place-items:center!important;padding:0!important}
   .actions .cart b,.actions .notify-btn b{right:4px!important;top:-6px!important}
 
   /* Search */
@@ -2434,6 +2434,12 @@ button,input,select,textarea{max-width:100%}
   .game{padding:8px!important;border-radius:12px!important}
   .game-img{height:58px!important;padding:7px!important}
   .game b{font-size:11px!important;line-height:1.25!important}
+
+  /* Populyar Oyunlar (games-oneline) — real şəkillər üçün portret ölçü */
+  .games.games-oneline{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;padding:10px!important}
+  .games-oneline .game{padding:0!important;border-radius:12px!important;overflow:hidden!important}
+  .games-oneline .game-img{height:auto!important;aspect-ratio:3/4!important;padding:0!important;border-radius:0!important}
+  .games-oneline .game b{padding:8px 6px!important;font-size:11px!important}
   .epins{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;padding:10px!important}
   .epin-img{height:78px!important;padding:10px!important}
   .epin-body{padding:8px!important}.epin b{font-size:12px!important}.price{font-size:14px!important}
