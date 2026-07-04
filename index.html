@@ -5026,16 +5026,52 @@ async function ensureUserProfile(user, extra={}){
   const ref=doc(db,"users",user.uid);
   const snap=await getDoc(ref).catch(()=>null);
   if(!snap || !snap.exists()){
+    // Yeni istifadəçi — userId avtomatik yaradılır (email-in @ əvvəli)
+    let autoId = (email.split("@")[0] || "user").replace(/[^a-z0-9_]/g,"").slice(0,20) || "user";
+    if(autoId.length < 3) autoId = autoId + "_" + Math.random().toString(36).slice(2,6);
+    // Unikallığı yoxla — eyni ID varsa, sonuna rəqəm əlavə et
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        const candidate = attempt === 0 ? autoId : autoId + Math.floor(Math.random()*900+100);
+        const uSnap = await getDoc(doc(db,"usernames",candidate)).catch(()=>null);
+        if(!uSnap || !uSnap.exists() || uSnap.data()?.invalid){
+          autoId = candidate;
+          break;
+        }
+      }
+      // usernames kolleksiyasında rezerv et
+      await setDoc(doc(db,"usernames",autoId),{uid:user.uid, createdAt:serverTimestamp()}).catch(()=>{});
+    }catch(e){ console.warn("userId unikallıq yoxlaması:", e); }
+
     await setDoc(ref,{
       uid:user.uid,name:extra.name||"",surname:extra.surname||"",
       fullName:((extra.name||"")+" "+(extra.surname||"")).trim(),
       birthDate:extra.birthDate||"",email,
+      userId: autoId,
       role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
       createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     });
   }else{
     const d=snap.data()||{};
-    await setDoc(ref,{uid:user.uid,email,role:d.role || (ADMIN_EMAILS.includes(email) ? "admin" : "user"),updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+    // Mövcud istifadəçidə userId boşdursa (köhnə Google hesablar), avtomatik yarat
+    if(!d.userId){
+      let autoId = (email.split("@")[0] || "user").replace(/[^a-z0-9_]/g,"").slice(0,20) || "user";
+      if(autoId.length < 3) autoId = autoId + "_" + Math.random().toString(36).slice(2,6);
+      try{
+        for(let attempt=0; attempt<5; attempt++){
+          const candidate = attempt === 0 ? autoId : autoId + Math.floor(Math.random()*900+100);
+          const uSnap = await getDoc(doc(db,"usernames",candidate)).catch(()=>null);
+          if(!uSnap || !uSnap.exists() || uSnap.data()?.invalid){
+            autoId = candidate;
+            break;
+          }
+        }
+        await setDoc(doc(db,"usernames",autoId),{uid:user.uid, createdAt:serverTimestamp()}).catch(()=>{});
+      }catch(e){}
+      await setDoc(ref,{uid:user.uid,email,userId:autoId,role:d.role || (ADMIN_EMAILS.includes(email) ? "admin" : "user"),updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+    }else{
+      await setDoc(ref,{uid:user.uid,email,role:d.role || (ADMIN_EMAILS.includes(email) ? "admin" : "user"),updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+    }
   }
 }
 
@@ -6008,6 +6044,7 @@ async function renderProfile(){
   }
   el.innerHTML=`<h3>Profil ${isAdmin()?'<span class="admin-badge">ADMIN</span>':''}</h3>
     <table class="cabinet-table">
+      <tr><th>İstifadəçi ID</th><td>${esc(profile.userId || '-')}</td></tr>
       <tr><th>Ad</th><td>${esc(profile.name || '-')}</td></tr>
       <tr><th>Soyad</th><td>${esc(profile.surname || '-')}</td></tr>
       <tr><th>Doğum tarixi</th><td>${esc(profile.birthDate || '-')}</td></tr>
@@ -6016,6 +6053,8 @@ async function renderProfile(){
     </table>
     <h3>Profil redaktəsi</h3>
     <div class="profile-form">
+      <input id="profileUserId" value="${esc(profile.userId || '')}" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off" style="text-transform:lowercase" ${profile.userIdChanged ? 'disabled title="ID yalnız 1 dəfə dəyişdirilə bilər"' : ''}>
+      ${profile.userIdChanged ? '<small style="color:#64748b;font-size:11px;grid-column:1/-1;margin-top:-6px">🔒 ID artıq dəyişdirilib. Yalnız 1 dəfə dəyişmək mümkündür.</small>' : '<small style="color:#fb923c;font-size:11px;grid-column:1/-1;margin-top:-6px">⚠️ ID yalnız 1 dəfə dəyişdirilə bilər.</small>'}
       <input id="profileName" value="${esc(profile.name || '')}" placeholder="Ad">
       <input id="profileSurname" value="${esc(profile.surname || '')}" placeholder="Soyad">
       <input class="full" id="profileBirthDate" type="date" value="${esc(profile.birthDate || '')}">
@@ -6041,11 +6080,41 @@ window.updateProfileInfo = async function(){
   const name=document.getElementById("profileName")?.value.trim() || "";
   const surname=document.getElementById("profileSurname")?.value.trim() || "";
   const birthDate=document.getElementById("profileBirthDate")?.value || "";
+  const newUserId=(document.getElementById("profileUserId")?.value.trim() || "").toLowerCase();
   if(!name || !surname || !birthDate){ toast("Ad, soyad və doğum tarixi boş qalmasın."); return; }
+  if(!newUserId){ toast("İstifadəçi ID boş qalmasın."); return; }
+  if(!/^[a-z0-9_]{3,20}$/.test(newUserId)){ toast("ID yalnız kiçik hərf, rəqəm və _ ola bilər (3-20 simvol)."); return; }
+  const reserved = ['admin','administrator','support','destek','moderator','mod','root','system','hesablar','hesablarnet','official'];
+  if(reserved.includes(newUserId)){ toast("Bu ID rezerv olunub, başqa ID seç."); return; }
+
   try{
-    await setDoc(doc(db,"users",currentUser.uid),{uid:currentUser.uid,name,surname,fullName:(name+" "+surname).trim(),birthDate,email:currentUser.email,role: ADMIN_EMAILS.includes(currentUser.email) ? "admin" : "user",updatedAt:serverTimestamp()},{merge:true});
+    // Mövcud userId-ni oxu
+    const userSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
+    const oldUserId = (userSnap && userSnap.exists() && userSnap.data()?.userId) || "";
+
+    // userId dəyişibsə — unikallığı yoxla və köhnəni sil
+    if(newUserId !== oldUserId){
+      // Yalnız 1 dəfə dəyişmək olar
+      if(userSnap && userSnap.exists() && userSnap.data()?.userIdChanged){
+        toast("ID artıq dəyişdirilib. Yalnız 1 dəfə dəyişmək mümkündür."); return;
+      }
+      const uSnap = await getDoc(doc(db,"usernames",newUserId)).catch(()=>null);
+      if(uSnap && uSnap.exists() && !uSnap.data()?.invalid && uSnap.data()?.uid !== currentUser.uid){
+        toast("Bu ID artıq götürülüb. Başqa ID seç."); return;
+      }
+      // Yeni ID-ni rezerv et
+      await setDoc(doc(db,"usernames",newUserId),{uid:currentUser.uid, createdAt:serverTimestamp()});
+      // Köhnə ID-ni azad et
+      if(oldUserId){
+        try{ await deleteDoc(doc(db,"usernames",oldUserId)); }catch(e){
+          try{ await setDoc(doc(db,"usernames",oldUserId),{uid:"",invalid:true}); }catch(e2){}
+        }
+      }
+    }
+
+    await setDoc(doc(db,"users",currentUser.uid),{uid:currentUser.uid,name,surname,fullName:(name+" "+surname).trim(),birthDate,userId:newUserId,email:currentUser.email,role: ADMIN_EMAILS.includes(currentUser.email) ? "admin" : "user",updatedAt:serverTimestamp(), ...(newUserId !== oldUserId ? {userIdChanged:true} : {})},{merge:true});
     toast("Profil yeniləndi"); renderProfile();
-  }catch(e){ console.error(e); toast("Profil yenilənmədi."); }
+  }catch(e){ console.error(e); toast("Profil yenilənmədi: " + (e.message || e.code || "")); }
 }
 window.changePasswordFromCabinet = async function(){
   await refreshUser();
