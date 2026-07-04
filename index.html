@@ -466,6 +466,10 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .cabinet-menu{background:#0b0c0c;border-right:1px solid #292b2b;padding:14px}
 .cabinet-menu button{width:100%;height:42px;margin-bottom:6px;background:#151616;border:1px solid #2d2f2f;color:#c8ccd0;border-radius:8px;font-weight:400;font-size:13px;letter-spacing:.4px;text-align:left;padding:0 12px;cursor:pointer;display:block;font-family:'DM Sans',Arial,sans-serif;transition:.16s ease}
 .cabinet-menu button.active{background:linear-gradient(#ff7a18,#ff5a00);border:0}
+/* Admin tab — yalnız <body class="is-admin"> olduqda görünür. CSS-lə möhkəm gizlədilir ki, hansısa
+   JS budağı style-i sıfırlasa belə, adi istifadəçilər üçün ASLA görünməsin. */
+#adminTabBtn{display:none!important}
+body.is-admin #adminTabBtn{display:block!important}
 .cabinet-content{padding:16px}
 .cabinet-form input,.cabinet-form select,.cabinet-form textarea{width:100%;background:#0c0d0d;border:1px solid #333636;border-radius:8px;color:#e8eaed;padding:11px 14px;margin:6px 0 10px;outline:0;font-family:'DM Sans',Arial,sans-serif;font-size:13.5px;font-weight:400;letter-spacing:.2px;line-height:1.5}
 .cabinet-form textarea{height:90px;resize:vertical}
@@ -4697,15 +4701,21 @@ let currentUser = null;
 let currentUserRole = "user"; // Firestore-dan cache-lənir, isAdmin() bunu istifadə edir
 
 async function loadCurrentUserRole(){
-  if(!currentUser){ currentUserRole="user"; return; }
+  if(!currentUser){ currentUserRole="user"; syncAdminBodyClass(); return; }
   try{
     const snap=await getDoc(doc(db,"users",currentUser.uid));
     currentUserRole=(snap.exists()&&snap.data()?.role)||"user";
   }catch(e){ currentUserRole="user"; }
-  // Admin tab düyməsi rol yüklənən kimi sinxronlaşır — qeyri-adminlərdə heç vaxt görünmür
-  const _at=document.getElementById("adminTabBtn");
-  if(_at) _at.style.display = (currentUserRole==="admin") ? "" : "none";
+  syncAdminBodyClass();
 }
+
+// body.is-admin class — CSS admin tab-ı yalnız bu class olduqda göstərir.
+// İnline style manipulyasiyasından etibarlıdır — hansısa JS budağı unudulsa belə,
+// adi istifadəçi üçün admin tab CSS !important ilə gizli qalır.
+function syncAdminBodyClass(){
+  try{ document.body.classList.toggle("is-admin", currentUser && currentUserRole === "admin"); }catch(e){}
+}
+window.syncAdminBodyClass = syncAdminBodyClass;
 
 
 /* ONLINE STATUS SYSTEM - 1 dəqiqə yenilənmə */
@@ -5559,6 +5569,7 @@ async function logoutUser(){
   await signOut(auth);
   currentUser=null;
   currentUserRole="user";
+  syncAdminBodyClass();
   // Köhnə hesabın real-time listener-lərini dayandır — yoxsa yeni hesabda
   // əvvəlki istifadəçinin mesajları/yazışmaları görünə bilər
   if(typeof stopChatListeners === "function") stopChatListeners();
@@ -5584,7 +5595,12 @@ async function logoutUser(){
 }
 
 window.showTab = function(tab){
-  if(tab==="admin" && !isAdmin()) tab="profile"; // qeyri-adminlər üçün admin tabı mövcud deyil
+  if(tab==="admin" && !isAdmin()){
+    // Adi istifadəçi admin tab-a heç bir yolla keçə bilməz (URL, JS, hash və s.).
+    // Body class-i də təzələ ki, mümkün rəqib halda tab görünməsin.
+    syncAdminBodyClass();
+    tab="profile";
+  }
   const map={profile:"cabProfile",add:"cabAdd",ads:"cabAds",sales:"cabSales",purchases:"cabPurchases",messages:"cabMessages",saved:"cabSaved",wallet:"cabWallet",withdraw:"cabWithdraw",support:"cabSupport",admin:"cabAdmin"};
   Object.entries(map).forEach(([key,id])=>{ const el=document.getElementById(id); if(el) el.style.display=key===tab?"":"none"; });
   document.querySelectorAll(".cabinet-menu button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
@@ -5671,8 +5687,7 @@ async function openCabinet(){
     return;
   }
   if(await blockGuard("Kabinet")) return;
-  const adminTab=document.getElementById("adminTabBtn");
-  if(adminTab) adminTab.style.display=isAdmin()?"":"none";
+  syncAdminBodyClass();
   document.getElementById("cabinetModal")?.classList.add("show");
   window.showTab("profile");
 }
@@ -7899,6 +7914,7 @@ onAuthStateChanged(auth, async user=>{
   } else {
     currentUserRole="user";
   }
+  syncAdminBodyClass();
   updateHeader();
   listenHeaderNotifications();
   wire();
