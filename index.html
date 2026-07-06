@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#050607">
 <meta name="google-site-verification" content="CwGPVwg9UIEmTCgYJUozyCwaRJrhLuTn_40naXAws5E" />
-<title>Hesablar.net - Oyun Hesabı, Skin və Balans Alışı</title>
+<title>GameSatış Azərbaycan - Oyun Hesabı, Skin və Balans Alışı</title>
 
 <!-- SEO -->
 <meta name="description" content="Azərbaycanda ən etibarlı oyun marketplace-i. PUBG Mobile, Valorant, Free Fire hesab, skin, oyun pulu, gift card alıb-satın. Təhlükəsiz ödəniş, sürətli çatdırılma.">
@@ -19,15 +19,15 @@
 <!-- Open Graph (Facebook, WhatsApp, Telegram) -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hesabim.pages.dev/">
-<meta property="og:title" content="Hesablar.net - Oyun Hesabı, Skin və Balans Alışı">
+<meta property="og:title" content="GameSatış Azərbaycan - Oyun Hesabı, Skin və Balans Alışı">
 <meta property="og:description" content="Azərbaycanda ən etibarlı oyun marketplace-i. PUBG, Valorant, Free Fire hesab, skin, gift card — Təhlükəsiz alış-veriş.">
 <meta property="og:image" content="https://hesabim.pages.dev/og-image.png">
 <meta property="og:locale" content="az_AZ">
-<meta property="og:site_name" content="Hesablar.net">
+<meta property="og:site_name" content="GameSatış Azərbaycan">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Hesablar.net - Oyun Hesabı Satışı">
+<meta name="twitter:title" content="GameSatış Azərbaycan - Oyun Hesabı Satışı">
 <meta name="twitter:description" content="PUBG, Valorant, Free Fire hesab, skin, gift card — Azərbaycanda etibarlı oyun marketplace.">
 <meta name="twitter:image" content="https://hesabim.pages.dev/og-image.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -175,9 +175,29 @@ button{background:none;border:none;font-family:inherit;padding:0}
 @media(min-width:900px){.ads{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1400px){.ads{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:1800px){.ads{grid-template-columns:repeat(4,1fr)}}
-.ad{background:#181919;border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:11px;border:1px solid transparent;transition:border-color 0.2s}
+.ad{background:#0e1218;border-radius:13px;border:1px solid #1a1f27;transition:.2s cubic-bezier(.2,0,.1,1);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left}
+.ad:hover{border-color:#fb923c44;transform:translateY(-3px);box-shadow:0 16px 32px -10px rgba(0,0,0,.4)}
+.ad-banner{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;background:#0a0c10}
+.ad-banner .ad-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:0}
+.ad-banner .ad-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ad-banner .ad-img svg{width:56px;height:56px}
+.ad-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ad-seller-row{display:flex;align-items:center;gap:8px}
+.ad-seller-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex:none}
+.ad-seller-name{font-size:12px;color:#cbd5e1;font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-seller-name:hover{color:#fb923c}
+.ad-title{font-size:13px;font-weight:700;color:#f1f5f9;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ad-desc{font-size:11.5px;color:#64748b;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.ad-price-row{display:flex;align-items:center;gap:6px;margin-top:2px}
+.ad-cart-btn{margin-left:auto;width:34px;height:34px;border-radius:8px;background:#fb923c;display:flex;align-items:center;justify-content:center;flex:none;transition:.15s}
+.ad-cart-btn svg{width:16px;height:16px;stroke:#fff}
+.ad-cart-btn:hover{background:#ea580c;transform:scale(1.06)}
+.ad-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px;border-top:1px solid #161b24}
+.ad-views{font-size:11px;color:#64748b}
+.ad-seller-link{font-size:11px;color:#fb923c;font-weight:600;cursor:pointer}
+.ad-seller-link:hover{text-decoration:underline}
 .ad:hover{border-color:var(--orange)}
-.ad-img{width:64px;height:72px;border-radius:6px;background:radial-gradient(circle,#2a1a0e,#0c0d0d 90%);display:grid;place-items:center;padding:6px}
+.ad-img{border-radius:6px;background:radial-gradient(circle,#2a1a0e,#0c0d0d 90%);display:grid;place-items:center;padding:6px}
 /* Kateqoriyaya görə brand uyğun ad-img fonları */
 .ad-img[data-cat="Hesab"]            {background:radial-gradient(circle at 60% 40%,#1e1000,#080400)}
 .ad-img[data-cat="Skin"]             {background:radial-gradient(circle at 60% 40%,#150d24,#060210)}
@@ -249,11 +269,11 @@ button{background:none;border:none;font-family:inherit;padding:0}
   .epin-img{height:80px}
   .epin b{font-size:12px}
   .epin small,.epin .price,.epin .old{font-size:12px}
-  .ads{grid-template-columns:1fr;gap:10px;padding:0 10px 10px}
-  .ad{grid-template-columns:56px 1fr;gap:8px;padding:9px}
-  .ad-img{width:56px;height:64px}
-  .ad b{font-size:12px}
-  .ad p{font-size:12px;margin:3px 0}
+  .ads{grid-template-columns:repeat(2,1fr);gap:8px;padding:0 10px 10px}
+  .ad-banner{aspect-ratio:4/3}
+  .ad-body{padding:10px 12px 12px}
+  .ad-title{font-size:12px}
+  .ad-desc{font-size:11px}
   .panel-head{padding:0 10px}
   .panel h2{font-size:14px;font-weight:900}
   .tabs{padding:10px;gap:6px}
@@ -804,14 +824,14 @@ body{
   box-shadow:0 16px 32px -10px rgba(0,0,0,.4),0 0 0 1px rgba(251,146,60,.06);
 }
 
-.game b,.epin b,.ad b,.seller b{
+.game b,.epin b,.seller b{
   font-size:12.5px;
   font-weight:600;
   color:#e2e8f0;
   letter-spacing:0;
 }
 
-.game-img,.epin-img,.ad-img{
+.game-img,.epin-img{
   border-radius:10px;
 }
 
@@ -1427,8 +1447,11 @@ body.light-mode .sort-select{
 }
 body.light-mode .sort-select:hover,body.light-mode .sort-select:focus{border-color:#e55a00;color:#1a1d23}
 body.light-mode .ad{background:#f8fafc;border:1px solid #dde1e7}
-body.light-mode .ad b{color:#1a1d23}
-body.light-mode .ad p{color:#5a6272}
+body.light-mode .ad-title{color:#1a1d23}
+body.light-mode .ad-desc{color:#5a6272}
+body.light-mode .ad-footer{border-top-color:#e2e8f0}
+body.light-mode .ad-views{color:#5a6272}
+body.light-mode .ad-banner{background:#f0f2f5}
 body.light-mode .ad-img{background:radial-gradient(circle,#ffe8d0,#f0f2f5 90%)}
 body.light-mode .ad:hover{border-color:#e55a00;box-shadow:0 8px 24px rgba(0,0,0,.1)}
 body.light-mode .aprice,body.light-mode .price{color:#e55a00!important}
@@ -1862,7 +1885,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
         <div class="ficon" style="background:#5865F2">
           <svg viewBox="0 0 24 24" width="22" height="22"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.094 13.094 0 01-1.873-.894.077.077 0 01-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 01.077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 01.078.009c.12.099.246.195.373.289a.075.075 0 01-.006.127 12.298 12.298 0 01-1.873.894.077.077 0 01-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03a.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z"/></svg>
         </div>
-        <div><b>Discord</b><br><small>Hesablar.net</small></div>
+        <div><b>Discord</b><br><small>GameSatış AZ</small></div>
         <button onclick="window.open('https://discord.com', '_blank')">Qoşul</button>
       </div>
     </section>
@@ -2357,7 +2380,7 @@ body.light-mode .theme-toggle:hover{border-color:#e55a00}
         </div>
         <div class="seller-card-body">
           <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-            <span class="seller-card-name" id="pdSeller">Hesablar.net</span>
+            <span class="seller-card-name" id="pdSeller">GameSatış</span>
             <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
           </div>
           <div class="seller-card-meta">
@@ -2630,7 +2653,7 @@ const baseAds=[
 ];
 
 const sellers=[
-  [`<svg viewBox="0 0 24 24" style="width:24px" fill="#ffa04c"><circle cx="12" cy="12" r="10"/></svg>`,"Hesablar.net","100%","0 satış"],
+  [`<svg viewBox="0 0 24 24" style="width:24px" fill="#ffa04c"><circle cx="12" cy="12" r="10"/></svg>`,"GameSatış","100%","0 satış"],
   [`<svg viewBox="0 0 24 24" style="width:24px" fill="#20c45a"><circle cx="12" cy="12" r="10"/></svg>`,"Yeni satıcılar","100%","0 satış"]
 ];
 
@@ -2781,14 +2804,14 @@ function render(){
 
   if(gamesEl) {
     gamesEl.innerHTML=games.map(x=>`
-      <button class="game searchable" data-game="${x[4]||''}" data-category="Oyun" onclick="openProductDetail({title:'${x[1]}',price:'Elanlara bax',category:'${x[3]}',desc:'${x[2]}',seller:'Hesablar.net',icon:x[0]})">
+      <button class="game searchable" data-game="${x[4]||''}" data-category="Oyun" onclick="openProductDetail({title:'${x[1]}',price:'Elanlara bax',category:'${x[3]}',desc:'${x[2]}',seller:'GameSatış',icon:x[0]})">
         <div class="game-img" data-game="${x[4]||''}">${x[0]}</div><b>${safeText(x[1])}</b>
       </button>`).join("");
   }
 
   if(epinsEl) {
     epinsEl.innerHTML=epins.map(x=>`
-      <button class="epin searchable" data-category="Gift Card & E-Pin" onclick="openProductDetail({title:'${x[1]}',price:x[2],category:'Gift Card & E-Pin',desc:'Rəqəmsal kod. Ödənişdən sonra çatdırılır.',seller:'Hesablar.net',icon:x[0]})">
+      <button class="epin searchable" data-category="Gift Card & E-Pin" onclick="openProductDetail({title:'${x[1]}',price:x[2],category:'Gift Card & E-Pin',desc:'Rəqəmsal kod. Ödənişdən sonra çatdırılır.',seller:'GameSatış',icon:x[0]})">
         <div class="epin-img">${x[0]}</div>
         <div class="epin-body"><b>${safeText(x[1])}</b><div class="price">${safeText(x[2])}</div><div class="old">${safeText(x[3])}</div></div>
       </button>`).join("");
@@ -2820,7 +2843,7 @@ window.renderMarketAds = function renderMarketAds(){
     priceValue: Number(a.price || 0),
     originalPrice: Number(a.originalPrice || 0),
     createdAtMs: a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds*1000 : 0),
-    seller:safeText(a.sellerUid==="B4BLhevMihY5FE8WRv1tk1DuHNm2" ? "hesablar.net" : (a.sellerUserId || (a.sellerEmail ? a.sellerEmail.split('@')[0] : "Satıcı"))),
+    seller:safeText(a.sellerUserId || (a.sellerEmail ? a.sellerEmail.split('@')[0] : "Satıcı")),
     category:safeText(a.category || "Hesab"),
     platform:safeText(a.platform || ""),
     region:safeText(a.region || ""),
@@ -2903,16 +2926,14 @@ window.renderMarketAds = function renderMarketAds(){
   }
   adsEl.innerHTML=combined.map(function(a){
     try {
-      var tagsHtml = "";
       var oldHtml = a.originalPrice > 0
-        ? '<div class="old" style="font-size:11px;text-decoration:line-through;color:#6b7280;">'+Number(a.originalPrice).toFixed(2)+' ₼</div>'
+        ? '<span style="font-size:11px;text-decoration:line-through;color:#6b7280;margin-left:6px;">'+Number(a.originalPrice).toFixed(2)+' ₼</span>'
         : "";
-      var waHtml = "";
-      var aprvHtml = "";
       var tagsB64 = safeB64(a.tags||[]);
       var imgsB64 = safeB64(a.imageUrls||[]);
-      // Atribut daxilindəki dırnaqları təhlükəsizləşdir
       function attr(v){ return String(v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+      var sellerInitial = (a.seller||"S").charAt(0).toUpperCase();
+      var onlineBadge = window.getAdOnlineHomeHtml ? window.getAdOnlineHomeHtml(a) : '';
       return '<button class="ad searchable" '
         + 'data-category="'+attr(a.category)+'" '
         + 'data-title="'+attr(a.title)+'" '
@@ -2935,22 +2956,30 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-tags="'+tagsB64+'" '
         + 'data-imgs="'+imgsB64+'" '
         + 'onclick="window._openAdDetail(this)">'
-        + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+safeIcon(a.icon)+'</div>'
-        + '<div style="text-align:left;width:100%">'
-          + '<b>'+a.title+'</b>'
-          + '<p>'+a.desc+'</p>'
-          + '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">'
-            + '<div class="aprice">'+a.price+'</div>'
-            + oldHtml
+        + '<div class="ad-banner"><div class="ad-img" data-cat="'+attr(a.category)+'">'+safeIcon(a.icon)+'</div></div>'
+        + '<div class="ad-body">'
+          + '<div class="ad-seller-row">'
+            + '<span class="ad-seller-avatar" style="background:#'+((a.sellerUid||a.seller||'x').charCodeAt(0)%6<3?'ea580c':'1e40af')+'">'+sellerInitial+'</span>'
+            + '<b class="ad-seller-name" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+(a.seller||'Satıcı')+'</b>'
+            + onlineBadge
           + '</div>'
-          + tagsHtml
-          + '<div class="ad-views">&#128065; '+formatViewsCount(a.views)+' baxış</div>'
-          + '<div class="user" data-wa-html="'+attr(waHtml)+'" data-aprv-html="'+attr(aprvHtml)+'"><span class="seller-name-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+a.seller+'</span>'+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
+          + '<div class="ad-title">'+(a.title||'Elan')+'</div>'
+          + '<div class="ad-desc">'+(a.desc||'')+'</div>'
+          + '<div class="ad-price-row">'
+            + '<span class="aprice">'+(a.price||'0.00 ₼')+'</span>'
+            + oldHtml
+            + '<span class="ad-cart-btn" onclick="event.stopPropagation();window.addToCartFromCard&&window.addToCartFromCard(this)" title="Səbətə əlavə et">'
+              + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>'
+            + '</span>'
+          + '</div>'
+          + '<div class="ad-footer">'
+            + '<span class="ad-views">👁 '+formatViewsCount(a.views)+' baxış</span>'
+            + '<span class="ad-seller-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+(a.seller||'Satıcı')+'</span>'
+          + '</div>'
         + '</div>'
         + '</button>';
     } catch(e) {
-      console.warn('Ad render xətası:', a.adId, e);
-      return ''; // xətalı elanı atla, digərləri görünsün
+      return '';
     }
   }).join("");
 
@@ -2970,10 +2999,10 @@ function openProductDetail(p){
 
   // Dinamik SEO — məhsul açılanda meta tagları yenilə
   try{
-    const _t = currentDetailProduct.title || "Hesablar.net";
+    const _t = currentDetailProduct.title || "GameSatış Azərbaycan";
     const _d = (currentDetailProduct.desc||"").slice(0,155) || "Azərbaycanda etibarlı oyun marketplace-i.";
     const _img = currentDetailProduct.imageUrl || "https://hesabim.pages.dev/og-image.png";
-    document.title = _t + " | Hesablar.net";
+    document.title = _t + " | GameSatış Azərbaycan";
     const setMeta = (sel, val) => { const el = document.querySelector(sel); if(el) el.setAttribute("content", val); };
     setMeta('meta[name="description"]', _d);
     setMeta('meta[property="og:title"]', _t);
@@ -3007,12 +3036,12 @@ function openProductDetail(p){
   updateProductDetailSellerBadge();
   const sellerIconEl = document.getElementById("pdSellerIcon");
   if(sellerIconEl){
-    const sellerName = currentDetailProduct.seller || "Hesablar.net";
+    const sellerName = currentDetailProduct.seller || "GameSatış";
     sellerIconEl.textContent = sellerName.trim().slice(0,1).toUpperCase() || "G";
   }
   const sellerSalesEl = document.getElementById("pdSellerSales");
   if(sellerSalesEl){
-    const sellerKey = currentDetailProduct.sellerEmail || currentDetailProduct.seller || "Hesablar.net";
+    const sellerKey = currentDetailProduct.sellerEmail || currentDetailProduct.seller || "GameSatış";
     const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
     sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
   }
@@ -3157,7 +3186,7 @@ async function saveCurrentProduct(){
       price:p.price || "0.00 ₼",
       category:p.category || "",
       desc:p.desc || "",
-      seller:p.seller || "Hesablar.net",
+      seller:p.seller || "GameSatış",
       icon:p.icon || "",
       adId:p.adId || "",
       sellerUid:p.sellerUid || "",
@@ -3628,7 +3657,7 @@ function getSellerVerifiedBadgeHtml(size=20){
 function updateProductDetailSellerBadge(){
   const pdSellerEl = document.getElementById("pdSeller");
   if(!pdSellerEl || !window.currentDetailProduct) return;
-  const sellerName = window.currentDetailProduct.seller || "Hesablar.net";
+  const sellerName = window.currentDetailProduct.seller || "GameSatış";
   const isVerified = getSellerVerifiedFromCache(window.currentDetailProduct.sellerUid||"", window.currentDetailProduct.sellerEmail||"", !!window.currentDetailProduct.sellerVerified);
   const verBadge = isVerified ? getSellerVerifiedBadgeHtml(20) : '';
   pdSellerEl.innerHTML = esc(sellerName) + verBadge;
@@ -3827,7 +3856,7 @@ function productReviewKey(p){
 }
 function productReviewKeys(p){
   const keys = [productReviewKey(p)];
-  const legacyRaw = String((p && (p.adId || ((p.title || "") + "_" + (p.sellerEmail || p.seller || "Hesablar.net")))) || "product");
+  const legacyRaw = String((p && (p.adId || ((p.title || "") + "_" + (p.sellerEmail || p.seller || "GameSatış")))) || "product");
   const legacyKey = legacyRaw.toLowerCase().replace(/[^a-z0-9\u0259\u0131\u00f6\u00fc\u011f\u015f\u00e7]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,120) || "product";
   if(legacyKey && !keys.includes(legacyKey)) keys.push(legacyKey);
   return keys.slice(0,10);
@@ -4017,7 +4046,7 @@ window.saveCurrentProductToAccount = async function(){
     price: p.price || "0.00 ₼",
     category: p.category || "",
     desc: p.desc || "",
-    seller: p.seller || "Hesablar.net",
+    seller: p.seller || "GameSatış",
     icon: p.icon || "",
     adId: p.adId || "",
     sellerUid: p.sellerUid || "",
@@ -4586,7 +4615,7 @@ window.submitAd = async function(){
     const editingId = submitBtn?.dataset?.editingId || "";
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
     const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
-    const sellerUserId = isAdmin() ? "hesablar.net" : ((sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "");
+    const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
     // Çatdırılma üsulu və hesab məlumatları
     const deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
@@ -4728,7 +4757,7 @@ window.createOrdersFromCart = async function(items){
         priceText: item.price||"",
         adId: item.adId||"",
         sellerUid: item.sellerUid || adData?.sellerUid || "",
-        sellerEmail: item.sellerEmail || adData?.sellerEmail || "Hesablar.net",
+        sellerEmail: item.sellerEmail || adData?.sellerEmail || "GameSatış",
         buyerUid: currentUser.uid,
         buyerEmail: currentUser.email,
         status: "Aktiv",
@@ -5084,9 +5113,9 @@ window.showLocalNotification = showLocalNotification;
 // ============================================================
 window.shareCurrentProduct = async function(){
   const p = window.currentDetailProduct || {};
-  const title = p.title || "Hesablar.net";
+  const title = p.title || "GameSatış Azərbaycan";
   const price = p.price || "";
-  const text = `${title} — ${price}\nHesablar.net-da bax!`;
+  const text = `${title} — ${price}\nGameSatış Azərbaycan-da bax!`;
   const url = window.location.href;
 
   if(navigator.share){
@@ -5111,7 +5140,7 @@ window.shareCurrentProduct = async function(){
 function notifyNewMessage(chatTitle, messageText){
   if(document.hasFocus()) return; // Sayt aktiv olarsa bildiriş göstərmə
   showLocalNotification(
-    "📩 Yeni mesaj — " + (chatTitle||"Hesablar.net"),
+    "📩 Yeni mesaj — " + (chatTitle||"GameSatış"),
     messageText || "Yeni mesajınız var",
   );
 }
@@ -5649,7 +5678,7 @@ function drawSavedItems(items){
       <div class="saved-img">${safeIcon(x.icon)}</div>
       <div>
         <b>${esc(x.title || "Məhsul")}</b>
-        <p>${esc(x.category || "Kateqoriya")} • ${esc(x.seller || "Hesablar.net")}</p>
+        <p>${esc(x.category || "Kateqoriya")} • ${esc(x.seller || "GameSatış")}</p>
         <strong style="color:#fb923c">${esc(x.price || "0.00 ₼")}</strong>
       </div>
       <div class="saved-actions">
@@ -5857,7 +5886,7 @@ function listenPurchases(){
         btns = `<span style="color:#ef4444;font-size:12px">Ləğv edildi</span>`;
       }
       const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Sən':'○ Sən'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
-      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.sellerEmail||'Hesablar.net')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
+      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.sellerEmail||'GameSatış')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
     }).join('')+'</tbody></table>';
     el.querySelectorAll("[data-buyer-confirm]").forEach(b=>b.onclick=async()=>{
       if(!await showConfirm("Məhsulu aldığınızı və problem olmadığını təsdiqləyirsiniz?", "✅")) return;
@@ -6125,7 +6154,7 @@ function listenSellerStats(){
     const counts={}; // {sellerEmail: {count, sellerUid}}
     snap.forEach(d=>{
       const o=d.data();
-      const seller=o.sellerEmail || "Hesablar.net";
+      const seller=o.sellerEmail || "GameSatış";
       if(!counts[seller]) counts[seller]={count:0, sellerUid:o.sellerUid||""};
       counts[seller].count++;
     });
@@ -6290,7 +6319,7 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
       const uSnap = await getDoc(doc(db,"users",sellerUid)).catch(()=>null);
       if(uSnap && uSnap.exists()) profile = uSnap.data();
     }
-    const displayName = (profile.role === "admin") ? "hesablar.net" : (profile.userId || (sellerEmail||"").split("@")[0] || "Satıcı");
+    const displayName = profile.userId || (sellerEmail||"").split("@")[0] || "Satıcı";
     const initial = displayName.charAt(0).toUpperCase();
     const joinDate = profile.createdAt ? new Date(profile.createdAt.seconds*1000).toLocaleDateString("az-AZ",{year:"numeric",month:"long"}) : "";
     const isVerified = !!profile.sellerVerified;
