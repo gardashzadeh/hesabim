@@ -6860,6 +6860,7 @@ window.createOrdersFromCart = async function(items){
 
     await ensureWallet(currentUser.uid, currentUser.email);
 
+    let _balanceDeducted = false; // Sifariş yaratmaq alınmasa geri qaytarmaq üçün
 
     // Transaction: yalnız alıcının öz wallet-indən çıx
 
@@ -6877,6 +6878,8 @@ window.createOrdersFromCart = async function(items){
         updatedAt: serverTimestamp()
       },{merge:true});
     });
+    _balanceDeducted = true;
+    window.__lastDeductedAmount = total; // catch üçün
 
     // Qeyd: admin-in qazancı orders kolleksiyasından hesablanır,
     // ayrıca admin wallet-inə yazmağa ehtiyac yoxdur.
@@ -7003,6 +7006,7 @@ window.createOrdersFromCart = async function(items){
     }
 
     cart=[]; localStorage.setItem("gs_cart",JSON.stringify(cart)); updateCart();
+    window.__lastDeductedAmount = 0;
     toast("✅ Sifariş yaradıldı! Sifarişlərim bölməsini yoxla.");
     // Telegram bildirişi — hər yeni sifariş
     const orderSummary = items.map(i=>`• ${i.name} — ${i.price} ₼`).join("\n");
@@ -7011,8 +7015,29 @@ window.createOrdersFromCart = async function(items){
     window.showTab("purchases");
   }catch(e){
     console.error("[createOrdersFromCart] XƏTA:", e.code, e.message, e);
-    if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); }
-    else toast("Sifariş yaradılmadı: " + (e.code||e.message||""));
+    if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
+    // Balans çıxıbsa amma sifariş yaradılmayıbsa — geri qaytar
+    const refundAmount = Number(window.__lastDeductedAmount || 0);
+    if(refundAmount > 0){
+      try{
+        await runTransaction(db, async (tx)=>{
+          const wSnap = await tx.get(buyerRef);
+          const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
+          tx.set(buyerRef,{
+            balance: Number(w.balance||0) + refundAmount,
+            totalSpent: Math.max(0, Number(w.totalSpent||0) - refundAmount),
+            updatedAt: serverTimestamp()
+          },{merge:true});
+        });
+        window.__lastDeductedAmount = 0;
+        toast("Sifariş yaradılmadı: " + (e.code||e.message||"") + ". Pulun geri qaytarıldı.");
+      }catch(refundErr){
+        console.error("Refund xətası:", refundErr);
+        toast("KRİTİK: Sifariş yaradılmadı və pul geri qaytarılmadı! Adminə yaz: " + refundAmount.toFixed(2) + " ₼");
+      }
+    } else {
+      toast("Sifariş yaradılmadı: " + (e.code||e.message||""));
+    }
   }
 }
 
