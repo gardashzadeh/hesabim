@@ -3313,11 +3313,25 @@ button,input,select,textarea{max-width:100%}
       <input id="regUserId" type="text" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off">
       <small id="regUserIdHint" style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Yalnız hərf, rəqəm və alt xətt (_) — elanlarınızda bu ID görünəcək</small>
       <input id="regEmail" type="email" placeholder="Email" autocomplete="email">
+      <input id="regPhone" type="tel" placeholder="Telefon (+994551234567)" autocomplete="tel" inputmode="tel">
+      <small style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Ölkə kodu ilə: +994... — SMS ilə təsdiq olunacaq</small>
       <input id="regPassword" type="password" placeholder="Şifrə (minimum 6 simvol)">
       <input id="regPassword2" type="password" placeholder="Şifrəni təkrar et">
       <div class="modal-actions">
         <button class="hbtn" type="button" onclick="closeModal('loginModal')">Bağla</button>
         <button class="hbtn orange" type="button" id="firebaseRegisterBtn">Qeydiyyatdan keç</button>
+      </div>
+    </div>
+
+    <div id="regPhoneStep" class="auth-step">
+      <p style="margin:4px 0 10px;font-size:13px;color:#94a3b8">
+        Emailinizə təsdiq linki göndərildi. İndi telefon nömrənizə göndərilən 6 rəqəmli SMS kodu daxil edin.
+      </p>
+      <input id="regPhoneCode" type="text" placeholder="SMS kod (6 rəqəm)" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+      <div id="reg-recaptcha-container"></div>
+      <div class="modal-actions">
+        <button class="hbtn" type="button" id="resendRegPhoneCodeBtn">Kodu yenidən göndər</button>
+        <button class="hbtn orange" type="button" id="confirmRegPhoneBtn">Təsdiqlə</button>
       </div>
     </div>
 
@@ -5192,6 +5206,7 @@ import {
   getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  linkWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -6160,6 +6175,7 @@ async function registerUser(){
   const birthDate=document.getElementById("regBirthDate")?.value || "";
   const userId=document.getElementById("regUserId")?.value.trim().toLowerCase() || "";
   const email=document.getElementById("regEmail").value.trim().toLowerCase();
+  const phone=document.getElementById("regPhone")?.value.trim().replace(/\s+/g,"") || "";
   const pass=document.getElementById("regPassword").value.trim();
   const pass2=document.getElementById("regPassword2").value.trim();
   if(!name){authStatus("Ad yaz.");return}
@@ -6168,6 +6184,7 @@ async function registerUser(){
   if(!userId){authStatus("İstifadəçi ID yaz.");return}
   if(!/^[a-z0-9_]{3,20}$/.test(userId)){authStatus("ID yalnız kiçik hərf, rəqəm və alt xətt (_) ola bilər, 3-20 simvol.");return}
   if(!validEmail(email)){authStatus("Düzgün email yaz.");return}
+  if(!/^\+\d{10,15}$/.test(phone)){authStatus("Telefonu ölkə kodu ilə yaz: +994551234567");return}
   if(pass.length<6){authStatus("Şifrə minimum 6 simvol olmalıdır.");return}
   if(pass!==pass2){authStatus("Şifrələr eyni deyil.");return}
 
@@ -6206,17 +6223,39 @@ async function registerUser(){
         birthDate,
         userId,
         email,
+        phoneNumber: phone,
+        phoneVerified: false,
         role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
         createdAt:serverTimestamp(),
         updatedAt:serverTimestamp()
       });
       await ensureWallet(cred.user.uid,email);
       await sendEmailVerification(cred.user);
-      await signOut(auth);
+
+      // === Telefon nömrəsinə SMS kod göndər (hesaba link edilir) ===
+      try{
+        if(window.regRecaptchaVerifier){
+          try{ window.regRecaptchaVerifier.clear(); }catch(_){}
+          window.regRecaptchaVerifier = null;
+        }
+        window.regRecaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha-container", {size:"invisible"});
+        window._regPhoneConfirmation = await linkWithPhoneNumber(cred.user, phone, window.regRecaptchaVerifier);
+        window._regPendingUid = cred.user.uid;
+
+        // Qeydiyyat formundan telefon təsdiq addımına keç
+        document.getElementById("registerStep")?.classList.remove("active");
+        document.getElementById("loginStep")?.classList.remove("active");
+        document.getElementById("regPhoneStep")?.classList.add("active");
+        authStatus("SMS kod göndərildi. Emailinizi də təsdiqləyin.");
+      }catch(smsErr){
+        console.error("SMS göndərmə xətası:", smsErr);
+        // Hesabı silmirik — istifadəçi sonra kodu yenidən istəyə bilər. Sadəcə çıxış edirik.
+        await signOut(auth).catch(()=>{});
+        currentUser = null;
+        updateHeader();
+        authStatus("Hesab yaradıldı və emailinizə link göndərildi, lakin SMS göndərilə bilmədi: " + (smsErr.code || smsErr.message) + ". Girişdən sonra telefonu təsdiqləyəcəksiniz.");
+      }
       window._isRegistering = false;
-      currentUser=null;
-      updateHeader();
-      authStatus("Qeydiyyat tamamlandı. Təsdiq linki emailinizə göndərildi.");
     }catch(fsErr){
       // Firestore yazması uğursuz oldu — hər şeyi geri al
       console.error("Qeydiyyat rollback:", fsErr);
@@ -6369,6 +6408,69 @@ async function verifyPhoneCode(){
   }catch(e){
     console.error(e);
     authStatus("SMS kod yanlışdır.");
+  }
+}
+
+// === Qeydiyyat zamanı telefon SMS kodunu təsdiqlə ===
+async function confirmRegPhoneCode(){
+  const code = document.getElementById("regPhoneCode")?.value.trim() || "";
+  if(!/^\d{6}$/.test(code)){ authStatus("6 rəqəmli SMS kodu yaz."); return; }
+  if(!window._regPhoneConfirmation){ authStatus("SMS kod göndərilməyib."); return; }
+  try{
+    const result = await window._regPhoneConfirmation.confirm(code);
+    const uid = result.user.uid;
+    // Firestore-da phoneVerified = true
+    try{
+      await setDoc(doc(db,"users",uid),{
+        phoneVerified:true,
+        phoneNumber: result.user.phoneNumber || null,
+        updatedAt: serverTimestamp()
+      },{merge:true});
+    }catch(e){ console.error("phoneVerified yazıla bilmədi:", e); }
+
+    // Təmizlik
+    window._regPhoneConfirmation = null;
+    window._regPendingUid = null;
+    if(window.regRecaptchaVerifier){
+      try{ window.regRecaptchaVerifier.clear(); }catch(_){}
+      window.regRecaptchaVerifier = null;
+    }
+
+    // İndi çıxış — istifadəçi emaildəki linki tıqlayıb girməlidir
+    await signOut(auth).catch(()=>{});
+    currentUser = null;
+    updateHeader();
+    document.getElementById("regPhoneStep")?.classList.remove("active");
+    document.getElementById("loginStep")?.classList.add("active");
+    document.getElementById("loginTabBtn")?.classList.add("active");
+    document.getElementById("registerTabBtn")?.classList.remove("active");
+    toast("Telefon təsdiqləndi! İndi email linkini açıb təsdiqləyin, sonra giriş edin.");
+    authStatus("Telefon təsdiqləndi. Email linkini də təsdiqlədikdən sonra giriş edə bilərsiniz.");
+  }catch(e){
+    console.error(e);
+    authStatus("SMS kod yanlışdır və ya vaxtı keçib: " + (e.code || e.message));
+  }
+}
+
+// === Qeydiyyat zamanı SMS kodu yenidən göndər ===
+async function resendRegPhoneCode(){
+  const user = auth.currentUser;
+  if(!user){ authStatus("Sessiya bitib. Yenidən qeydiyyatdan keçin."); return; }
+  try{
+    if(window.regRecaptchaVerifier){
+      try{ window.regRecaptchaVerifier.clear(); }catch(_){}
+      window.regRecaptchaVerifier = null;
+    }
+    window.regRecaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha-container", {size:"invisible"});
+    // Firestore-dan telefon nömrəsini götür
+    const snap = await getDoc(doc(db,"users",user.uid));
+    const phone = snap.exists() ? snap.data()?.phoneNumber : null;
+    if(!phone){ authStatus("Telefon nömrəsi tapılmadı."); return; }
+    window._regPhoneConfirmation = await linkWithPhoneNumber(user, phone, window.regRecaptchaVerifier);
+    authStatus("Yeni SMS kod göndərildi.");
+  }catch(e){
+    console.error(e);
+    authStatus("SMS göndərilə bilmədi: " + (e.code || e.message));
   }
 }
 
@@ -8771,6 +8873,8 @@ function wire(){
   document.getElementById("emailLoginTabBtn")?.addEventListener("click",showEmailLogin);
   document.getElementById("sendPhoneCodeBtn")?.addEventListener("click",sendPhoneCode);
   document.getElementById("verifyPhoneCodeBtn")?.addEventListener("click",verifyPhoneCode);
+  document.getElementById("confirmRegPhoneBtn")?.addEventListener("click",confirmRegPhoneCode);
+  document.getElementById("resendRegPhoneCodeBtn")?.addEventListener("click",resendRegPhoneCode);
   document.getElementById("adGame")?.addEventListener("change", updateAdGameCustomVisibility);
   document.getElementById("adCategory")?.addEventListener("change", syncAdFormToCategory);
   updateAdGameCustomVisibility();
