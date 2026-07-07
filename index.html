@@ -499,6 +499,43 @@ body.is-admin #adminTabBtn{display:block!important}
 .status.sold{background:#13233d;color:#70a7ff}
 .status.rejected{background:#421616;color:#ff6b6b}
 .cabinet-empty{color:#6b7280;font-size:13px;padding:16px;border:1px dashed #2a2d2d;border-radius:10px;letter-spacing:.2px;font-weight:400;line-height:1.6;text-align:center}
+/* ===== SATIŞLARIM — Statistika, filtr, top məhsullar ===== */
+.sales-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sales-header h3{margin:0}
+.sales-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.sales-stat-card{background:linear-gradient(135deg,#11151d,#0c0f15);border:1px solid #1c2330;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;transition:.16s ease}
+.sales-stat-card:hover{border-color:#fb923c44;transform:translateY(-1px)}
+.sales-stat-label{font-size:10.5px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.sales-stat-value{font-size:19px;color:#f1f5f9;font-weight:800;letter-spacing:.2px;line-height:1.2}
+.sales-stat-sub{font-size:10.5px;color:#475569;line-height:1.4}
+.sales-top-products{background:#0e1219;border:1px solid #1c2330;border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.sales-top-title-row{font-size:11px;color:#94a3b8;letter-spacing:.6px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.sales-top-list{display:flex;flex-direction:column;gap:6px}
+.sales-top-item{display:flex;align-items:center;gap:10px;padding:7px 10px;background:#11151d;border-radius:7px;border:1px solid transparent}
+.sales-top-item:hover{border-color:#1c2330}
+.sales-top-rank{width:22px;height:22px;background:linear-gradient(135deg,#fb923c,#c94800);border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff;flex:none}
+.sales-top-name{flex:1;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.sales-top-count{font-size:12px;color:#fb923c;font-weight:700;flex:none;background:#1a1105;padding:2px 8px;border-radius:10px}
+.sales-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sales-actions-row button{padding:9px 14px;font-size:12.5px;font-weight:600;border-radius:8px;border:1px solid #2d3648;background:#151b25;color:#c8ccd0;cursor:pointer;font-family:inherit;transition:.15s ease}
+.sales-actions-row button:hover{border-color:#fb923c;color:#fb923c}
+.sales-actions-row button.primary{background:linear-gradient(#ff7a18,#ff5a00);border:0;color:#fff}
+.sales-actions-row button.primary:hover{color:#fff;filter:brightness(1.1)}
+.sales-filter-row{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px;margin-bottom:12px}
+.sales-filter-input{background:#0c0d0d;border:1px solid #333636;border-radius:8px;color:#e8eaed;padding:9px 12px;font-family:inherit;font-size:13px;outline:0;transition:.15s ease}
+.sales-filter-input:focus{border-color:#fb923c}
+@media(max-width:640px){
+  .sales-filter-row{grid-template-columns:1fr}
+  .sales-stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .sales-stat-value{font-size:16px}
+}
+body.light-mode .sales-stat-card{background:linear-gradient(135deg,#fff,#f8fafc);border:1px solid #dde1e7}
+body.light-mode .sales-stat-value{color:#1a1d23}
+body.light-mode .sales-top-products{background:#fff;border-color:#dde1e7}
+body.light-mode .sales-top-item{background:#f5f7fa}
+body.light-mode .sales-top-name{color:#1a1d23}
+body.light-mode .sales-filter-input{background:#fff;border-color:#dde1e7;color:#1a1d23}
+body.light-mode .sales-actions-row button{background:#fff;border-color:#dde1e7;color:#1a1d23}
 @media(max-width:800px){.cabinet-body{grid-template-columns:1fr}.cabinet-menu{border-right:0;border-bottom:1px solid #292b2b}}
 
 .auth-tabs{display:flex;gap:8px;margin:10px 0 12px}
@@ -8430,44 +8467,260 @@ async function disputeOrder(id){
   }catch(e){ console.error(e); toast("Mübahisə açılmadı."); }
 }
 
+// ===== SATIŞLARIM — GENİŞLƏNDİRİLMİŞ (statistika, filtr, top məhsullar, CSV) =====
+let unsubSales = null;
+window._salesData = { orders: [], filter: {status:'all', dateRange:'all', search:''} };
+
+function computeSalesStats(orders){
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()/1000;
+  const last30Start = (Date.now() - 30*24*3600*1000)/1000;
+  const stats = {
+    totalCount: orders.length,
+    totalRevenue: 0, thisMonthRevenue: 0, last30Revenue: 0,
+    activeCount: 0, completedCount: 0, disputedCount: 0,
+    pendingPayout: 0, paidOut: 0, avgOrder: 0,
+    topProducts: [], uniqueBuyers: 0
+  };
+  const productCount = {};
+  const buyerSet = new Set();
+  let revenueCount = 0;
+  orders.forEach(o=>{
+    const price = Number(o.price||0);
+    const net = price * 0.95; // 5% komissiya sonra
+    const ts = o.createdAt?.seconds || 0;
+    const cancelled = o.status === "Ləğv edildi" || o.status === "Rədd edildi";
+    if(!cancelled){
+      stats.totalRevenue += net;
+      revenueCount++;
+      if(ts*1000 >= thisMonthStart*1000) stats.thisMonthRevenue += net;
+      if(ts >= last30Start) stats.last30Revenue += net;
+    }
+    if(o.status === "Aktiv") stats.activeCount++;
+    else if(o.status === "Tamamlandı") stats.completedCount++;
+    else if(o.status === "Mübahisə") stats.disputedCount++;
+    if(o.payoutRequested && !o.payoutDone) stats.pendingPayout += net;
+    if(o.payoutDone) stats.paidOut += net;
+    if(o.productTitle) productCount[o.productTitle] = (productCount[o.productTitle]||0) + 1;
+    if(o.buyerUid) buyerSet.add(o.buyerUid);
+  });
+  stats.avgOrder = revenueCount > 0 ? stats.totalRevenue / revenueCount : 0;
+  stats.uniqueBuyers = buyerSet.size;
+  stats.topProducts = Object.entries(productCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  return stats;
+}
+
+function applySalesFilter(orders, f){
+  let arr = orders;
+  if(f.status && f.status !== 'all') arr = arr.filter(o => (o.status||'') === f.status);
+  if(f.dateRange && f.dateRange !== 'all'){
+    let cutoff = 0;
+    const nowSec = Date.now()/1000;
+    if(f.dateRange === 'week') cutoff = nowSec - 7*24*3600;
+    else if(f.dateRange === 'month') cutoff = nowSec - 30*24*3600;
+    else if(f.dateRange === '3months') cutoff = nowSec - 90*24*3600;
+    arr = arr.filter(o => (o.createdAt?.seconds||0) >= cutoff);
+  }
+  if(f.search && f.search.trim()){
+    const s = f.search.trim().toLowerCase();
+    arr = arr.filter(o =>
+      (o.productTitle||"").toLowerCase().includes(s) ||
+      (o.buyerEmail||"").toLowerCase().includes(s) ||
+      (o.category||"").toLowerCase().includes(s)
+    );
+  }
+  return arr;
+}
+
+window.exportSalesCSV = function(){
+  const orders = (window._salesData?.orders) || [];
+  if(!orders.length){ toast("İxrac üçün satış yoxdur."); return; }
+  const headers = ["Tarix","Məhsul","Kateqoriya","Alıcı email","Qiymət (₼)","Komissiya (₼)","Xalis (₼)","Status","Ödəniş"];
+  const rows = orders.map(o=>{
+    const date = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('az-AZ') : "";
+    const price = Number(o.price||0);
+    const commission = (price*0.05).toFixed(2);
+    const net = (price*0.95).toFixed(2);
+    const payout = o.payoutDone ? "Ödənilib" : (o.payoutRequested ? "Tələb edilib" : "-");
+    return [date, o.productTitle||"", o.category||"", o.buyerEmail||"", price.toFixed(2), commission, net, o.status||"", payout];
+  });
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  // BOM əlavə edirik ki, Excel Azərbaycan hərflərini düzgün oxusun
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `satislarim_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 100);
+  toast("CSV yükləndi");
+}
+
+window.renderSales = function(){
+  const el = document.getElementById("cabSales");
+  if(!el) return;
+  const {orders, filter} = window._salesData;
+  const stats = computeSalesStats(orders);
+  const filtered = applySalesFilter(orders, filter);
+  const fmt = n => `${Number(n||0).toFixed(2)} ₼`;
+
+  const statsHtml = `
+    <div class="sales-stats-grid">
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Ümumi satış</span>
+        <b class="sales-stat-value">${stats.totalCount}</b>
+        <small class="sales-stat-sub">${stats.completedCount} tamamlanmış</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Ümumi qazanc</span>
+        <b class="sales-stat-value">${fmt(stats.totalRevenue)}</b>
+        <small class="sales-stat-sub">5% komissiyadan sonra</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Bu ay</span>
+        <b class="sales-stat-value" style="color:#22c55e">${fmt(stats.thisMonthRevenue)}</b>
+        <small class="sales-stat-sub">Son 30 gün: ${fmt(stats.last30Revenue)}</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Aktiv sifariş</span>
+        <b class="sales-stat-value" style="color:#fb923c">${stats.activeCount}</b>
+        <small class="sales-stat-sub">${stats.disputedCount>0?stats.disputedCount+' mübahisə':'Mübahisə yox'}</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Gözləyən ödəniş</span>
+        <b class="sales-stat-value" style="color:#38bdf8">${fmt(stats.pendingPayout)}</b>
+        <small class="sales-stat-sub">Ödənilib: ${fmt(stats.paidOut)}</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Orta satış</span>
+        <b class="sales-stat-value">${fmt(stats.avgOrder)}</b>
+        <small class="sales-stat-sub">${stats.uniqueBuyers} unikal alıcı</small>
+      </div>
+    </div>`;
+
+  const topHtml = stats.topProducts.length ? `
+    <div class="sales-top-products">
+      <div class="sales-top-title-row">🏆 Ən çox satılan məhsullar</div>
+      <div class="sales-top-list">
+        ${stats.topProducts.map((p,i)=>`
+          <div class="sales-top-item">
+            <span class="sales-top-rank">${i+1}</span>
+            <span class="sales-top-name">${esc(p[0])}</span>
+            <span class="sales-top-count">${p[1]} satış</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const actionsHtml = `
+    <div class="sales-actions-row">
+      <button type="button" class="primary" onclick="showTab('withdraw')">💰 Çıxarış müraciəti</button>
+      <button type="button" onclick="exportSalesCSV()">📥 CSV ixrac</button>
+      <button type="button" onclick="renderSales()">🔄 Yenilə</button>
+    </div>`;
+
+  const filterHtml = `
+    <div class="sales-filter-row">
+      <select id="salesFilterStatus" class="sales-filter-input">
+        <option value="all">Bütün statuslar</option>
+        <option value="Aktiv">Aktiv</option>
+        <option value="Tamamlandı">Tamamlandı</option>
+        <option value="Mübahisə">Mübahisə</option>
+        <option value="Ləğv edildi">Ləğv edildi</option>
+      </select>
+      <select id="salesFilterDate" class="sales-filter-input">
+        <option value="all">Bütün vaxt</option>
+        <option value="week">Son 7 gün</option>
+        <option value="month">Son 30 gün</option>
+        <option value="3months">Son 3 ay</option>
+      </select>
+      <input id="salesFilterSearch" class="sales-filter-input" placeholder="🔍 Məhsul, alıcı və ya kateqoriya üzrə axtar" value="${esc(filter.search||'')}">
+    </div>`;
+
+  const tableHtml = filtered.length ? `
+    <table class="cabinet-table">
+      <thead>
+        <tr><th>Tarix</th><th>Məhsul</th><th>Alıcı</th><th>Qiymət / Xalis</th><th>Status</th><th>Əməliyyat</th></tr>
+      </thead>
+      <tbody>
+        ${filtered.map(o=>{
+          const both = o.buyerConfirmed && o.sellerConfirmed;
+          const price = Number(o.price||0);
+          const net = (price*0.95).toFixed(2);
+          const commission = (price*0.05).toFixed(2);
+          const date = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'short',year:'2-digit'}) : '-';
+          let btns = '';
+          if(o.deliveryType==="trade" && o.status==="Aktiv"){
+            if(o.tradeInfo) btns += `<small style="color:#38bdf8;display:block;margin-bottom:4px">🔗 Alıcı trade: ${esc(String(o.tradeInfo).slice(0,44))}</small>`;
+            else btns += `<small style="color:#64748b;display:block;margin-bottom:4px">⏳ Alıcının trade linki gözlənilir</small>`;
+          }
+          if(o.status==="Aktiv"){
+            if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
+            else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
+            if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+            if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+            if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+            if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
+              btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
+            }
+          } else if(o.status==="Tamamlandı"){
+            if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+            else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+            else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+          }
+          const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
+          return `<tr>
+            <td><small style="color:#94a3b8">${date}</small></td>
+            <td><b>${esc(o.productTitle||'-')}</b><br>${confirmedInfo}</td>
+            <td><small>${esc(o.buyerEmail||'-')}</small></td>
+            <td><b>${price.toFixed(2)} ₼</b><br><small style="color:#22c55e">Xalis: ${net} ₼</small><br><small style="color:#64748b">Komissiya: ${commission} ₼</small></td>
+            <td>${statusHtml(o.status)}</td>
+            <td><div class="order-actions">${btns}</div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>` : `<div class="cabinet-empty">${orders.length ? '🔍 Filtrə uyğun satış tapılmadı. Filtri dəyişin.' : '📦 Hələ satış yoxdur. Elan yerləşdirin və ilk satışınızı gözləyin!'}</div>`;
+
+  el.innerHTML = `
+    <div class="sales-header">
+      <h3>Satışlarım</h3>
+      <small style="color:#64748b">Ümumi ${orders.length} sifariş • Göstərilir: ${filtered.length}</small>
+    </div>
+    ${statsHtml}
+    ${topHtml}
+    ${actionsHtml}
+    ${filterHtml}
+    ${tableHtml}`;
+
+  // Sifariş əməliyyat düymələri
+  el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
+  el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
+
+  // Filtr handler-ləri
+  const statusSel = document.getElementById("salesFilterStatus");
+  const dateSel = document.getElementById("salesFilterDate");
+  const searchIn = document.getElementById("salesFilterSearch");
+  if(statusSel){ statusSel.value = filter.status||'all'; statusSel.onchange = ()=>{ window._salesData.filter.status = statusSel.value; renderSales(); }; }
+  if(dateSel){ dateSel.value = filter.dateRange||'all'; dateSel.onchange = ()=>{ window._salesData.filter.dateRange = dateSel.value; renderSales(); }; }
+  if(searchIn){
+    searchIn.oninput = ()=>{
+      clearTimeout(window._salesSearchTimer);
+      window._salesSearchTimer = setTimeout(()=>{
+        window._salesData.filter.search = searchIn.value;
+        renderSales();
+      }, 250);
+    };
+  }
+}
+
 function listenSales(){
   const el=document.getElementById("cabSales"); if(!el || !currentUser) return;
+  if(unsubSales){ try{ unsubSales(); }catch(_){} unsubSales=null; }
   const q=query(collection(db,"orders"),where("sellerUid","==",currentUser.uid));
-  onSnapshot(q,snap=>{
+  unsubSales = onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    if(!arr.length){ el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Hələ satış yoxdur.</div>'; return; }
-    el.innerHTML='<h3>Satışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
-      const both = o.buyerConfirmed && o.sellerConfirmed;
-      let btns = '';
-      // SKIN (trade) — satıcıya alıcının trade linkini göstər
-      if(o.deliveryType==="trade" && o.status==="Aktiv"){
-        if(o.tradeInfo){
-          btns += `<small style="color:#38bdf8;display:block;margin-bottom:4px">🔗 Alıcı trade: ${esc(String(o.tradeInfo).slice(0,44))}</small>`;
-        } else {
-          btns += `<small style="color:#64748b;display:block;margin-bottom:4px">⏳ Alıcının trade linki gözlənilir</small>`;
-        }
-      }
-      if(o.status==="Aktiv"){
-        if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
-        else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
-        if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
-        if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
-        if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
-        // Sosial media hold məlumatı
-        if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
-          btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
-        }
-      } else if(o.status==="Tamamlandı"){
-        if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
-        else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
-        else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
-      }
-      const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
-      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.buyerEmail||'-')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
-    }).join('')+'</tbody></table>';
-    el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
-    el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
-  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
+    window._salesData.orders = arr;
+    renderSales();
+  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi. Firestore Rules yoxla.</div>'; });
 }
 
 function listenPurchases(){
