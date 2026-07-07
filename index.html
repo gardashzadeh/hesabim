@@ -6838,8 +6838,8 @@ window.submitAd = async function(){
     }
 
   }catch(e){
-    console.error("submitAd error:", e);
-    toast("⚠️ Elan göndərilmədi: " + (e.message || String(e)));
+    console.error("submitAd error:", e, e && e.stack);
+    toast("⚠️ Elan göndərilmədi: " + (e.message || String(e)) + " [detallar konsolda]");
   }finally{
     if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; delete submitBtn.dataset.editingId; }
   }
