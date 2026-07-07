@@ -2,6 +2,14 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
+<!-- Performance: Preconnect to external origins -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
+<link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+<link rel="dns-prefetch" href="https://securetoken.googleapis.com">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d10'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='900' fill='%23fb923c' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E">
@@ -2983,6 +2991,17 @@ button,input,select,textarea{max-width:100%}
 })();
 </script>
 
+
+<script>
+// Production console suppression - errors qalır, log/warn/info susur
+(function(){
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    ['log','warn','info','debug','trace'].forEach(function(m){
+      console[m] = function(){};
+    });
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -8783,4 +8802,4 @@ function toggleTheme(){
 </script>
 </body>
 </html>
-<!-- build:1783381168-pp1068nc -->
+<!-- build:1783383769-h9to33xehz-perf-optimized -->
