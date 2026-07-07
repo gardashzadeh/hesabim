@@ -6150,11 +6150,12 @@ window.setContactMode = function(mode){
 };
 
 window.setDeliveryMode = function(mode){
-  document.getElementById("adDeliveryMode").value = mode;
+  const dm = document.getElementById("adDeliveryMode"); if(dm) dm.value = mode;
   const directSection = document.getElementById("deliveryDirectSection");
   const chatSection   = document.getElementById("deliveryChatSection");
   const btnDirect     = document.getElementById("deliveryBtnDirect");
   const btnChat       = document.getElementById("deliveryBtnChat");
+  if(!directSection || !chatSection || !btnDirect || !btnChat) return; // Köhnə UI silinib
   if(mode==="direct"){
     directSection.style.display="";
     chatSection.style.display="none";
@@ -6168,10 +6169,11 @@ window.setDeliveryMode = function(mode){
   }
 };
 window.setChatMode = function(mode){
-  document.getElementById("adChatMode").value = mode;
+  const cm = document.getElementById("adChatMode"); if(cm) cm.value = mode;
   const autoSection = document.getElementById("chatAutoSection");
   const btnOnly = document.getElementById("chatModeOnlyChat");
   const btnBoth = document.getElementById("chatModeBoth");
+  if(!autoSection || !btnOnly || !btnBoth) return; // Köhnə UI silinib
   if(mode==="chat_only"){
     autoSection.style.display="none";
     btnOnly.style.borderColor="#fb923c"; btnOnly.style.background="rgba(251,146,60,.1)"; btnOnly.style.color="#fb923c";
