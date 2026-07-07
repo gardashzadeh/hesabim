@@ -1476,6 +1476,18 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 /* CLOUDINARY AD IMAGE UPLOAD */
 .ad-upload-preview{min-height:0;margin:6px 0 10px}
 .ad-upload-preview img{width:120px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #252b32;background:#090b0d}
+.ad-slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
+.ad-slot{position:relative;aspect-ratio:1/1;border:2px dashed #333a44;border-radius:12px;background:#090b0d;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .15s}
+.ad-slot:hover{border-color:#f97316}
+.ad-slot.filled{border-style:solid;border-color:#252b32;cursor:default}
+.ad-slot .plus{font-size:34px;color:#4b5563;font-weight:300;line-height:1;pointer-events:none}
+.ad-slot .plus-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:10.5px;color:#6b7280;letter-spacing:.3px;pointer-events:none}
+.ad-slot img{width:100%;height:100%;object-fit:cover;display:block}
+.ad-slot .slot-actions{position:absolute;top:4px;right:4px;display:flex;gap:4px}
+.ad-slot .slot-actions button{width:26px;height:26px;border-radius:6px;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;backdrop-filter:blur(4px)}
+.ad-slot .slot-actions button:hover{background:rgba(239,68,68,.85)}
+.ad-slot .slot-actions button.rot:hover{background:rgba(249,115,22,.85)}
+.ad-slot .slot-loading{position:absolute;inset:0;background:rgba(9,11,13,.75);display:flex;align-items:center;justify-content:center;color:#f97316;font-size:11px}
 #adImageFile{
   height:auto!important;
   padding:10px!important;
@@ -3555,10 +3567,15 @@ button,input,select,textarea{max-width:100%}
             </div>
             <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
             <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
-            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 5 ədəd)</label>
-            <input id="adImageFile" type="file" accept="image/*" multiple>
-            <div id="adImagePreview" class="ad-upload-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
-            <p class="hint">Maksimum 5 şəkil seçə bilərsən (hər biri max 5MB). Cloudinary-yə yüklənəcək.</p>
+            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 3 ədəd)</label>
+            <div id="adImageSlots" class="ad-slot-grid">
+              <div class="ad-slot" data-slot="0" onclick="pickAdImage(0)"><span class="plus">+</span><span class="plus-label">Şəkil 1</span></div>
+              <div class="ad-slot" data-slot="1" onclick="pickAdImage(1)"><span class="plus">+</span><span class="plus-label">Şəkil 2</span></div>
+              <div class="ad-slot" data-slot="2" onclick="pickAdImage(2)"><span class="plus">+</span><span class="plus-label">Şəkil 3</span></div>
+            </div>
+            <input id="adImageFile" type="file" accept="image/*" style="display:none">
+            <div id="adImagePreview" style="display:none"></div>
+            <p class="hint">Xanaya toxunub şəkil seç. Hər biri max 5MB. Şəkli döndərmək və ya silmək olar.</p>
             <button class="fullbtn" type="button" id="adSubmit" onclick="submitAd()">Elanı göndər</button>
           </div>
         </div>
@@ -5251,37 +5268,115 @@ async function uploadSingleImageToCloudinary(file){
 }
 
 async function uploadAdImageToCloudinary(){
-  if(!currentUser){ toast("Şəkil yükləmək üçün giriş et."); return []; }
-  const fileInput = document.getElementById("adImageFile");
-  const files = Array.from(fileInput?.files || []);
-  if(!files.length) return [];
-  const valid = files.filter(function(f){
-    const err = validateImageFile(f);
-    if(err){ toast(f.name+": "+err); return false; }
-    return true;
-  }).slice(0, 5);
-  if(!valid.length){
-    // Şəkil seçilib amma heç biri keçmədi — səssizcə şəkilsiz göndərmə
-    throw new Error("Seçilən şəkillərin heç biri qəbul edilmədi. Format/ölçünü yoxla.");
+  // Slot sistemi: şəkillər əvvəlcədən yüklənir, bu funksiya sadəcə URL-ləri qaytarır
+  const slots = window._adImageSlots || [null,null,null];
+  const urls = slots.filter(s => s && s.url).map(s => s.url);
+  return urls;
+}
+
+// === SLOT SYSTEM ===
+window._adImageSlots = [null,null,null]; // {url, rotation}
+window._adPickingSlot = -1;
+
+window.pickAdImage = function(idx){
+  const slot = window._adImageSlots[idx];
+  if(slot && slot.url) return; // Dolu xanaya klik təsirsizdir
+  window._adPickingSlot = idx;
+  const inp = document.getElementById("adImageFile");
+  if(inp){ inp.value = ""; inp.click(); }
+};
+
+window.deleteAdImage = function(idx, ev){
+  if(ev){ ev.stopPropagation(); }
+  window._adImageSlots[idx] = null;
+  renderAdSlots();
+};
+
+window.rotateAdImage = async function(idx, ev){
+  if(ev){ ev.stopPropagation(); }
+  const slot = window._adImageSlots[idx];
+  if(!slot || !slot.url) return;
+  slot.rotation = ((slot.rotation||0) + 90) % 360;
+  const el = document.querySelector('.ad-slot[data-slot="'+idx+'"]');
+  if(el){
+    const loading = document.createElement("div");
+    loading.className = "slot-loading";
+    loading.textContent = "Döndərilir...";
+    el.appendChild(loading);
   }
-  const submitBtn = document.getElementById("adSubmit");
-  const urls = [];
-  let lastErr = null;
-  for(let i = 0; i < valid.length; i++){
-    if(submitBtn) submitBtn.textContent = "Şəkil yüklənir "+(i+1)+"/"+valid.length+"...";
-    try{
-      const u = await uploadSingleImageToCloudinary(valid[i]);
-      if(u) urls.push(u);
-    }catch(upErr){
-      lastErr = upErr;
-      console.error("Şəkil yüklənmədi:", valid[i].name, upErr);
-      toast("⚠️ "+valid[i].name+" yüklənmədi, davam edilir.");
+  try{
+    // Cloudinary transformation URL ilə döndər — yeni fayl yükləmirik
+    const rotated = buildRotatedCloudinaryUrl(slot.originalUrl || slot.url, slot.rotation);
+    slot.url = rotated;
+  }catch(e){ console.warn("rotate failed", e); }
+  renderAdSlots();
+};
+
+function buildRotatedCloudinaryUrl(url, deg){
+  if(!url || !url.includes("/upload/")) return url;
+  // Mövcud transformasiyaları a_XX ilə əvəz et
+  const marker = "/upload/";
+  const i = url.indexOf(marker);
+  if(i<0) return url;
+  const head = url.slice(0, i+marker.length);
+  let tail = url.slice(i+marker.length);
+  // İlk segment transformasiya ola bilər (a_..., c_..., v.s.)
+  const firstSeg = tail.split("/")[0];
+  const isTransform = /^[a-z]_/.test(firstSeg) && !firstSeg.startsWith("v");
+  if(isTransform){
+    // a_ hissəsini yenilə və ya əlavə et
+    let parts = firstSeg.split(",").filter(p => !p.startsWith("a_"));
+    if(deg) parts.push("a_"+deg);
+    tail = (parts.length? parts.join(",")+"/" : "") + tail.split("/").slice(1).join("/");
+  } else {
+    if(deg) tail = "a_"+deg+"/"+tail;
+  }
+  return head + tail;
+}
+
+function renderAdSlots(){
+  const grid = document.getElementById("adImageSlots");
+  if(!grid) return;
+  const slots = window._adImageSlots;
+  for(let i=0;i<3;i++){
+    const el = grid.querySelector('.ad-slot[data-slot="'+i+'"]');
+    if(!el) continue;
+    const s = slots[i];
+    if(s && s.url){
+      el.classList.add("filled");
+      el.innerHTML = '<img src="'+s.url.replace(/"/g,"%22")+'" alt="Şəkil '+(i+1)+'">' +
+        '<div class="slot-actions">' +
+          '<button type="button" class="rot" onclick="rotateAdImage('+i+',event)" title="Döndər">↻</button>' +
+          '<button type="button" onclick="deleteAdImage('+i+',event)" title="Sil">×</button>' +
+        '</div>';
+    } else {
+      el.classList.remove("filled");
+      el.innerHTML = '<span class="plus">+</span><span class="plus-label">Şəkil '+(i+1)+'</span>';
     }
   }
-  if(!urls.length){
-    throw new Error("Şəkillər yüklənmədi: " + (lastErr && lastErr.message ? lastErr.message : "naməlum xəta"));
+}
+window.renderAdSlots = renderAdSlots;
+
+async function _handleSlotFilePicked(file){
+  const idx = window._adPickingSlot;
+  if(idx < 0 || idx > 2) return;
+  const err = validateImageFile(file);
+  if(err){ toast(err); return; }
+  const el = document.querySelector('.ad-slot[data-slot="'+idx+'"]');
+  if(el){
+    el.innerHTML = '<div class="slot-loading">Yüklənir...</div>';
+    el.classList.add("filled");
   }
-  return urls;
+  try{
+    const url = await uploadSingleImageToCloudinary(file);
+    if(!url) throw new Error("URL boşdur");
+    window._adImageSlots[idx] = { url: url, originalUrl: url, rotation: 0 };
+  }catch(e){
+    console.error("Slot upload xəta:", e);
+    toast("⚠️ Şəkil yüklənmədi: " + (e.message||"xəta"));
+    window._adImageSlots[idx] = null;
+  }
+  renderAdSlots();
 }
 
 
@@ -6354,6 +6449,12 @@ window.editMyAd = async function(id,arr){
   document.getElementById("adDesc").value=a.desc || "";
   const btn=document.getElementById("adSubmit"); if(btn){ btn.textContent="Elanı yenilə"; btn.dataset.editingId=id; }
   window._existingAdImages = Array.isArray(a.imageUrls) && a.imageUrls.length ? a.imageUrls.slice() : (a.imageUrl ? [a.imageUrl] : []);
+  // Slotları köhnə şəkillərlə doldur
+  window._adImageSlots = [null,null,null];
+  window._existingAdImages.slice(0,3).forEach(function(u,i){
+    window._adImageSlots[i] = { url: u, originalUrl: u, rotation: 0 };
+  });
+  if(typeof renderAdSlots === "function") renderAdSlots();
 }
 window.deleteMyAd = async function(id){
   await refreshUser(); if(!currentUser) return;
@@ -6414,11 +6515,7 @@ window.submitAd = async function(){
     if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent="Göndərilir..."; }
 
     const editingId = submitBtn?.dataset?.editingId || "";
-    let imageUrls = await uploadAdImageToCloudinary();
-    // Redaktə zamanı yeni şəkil seçilməyibsə köhnə şəkilləri saxla
-    if(!imageUrls.length && editingId && Array.isArray(window._existingAdImages) && window._existingAdImages.length){
-      imageUrls = window._existingAdImages.slice(0, 5);
-    }
+    const imageUrls = await uploadAdImageToCloudinary();
     const imageUrl  = imageUrls[0] || "";
     const tags = tagsRaw ? tagsRaw.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
@@ -6515,6 +6612,8 @@ window.submitAd = async function(){
     if(document.getElementById("adImageFile"))    document.getElementById("adImageFile").value="";
     if(document.getElementById("adImagePreview")) document.getElementById("adImagePreview").innerHTML="";
     window._existingAdImages = [];
+    window._adImageSlots = [null,null,null];
+    if(typeof renderAdSlots === "function") renderAdSlots();
 
     // Admin paneli yenilə (əgər açıqdırsa)
     if(typeof _fetchPendingAds==="function") setTimeout(_fetchPendingAds, 1000);
@@ -8490,20 +8589,8 @@ function wire(){
   syncAdFormToCategory();
   document.getElementById("adImageFile")?.addEventListener("change", function(e){
     const files = Array.from(e.target.files || []);
-    const preview = document.getElementById("adImagePreview");
-    if(!preview) return;
-    preview.innerHTML = "";
     if(!files.length) return;
-    if(files.length > 5) toast("Yalnız ilk 5 şəkil götürüləcək.");
-    files.filter(function(f){ return (f.type && f.type.startsWith("image/")) || _ALLOWED_EXT.test(f.name||""); }).slice(0,5).forEach(function(file, idx){
-      var url = URL.createObjectURL(file);
-      var wrap = document.createElement("div");
-      wrap.style.cssText = "position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid #333;flex-shrink:0;";
-      var img = document.createElement("img");
-      img.src = url; img.alt = "Şəkil "+(idx+1);
-      img.style.cssText = "width:100%;height:100%;object-fit:cover;";
-      wrap.appendChild(img); preview.appendChild(wrap);
-    });
+    _handleSlotFilePicked(files[0]);
   });
 }
 
