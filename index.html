@@ -5624,7 +5624,7 @@ function safeIcon(raw, fallback){
   // SVG-lər getCategoryDefaultIcon-dan gəlir — trusted
   if(/^<svg[\s>]/i.test(s)) return s;
   // Yalnız Cloudinary domenindən gələn img teqləri icazəlidir
-  const m = s.match(/<img\b[^ loading="lazy" alt="">]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
+  const m = s.match(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
   if(m){
     const url = m[1];
     try{
