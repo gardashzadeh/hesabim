@@ -1153,13 +1153,14 @@ body.light-mode .admin-tag{background:#f5f7fa;border:1px solid #dde1e7;color:#4a
 .chat-item-delete{
   position:absolute;top:50%;right:10px;transform:translateY(-50%);
   width:30px;height:30px;padding:0;
-  display:none;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
   background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
   border-radius:8px;color:#ef4444;cursor:pointer;transition:all .15s;
+  z-index:2;
 }
 .chat-item-wrap:hover .chat-item-delete{display:flex}
 .chat-item-delete:hover{background:#ef4444;color:#fff;border-color:#ef4444}
-@media(max-width:700px){.chat-item-delete{display:flex}}
+.chat-item-wrap .chat-item{padding-right:50px}
 .chat-box{background:#090b0d;border:1px solid #252b32;border-radius:12px;display:grid;grid-template-rows:auto 1fr auto;min-height:420px}
 .chat-head{padding:12px;border-bottom:1px solid #1f2937}
 .chat-head b{display:block;color:#f8fafc}
@@ -1893,6 +1894,25 @@ body.light-mode .cabinet-menu button.active::before{
 .theme-toggle:hover{border-color:#f97316;transform:translateY(-1px)}
 body.light-mode .theme-toggle{background:#ffffff;border:1px solid #c8cdd8;color:#2d3748}
 body.light-mode .theme-toggle:hover{border-color:#e55a00}
+.header-balance{
+  display:inline-flex;align-items:center;gap:7px;
+  height:44px;padding:0 12px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#1a1113,#121313);
+  border:1px solid #2c2e2e;
+  color:#fb923c;font-weight:700;font-size:13px;
+  font-family:'Space Grotesk','DM Sans',Arial,sans-serif;
+  cursor:pointer;transition:.18s ease;flex-shrink:0;
+  white-space:nowrap;
+}
+.header-balance:hover{border-color:#f97316;transform:translateY(-1px)}
+.header-balance svg{color:#f97316}
+body.light-mode .header-balance{background:#fff;border:1px solid #c8cdd8;color:#e55a00}
+body.light-mode .header-balance:hover{border-color:#e55a00}
+@media(max-width:700px){
+  .header-balance{padding:0 9px;font-size:12px;height:40px}
+  .header-balance svg{width:14px;height:14px}
+}
 body.light-mode .mobile-bottom-nav{background:#fff;border-top:1px solid #e2e8f0;box-shadow:0 -2px 12px rgba(0,0,0,.08)}
 body.light-mode .mobile-bottom-nav button{color:#94a3b8}
 body.light-mode .mobile-bottom-nav button.active{color:#ea580c}
@@ -3081,6 +3101,10 @@ button,input,select,textarea{max-width:100%}
     </div>
     <div class="actions">
       <button id="notifyBtn" class="notify-btn" type="button" title="Bildirişlər" onclick="openNotifications()">🔔<b id="notifyBadge" style="display:none">0</b></button>
+      <button id="headerBalanceBtn" class="header-balance" type="button" title="Balansım" style="display:none" onclick="openWalletPage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor"/></svg>
+        <span id="headerBalanceAmount">0.00 ₼</span>
+      </button>
       <button id="themeToggleBtn" class="theme-toggle" type="button" title="Light / Dark mode" onclick="toggleTheme()">🌙</button>
       <button id="loginBtn" class="hbtn" type="button">Giriş et</button>
       <button id="registerBtn" class="hbtn orange" type="button">Qeydiyyat</button>
@@ -7115,6 +7139,30 @@ function setHeaderNotificationCount(count){
   badge.textContent=String(n>99?"99+":n);
   badge.style.display=n>0?"grid":"none";
 }
+let _headerBalanceUnsub = null;
+function listenHeaderBalance(){
+  try{ if(_headerBalanceUnsub){ _headerBalanceUnsub(); _headerBalanceUnsub=null; } }catch(e){}
+  const btn = document.getElementById("headerBalanceBtn");
+  if(!btn) return;
+  if(!currentUser){ btn.style.display="none"; return; }
+  btn.style.display="inline-flex";
+  try{
+    const ref = doc(db,"wallets",currentUser.uid);
+    _headerBalanceUnsub = onSnapshot(ref, snap=>{
+      const w = snap.exists() ? (snap.data()||{}) : {balance:0};
+      const el = document.getElementById("headerBalanceAmount");
+      if(el) el.textContent = (Number(w.balance||0)).toFixed(2) + " ₼";
+    }, err=>{ console.warn("balance listen err", err); });
+  }catch(e){ console.warn(e); }
+}
+window.openWalletPage = function(){
+  try{
+    if(typeof window.showPage === "function") return window.showPage("wallet");
+    if(typeof window.route === "function") return window.route("wallet");
+    location.hash = "#wallet";
+  }catch(e){ location.hash = "#wallet"; }
+};
+
 function listenHeaderNotifications(){
   stopHeaderNotifications();
   setHeaderNotificationCount(0);
@@ -8772,6 +8820,7 @@ onAuthStateChanged(auth, async user=>{
   syncAdminBodyClass();
   updateHeader();
   listenHeaderNotifications();
+  listenHeaderBalance();
   wire();
   if(window.render) window.render();
   // Online statusu yenilə (presence-də sellerVerified də daxildir)
