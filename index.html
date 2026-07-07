@@ -499,43 +499,6 @@ body.is-admin #adminTabBtn{display:block!important}
 .status.sold{background:#13233d;color:#70a7ff}
 .status.rejected{background:#421616;color:#ff6b6b}
 .cabinet-empty{color:#6b7280;font-size:13px;padding:16px;border:1px dashed #2a2d2d;border-radius:10px;letter-spacing:.2px;font-weight:400;line-height:1.6;text-align:center}
-/* ===== SATIŞLARIM — Statistika, filtr, top məhsullar ===== */
-.sales-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.sales-header h3{margin:0}
-.sales-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
-.sales-stat-card{background:linear-gradient(135deg,#11151d,#0c0f15);border:1px solid #1c2330;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;transition:.16s ease}
-.sales-stat-card:hover{border-color:#fb923c44;transform:translateY(-1px)}
-.sales-stat-label{font-size:10.5px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
-.sales-stat-value{font-size:19px;color:#f1f5f9;font-weight:800;letter-spacing:.2px;line-height:1.2}
-.sales-stat-sub{font-size:10.5px;color:#475569;line-height:1.4}
-.sales-top-products{background:#0e1219;border:1px solid #1c2330;border-radius:10px;padding:12px 14px;margin-bottom:14px}
-.sales-top-title-row{font-size:11px;color:#94a3b8;letter-spacing:.6px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
-.sales-top-list{display:flex;flex-direction:column;gap:6px}
-.sales-top-item{display:flex;align-items:center;gap:10px;padding:7px 10px;background:#11151d;border-radius:7px;border:1px solid transparent}
-.sales-top-item:hover{border-color:#1c2330}
-.sales-top-rank{width:22px;height:22px;background:linear-gradient(135deg,#fb923c,#c94800);border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff;flex:none}
-.sales-top-name{flex:1;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
-.sales-top-count{font-size:12px;color:#fb923c;font-weight:700;flex:none;background:#1a1105;padding:2px 8px;border-radius:10px}
-.sales-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.sales-actions-row button{padding:9px 14px;font-size:12.5px;font-weight:600;border-radius:8px;border:1px solid #2d3648;background:#151b25;color:#c8ccd0;cursor:pointer;font-family:inherit;transition:.15s ease}
-.sales-actions-row button:hover{border-color:#fb923c;color:#fb923c}
-.sales-actions-row button.primary{background:linear-gradient(#ff7a18,#ff5a00);border:0;color:#fff}
-.sales-actions-row button.primary:hover{color:#fff;filter:brightness(1.1)}
-.sales-filter-row{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px;margin-bottom:12px}
-.sales-filter-input{background:#0c0d0d;border:1px solid #333636;border-radius:8px;color:#e8eaed;padding:9px 12px;font-family:inherit;font-size:13px;outline:0;transition:.15s ease}
-.sales-filter-input:focus{border-color:#fb923c}
-@media(max-width:640px){
-  .sales-filter-row{grid-template-columns:1fr}
-  .sales-stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
-  .sales-stat-value{font-size:16px}
-}
-body.light-mode .sales-stat-card{background:linear-gradient(135deg,#fff,#f8fafc);border:1px solid #dde1e7}
-body.light-mode .sales-stat-value{color:#1a1d23}
-body.light-mode .sales-top-products{background:#fff;border-color:#dde1e7}
-body.light-mode .sales-top-item{background:#f5f7fa}
-body.light-mode .sales-top-name{color:#1a1d23}
-body.light-mode .sales-filter-input{background:#fff;border-color:#dde1e7;color:#1a1d23}
-body.light-mode .sales-actions-row button{background:#fff;border-color:#dde1e7;color:#1a1d23}
 @media(max-width:800px){.cabinet-body{grid-template-columns:1fr}.cabinet-menu{border-right:0;border-bottom:1px solid #292b2b}}
 
 .auth-tabs{display:flex;gap:8px;margin:10px 0 12px}
@@ -3350,25 +3313,11 @@ button,input,select,textarea{max-width:100%}
       <input id="regUserId" type="text" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off">
       <small id="regUserIdHint" style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Yalnız hərf, rəqəm və alt xətt (_) — elanlarınızda bu ID görünəcək</small>
       <input id="regEmail" type="email" placeholder="Email" autocomplete="email">
-      <input id="regPhone" type="tel" placeholder="Telefon (+994551234567)" autocomplete="tel" inputmode="tel">
-      <small style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Ölkə kodu ilə: +994... — SMS ilə təsdiq olunacaq</small>
       <input id="regPassword" type="password" placeholder="Şifrə (minimum 6 simvol)">
       <input id="regPassword2" type="password" placeholder="Şifrəni təkrar et">
       <div class="modal-actions">
         <button class="hbtn" type="button" onclick="closeModal('loginModal')">Bağla</button>
         <button class="hbtn orange" type="button" id="firebaseRegisterBtn">Qeydiyyatdan keç</button>
-      </div>
-    </div>
-
-    <div id="regPhoneStep" class="auth-step">
-      <p style="margin:4px 0 10px;font-size:13px;color:#94a3b8">
-        Emailinizə təsdiq linki göndərildi. İndi telefon nömrənizə göndərilən 6 rəqəmli SMS kodu daxil edin.
-      </p>
-      <input id="regPhoneCode" type="text" placeholder="SMS kod (6 rəqəm)" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
-      <div id="reg-recaptcha-container"></div>
-      <div class="modal-actions">
-        <button class="hbtn" type="button" id="resendRegPhoneCodeBtn">Kodu yenidən göndər</button>
-        <button class="hbtn orange" type="button" id="confirmRegPhoneBtn">Təsdiqlə</button>
       </div>
     </div>
 
@@ -3449,35 +3398,38 @@ button,input,select,textarea{max-width:100%}
                   <option>Platinum</option><option>Diamond</option><option>Master / Grandmaster</option>
                   <option>Challenger / Radiant</option><option>Digər</option>
                 </select>
-                <input id="adLevel" placeholder="Level / Səviyyə" inputmode="numeric" type="text">
+                <input id="adLevel" type="hidden" value="">
               </div>
 
-              <!-- Çatdırılma üsulu seçimi -->
+              <!-- Çatdırılma / satış üsulu seçimi -->
               <div style="margin-top:14px">
-                <div style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px">Çatdırılma üsulu</div>
+                <div style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px">Satış üsulu <span style="color:#ef4444">*</span></div>
 
-                <!-- Seçim düymələri -->
-                <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-                  <button type="button" id="deliveryBtnDirect" onclick="setDeliveryMode('direct')"
-                    style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12px;cursor:pointer;transition:.15s">
-                    ⚡ Birbaşa çatdırılma
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+                  <button type="button" id="contactBtnPlatform" onclick="setContactMode('platform')"
+                    style="padding:14px 12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                    🛡️ Sayt vasitəsilə
+                    <div style="font-weight:400;font-size:10.5px;color:#94a3b8;margin-top:4px">Alıcı ödəyir, admin nəzarətdə. Təhlükəsiz.</div>
                   </button>
-                  <button type="button" id="deliveryBtnChat" onclick="setDeliveryMode('chat')"
-                    style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12px;cursor:pointer;transition:.15s">
-                    💬 Chat vasitəsilə
+                  <button type="button" id="contactBtnDirect" onclick="setContactMode('direct_contact')"
+                    style="padding:14px 12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                    📞 Özüm satıram
+                    <div style="font-weight:400;font-size:10.5px;color:#475569;margin-top:4px">Nömrə göstərilir. Sən özün alıcı ilə əlaqə saxla.</div>
                   </button>
                 </div>
+                <input type="hidden" id="adContactMode" value="platform">
                 <input type="hidden" id="adDeliveryMode" value="direct">
+                <input type="hidden" id="adChatMode" value="chat_only">
 
-                <!-- Birbaşa çatdırılma bölməsi -->
-                <div id="deliveryDirectSection">
+                <!-- Sayt vasitəsilə: hesab məlumatları + şərtlər -->
+                <div id="contactPlatformSection">
                   <div style="background:#0a0e14;border:1px solid #fb923c33;border-radius:10px;padding:14px;margin-bottom:10px">
                     <div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px;display:flex;align-items:center;gap:6px">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                      BİRBAŞA ÇATDIRILMA
+                      HESAB MƏLUMATLARI
                     </div>
                     <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
-                      Aşağıdakı məlumatlar satış reallaşdıqda <b style="color:#94a3b8">birbaşa alıcıya deyil, əvvəlcə adminə</b> göndəriləcək. Admin yoxlayıb təsdiqlədikdən sonra alıcıya çatdıracaq.
+                      Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşandan sonra <b style="color:#94a3b8">əvvəlcə admin təsdiqləyir</b>, sonra alıcıya çatdırılır.
                     </p>
 
                     <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları</div>
@@ -3491,36 +3443,35 @@ button,input,select,textarea{max-width:100%}
                     <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər)</span></div>
                     <textarea id="adExtraInfo" placeholder="Məs: Wallet balansı: 50$, Bağlı kart: yoxdur, İkili təsdiqləmə: söndürülüb..." rows="3" style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
                   </div>
+
+                  <!-- Şərtlər checkbox -->
+                  <div style="background:#0a0e14;border:1px solid #22c55e33;border-radius:10px;padding:12px;margin-bottom:10px">
+                    <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:8px">📋 QAYDALARI OXU VƏ QƏBUL ET</div>
+                    <div style="font-size:11.5px;color:#94a3b8;line-height:1.7;margin-bottom:10px">
+                      • Verdiyin məlumat düzgün olmalıdır. Yalan/köhnə şifrə üçün balansın dondurulur.<br>
+                      • Satışdan sonra hesabın şifrəsini dəyişməyəcəksən. Dəyişsən — balansın bloklanır.<br>
+                      • Admin təsdiq edənə qədər hesabı başqasına satmayacaqsan.<br>
+                      • Şikayət olsa, məhsul qaytarılırsa, pul geri alıcıya köçürülür.<br>
+                      • Alıcıdan xaric ödəniş üsulu (WhatsApp, birbaşa köçürmə) tələb edə bilməzsən.<br>
+                      • Qaydaları pozmaq → hesab müvəqqəti/tam bloklanır.
+                    </div>
+                    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:#e2e8f0">
+                      <input type="checkbox" id="adPlatformTerms" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:#22c55e">
+                      <span>Yuxarıdakı qaydaları oxudum və qəbul edirəm.</span>
+                    </label>
+                  </div>
                 </div>
 
-                <!-- Chat vasitəsilə bölməsi -->
-                <div id="deliveryChatSection" style="display:none">
-                  <div style="background:#0a0e14;border:1px solid #1c2330;border-radius:10px;padding:14px">
-                    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">💬 CHAT VASİTƏSİLƏ ÇATDIRILMA</div>
+                <!-- Özüm satıram: nömrə -->
+                <div id="contactDirectSection" style="display:none">
+                  <div style="background:#0a0e14;border:1px solid #64748b33;border-radius:10px;padding:14px;margin-bottom:10px">
+                    <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px">📞 ƏLAQƏ NÖMRƏSİ</div>
                     <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
-                      Satış reallaşdıqda alıcı ilə chat açılacaq. Hesab məlumatlarını özünüz chat vasitəsilə çatdıracaqsınız.
+                      Alıcılar bu nömrəyə zəng edəcək. WhatsApp və ya telefon nömrəsi olsun.
+                      <b style="color:#f97316">Sayt zəmanət vermir</b> — bütün riski öz üzərinə götürürsən.
                     </p>
-                    <div style="font-size:11px;color:#94a3b8;font-weight:600;margin-bottom:8px">Chat + Avtomatik çatdırılma:</div>
-                    <div style="display:flex;gap:8px">
-                      <button type="button" id="chatModeOnlyChat" onclick="setChatMode('chat_only')"
-                        style="flex:1;padding:8px;border-radius:8px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-size:12px;font-weight:700;cursor:pointer">
-                        Yalnız chat
-                      </button>
-                      <button type="button" id="chatModeBoth" onclick="setChatMode('chat_and_auto')"
-                        style="flex:1;padding:8px;border-radius:8px;border:1px solid #1c2330;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer">
-                        Həm chat + avtomatik
-                      </button>
-                    </div>
-                    <input type="hidden" id="adChatMode" value="chat_only">
-
-                    <!-- Həm chat + avtomatik seçiləndə məlumat sahələri açılsın -->
-                    <div id="chatAutoSection" style="display:none;margin-top:12px">
-                      <div style="font-size:11px;color:#5b6678;margin-bottom:8px;line-height:1.5">
-                        ℹ️ Avtomatik hissə üçün hesab məlumatlarını daxil edin — satış reallaşanda adminə göndəriləcək.
-                      </div>
-                      <input id="adChatAutoLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
-                      <input id="adChatAutoPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off">
-                    </div>
+                    <input id="adDirectPhone" placeholder="Telefon nömrəsi: +994551234567" inputmode="tel" autocomplete="off" style="margin-bottom:8px">
+                    <input id="adDirectWhatsapp" placeholder="WhatsApp nömrəsi (istəyə görə): +994551234567" inputmode="tel" autocomplete="off">
                   </div>
                 </div>
               </div>
@@ -3658,28 +3609,17 @@ button,input,select,textarea{max-width:100%}
             </div>
 
             <!-- QİYMƏT — hamı üçün -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
-              <div>
-                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
-                <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
-              </div>
-              <div>
-                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Köhnə qiymət (₼) — İstəyə görə</label>
-                <input id="adOriginalPrice" placeholder="Məsələn: 70" inputmode="decimal" type="text">
-              </div>
+            <div style="margin-top:6px">
+              <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
+              <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
+              <input id="adOriginalPrice" type="hidden" value="">
+              <input id="adTags" type="hidden" value="">
+              <input id="adVideo" type="hidden" value="">
             </div>
-            <input id="adTags" placeholder="Teqlər: pubg, hesab, uc (vergüllə ayır)" style="margin-top:8px;">
-            <p class="hint" style="margin-top:-4px;margin-bottom:8px;">Teqlər axtarışı asanlaşdırır.</p>
-            <input id="adContact" placeholder="WhatsApp nömrəsi: +994551234567 (istəyə görə)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div>
-                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Stok sayı</label>
-                <input id="adStock" placeholder="Məsələn: 1" inputmode="numeric" type="text">
-              </div>
-              <div>
-                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Video linki (YouTube/TikTok)</label>
-                <input id="adVideo" placeholder="https://youtube.com/..." type="url">
-              </div>
+            <input id="adContact" placeholder="WhatsApp nömrəsi: +994551234567 (istəyə görə)" style="margin-top:8px">
+            <div>
+              <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Stok sayı</label>
+              <input id="adStock" placeholder="Məsələn: 1" inputmode="numeric" type="text">
             </div>
             <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
             <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
@@ -3768,6 +3708,10 @@ button,input,select,textarea{max-width:100%}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:17px;height:17px;margin-right:7px;vertical-align:middle"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
             Səbətə əlavə et
           </button>
+          <a class="fullbtn" type="button" id="pdCallBtn" href="#" style="display:none;text-decoration:none;background:linear-gradient(135deg,#22c55e,#16a34a);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:17px;height:17px;margin-right:7px;vertical-align:middle"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            Zəng et
+          </a>
           <div class="pd-secondary-row">
             <button class="pd-action-btn" type="button" id="pdFav">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
@@ -4539,6 +4483,9 @@ window.renderMarketAds = function renderMarketAds(){
     sellerEmail: a.sellerEmail || "",
     sellerVerified: !!a.sellerVerified,
     imageUrls: a.imageUrls || [],
+    contactMode: a.contactMode || "platform",
+    directPhone: a.directPhone || "",
+    directWhatsapp: a.directWhatsapp || "",
     stock: Number(a.stock || 1),
     video: a.video || "",
     adNumber: a.adNumber || ""
@@ -4595,6 +4542,9 @@ window.renderMarketAds = function renderMarketAds(){
       views: Number(btn.dataset.views||0),
       originalPrice: Number(btn.dataset.originalprice||0),
       contact: btn.dataset.contact,
+      contactMode: btn.dataset.contactmode || "platform",
+      directPhone: btn.dataset.directphone || "",
+      directWhatsapp: btn.dataset.directwhatsapp || "",
       tags: tags,
       imageUrls: imageUrls,
       adNumber: btn.dataset.adnumber,
@@ -4646,6 +4596,9 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-views="'+Number(a.views||0)+'" '
         + 'data-originalprice="'+Number(a.originalPrice||0)+'" '
         + 'data-contact="'+attr(a.contact)+'" '
+        + 'data-contactmode="'+attr(a.contactMode||"platform")+'" '
+        + 'data-directphone="'+attr(a.directPhone||"")+'" '
+        + 'data-directwhatsapp="'+attr(a.directWhatsapp||"")+'" '
         + 'data-tags="'+tagsB64+'" '
         + 'data-imgs="'+imgsB64+'" '
         + 'data-adnumber="'+attr(a.adNumber||'')+'" '
@@ -4887,10 +4840,27 @@ function openProductDetail(p){
       }
     };
   }
+  // Satış üsuluna görə düymələr
+  const isDirect  = currentDetailProduct.contactMode === "direct_contact";
+  const _addCart  = document.getElementById("pdAddCart");
+  const callBtn   = document.getElementById("pdCallBtn");
+  const dirPhone  = (currentDetailProduct.directPhone || "").trim();
+  const dirWa     = (currentDetailProduct.directWhatsapp || "").trim();
+  if(isDirect){
+    if(_addCart) _addCart.style.display = "none";
+    if(callBtn && dirPhone){
+      callBtn.href = "tel:" + dirPhone.replace(/[^0-9+]/g,"");
+      callBtn.style.display = "";
+    } else if(callBtn){ callBtn.style.display = "none"; }
+  } else {
+    if(_addCart) _addCart.style.display = "";
+    if(callBtn) callBtn.style.display = "none";
+  }
   // WhatsApp əlaqə düyməsi
   const waBtn = document.getElementById("pdWhatsapp");
   if(waBtn){
-    const contact = currentDetailProduct.contact || "";
+    // Direct-də directWhatsapp, digər halda contact sahəsi
+    const contact = isDirect ? (dirWa || dirPhone) : (currentDetailProduct.contact || "");
     if(contact){
       const phone = contact.replace(/[^0-9+]/g,"");
       const wmsg = encodeURIComponent("Salam, \"" + (currentDetailProduct.title||"məhsul") + "\" elanınızla maraqlandım.");
@@ -4916,7 +4886,20 @@ window.moneyToNumber = moneyToNumber;
 window.quickAddToCart = function(el){
   const btn = el.closest(".ad");
   if(!btn) return;
+  // Özüm satıram elanı — səbətə əlavə oluna bilməz, alıcıya izah göstər
+  if(btn.dataset.contactmode === "direct_contact"){
+    const phone = btn.dataset.directphone || btn.dataset.directwhatsapp || "";
+    showToast("Bu elan sayt üzərindən satılmır. Satıcı özü satır — " + (phone ? "zəng et: " + phone : "əlaqə nömrəsi elandadır."));
+    return;
+  }
   addToCart(btn.dataset.title||"Məhsul", btn.dataset.price||"0.00 ₼", btn.dataset.adid||"", btn.dataset.selleruid||"", btn.dataset.selleremail||"");
+};
+
+// Özüm satıram — kartdan birbaşa zəng
+window._quickCall = function(el){
+  const phone = (el && el.dataset && el.dataset.phone) || "";
+  if(!phone){ showToast("Nömrə yoxdur"); return; }
+  location.href = "tel:" + phone.replace(/[^0-9+]/g,"");
 };
 
 // Ana səhifə kartındakı ürək düyməsi — elanı açmadan yadda saxla/çıxar
@@ -5118,6 +5101,12 @@ window.goToPage = function(page){
 };
 
 function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
+  // Özüm satıram elanı — səbətə əlavə oluna bilməz
+  const p = currentDetailProduct || {};
+  if(p.contactMode === "direct_contact" || window._pendingContactMode === "direct_contact"){
+    showToast("Bu elan sayt vasitəsilə satılmır. Satıcı ilə birbaşa əlaqə saxla (telefon/WhatsApp).");
+    return;
+  }
   if(adId && cart.some(x=>x.adId===adId)){
     showToast("Bu məhsul artıq səbətdədir");
     return;
@@ -5243,7 +5232,6 @@ import {
   getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  linkWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -6142,6 +6130,25 @@ async function decryptCreds(blob){
   }catch(e){ console.warn("Deşifrə xətası:", e); return null; }
 }
 
+window.setContactMode = function(mode){
+  const inp = document.getElementById("adContactMode"); if(inp) inp.value = mode;
+  const platSec = document.getElementById("contactPlatformSection");
+  const dirSec  = document.getElementById("contactDirectSection");
+  const btnPlat = document.getElementById("contactBtnPlatform");
+  const btnDir  = document.getElementById("contactBtnDirect");
+  if(mode === "platform"){
+    if(platSec) platSec.style.display = "";
+    if(dirSec)  dirSec.style.display  = "none";
+    if(btnPlat){ btnPlat.style.borderColor="#fb923c"; btnPlat.style.background="rgba(251,146,60,.1)"; btnPlat.style.color="#fb923c"; }
+    if(btnDir){  btnDir.style.borderColor="#1c2330";  btnDir.style.background="transparent";           btnDir.style.color="#64748b"; }
+  } else {
+    if(platSec) platSec.style.display = "none";
+    if(dirSec)  dirSec.style.display  = "";
+    if(btnPlat){ btnPlat.style.borderColor="#1c2330"; btnPlat.style.background="transparent";          btnPlat.style.color="#64748b"; }
+    if(btnDir){  btnDir.style.borderColor="#f97316";  btnDir.style.background="rgba(249,115,22,.1)";  btnDir.style.color="#f97316"; }
+  }
+};
+
 window.setDeliveryMode = function(mode){
   document.getElementById("adDeliveryMode").value = mode;
   const directSection = document.getElementById("deliveryDirectSection");
@@ -6192,7 +6199,7 @@ function updateHeader(){
   const notifyPerm=document.getElementById("notifyPermBtn");
 
   if(currentUser && currentUser.emailVerified){
-    if(login){ login.textContent=currentUser.email.split("@")[0]; login.onclick=()=>{ document.getElementById("cabinetModal")?.classList.add("show"); }; }
+    if(login){ login.textContent="Kabinet"; login.onclick=()=>{ document.getElementById("cabinetModal")?.classList.add("show"); }; }
     if(register) register.textContent="Çıxış";
   }else{
     if(login){ login.textContent="Giriş et"; login.onclick=null; }
@@ -6212,7 +6219,6 @@ async function registerUser(){
   const birthDate=document.getElementById("regBirthDate")?.value || "";
   const userId=document.getElementById("regUserId")?.value.trim().toLowerCase() || "";
   const email=document.getElementById("regEmail").value.trim().toLowerCase();
-  const phone=document.getElementById("regPhone")?.value.trim().replace(/\s+/g,"") || "";
   const pass=document.getElementById("regPassword").value.trim();
   const pass2=document.getElementById("regPassword2").value.trim();
   if(!name){authStatus("Ad yaz.");return}
@@ -6221,7 +6227,6 @@ async function registerUser(){
   if(!userId){authStatus("İstifadəçi ID yaz.");return}
   if(!/^[a-z0-9_]{3,20}$/.test(userId)){authStatus("ID yalnız kiçik hərf, rəqəm və alt xətt (_) ola bilər, 3-20 simvol.");return}
   if(!validEmail(email)){authStatus("Düzgün email yaz.");return}
-  if(!/^\+\d{10,15}$/.test(phone)){authStatus("Telefonu ölkə kodu ilə yaz: +994551234567");return}
   if(pass.length<6){authStatus("Şifrə minimum 6 simvol olmalıdır.");return}
   if(pass!==pass2){authStatus("Şifrələr eyni deyil.");return}
 
@@ -6260,39 +6265,17 @@ async function registerUser(){
         birthDate,
         userId,
         email,
-        phoneNumber: phone,
-        phoneVerified: false,
         role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
         createdAt:serverTimestamp(),
         updatedAt:serverTimestamp()
       });
       await ensureWallet(cred.user.uid,email);
       await sendEmailVerification(cred.user);
-
-      // === Telefon nömrəsinə SMS kod göndər (hesaba link edilir) ===
-      try{
-        if(window.regRecaptchaVerifier){
-          try{ window.regRecaptchaVerifier.clear(); }catch(_){}
-          window.regRecaptchaVerifier = null;
-        }
-        window.regRecaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha-container", {size:"invisible"});
-        window._regPhoneConfirmation = await linkWithPhoneNumber(cred.user, phone, window.regRecaptchaVerifier);
-        window._regPendingUid = cred.user.uid;
-
-        // Qeydiyyat formundan telefon təsdiq addımına keç
-        document.getElementById("registerStep")?.classList.remove("active");
-        document.getElementById("loginStep")?.classList.remove("active");
-        document.getElementById("regPhoneStep")?.classList.add("active");
-        authStatus("SMS kod göndərildi. Emailinizi də təsdiqləyin.");
-      }catch(smsErr){
-        console.error("SMS göndərmə xətası:", smsErr);
-        // Hesabı silmirik — istifadəçi sonra kodu yenidən istəyə bilər. Sadəcə çıxış edirik.
-        await signOut(auth).catch(()=>{});
-        currentUser = null;
-        updateHeader();
-        authStatus("Hesab yaradıldı və emailinizə link göndərildi, lakin SMS göndərilə bilmədi: " + (smsErr.code || smsErr.message) + ". Girişdən sonra telefonu təsdiqləyəcəksiniz.");
-      }
+      await signOut(auth);
       window._isRegistering = false;
+      currentUser=null;
+      updateHeader();
+      authStatus("Qeydiyyat tamamlandı. Təsdiq linki emailinizə göndərildi.");
     }catch(fsErr){
       // Firestore yazması uğursuz oldu — hər şeyi geri al
       console.error("Qeydiyyat rollback:", fsErr);
@@ -6445,69 +6428,6 @@ async function verifyPhoneCode(){
   }catch(e){
     console.error(e);
     authStatus("SMS kod yanlışdır.");
-  }
-}
-
-// === Qeydiyyat zamanı telefon SMS kodunu təsdiqlə ===
-async function confirmRegPhoneCode(){
-  const code = document.getElementById("regPhoneCode")?.value.trim() || "";
-  if(!/^\d{6}$/.test(code)){ authStatus("6 rəqəmli SMS kodu yaz."); return; }
-  if(!window._regPhoneConfirmation){ authStatus("SMS kod göndərilməyib."); return; }
-  try{
-    const result = await window._regPhoneConfirmation.confirm(code);
-    const uid = result.user.uid;
-    // Firestore-da phoneVerified = true
-    try{
-      await setDoc(doc(db,"users",uid),{
-        phoneVerified:true,
-        phoneNumber: result.user.phoneNumber || null,
-        updatedAt: serverTimestamp()
-      },{merge:true});
-    }catch(e){ console.error("phoneVerified yazıla bilmədi:", e); }
-
-    // Təmizlik
-    window._regPhoneConfirmation = null;
-    window._regPendingUid = null;
-    if(window.regRecaptchaVerifier){
-      try{ window.regRecaptchaVerifier.clear(); }catch(_){}
-      window.regRecaptchaVerifier = null;
-    }
-
-    // İndi çıxış — istifadəçi emaildəki linki tıqlayıb girməlidir
-    await signOut(auth).catch(()=>{});
-    currentUser = null;
-    updateHeader();
-    document.getElementById("regPhoneStep")?.classList.remove("active");
-    document.getElementById("loginStep")?.classList.add("active");
-    document.getElementById("loginTabBtn")?.classList.add("active");
-    document.getElementById("registerTabBtn")?.classList.remove("active");
-    toast("Telefon təsdiqləndi! İndi email linkini açıb təsdiqləyin, sonra giriş edin.");
-    authStatus("Telefon təsdiqləndi. Email linkini də təsdiqlədikdən sonra giriş edə bilərsiniz.");
-  }catch(e){
-    console.error(e);
-    authStatus("SMS kod yanlışdır və ya vaxtı keçib: " + (e.code || e.message));
-  }
-}
-
-// === Qeydiyyat zamanı SMS kodu yenidən göndər ===
-async function resendRegPhoneCode(){
-  const user = auth.currentUser;
-  if(!user){ authStatus("Sessiya bitib. Yenidən qeydiyyatdan keçin."); return; }
-  try{
-    if(window.regRecaptchaVerifier){
-      try{ window.regRecaptchaVerifier.clear(); }catch(_){}
-      window.regRecaptchaVerifier = null;
-    }
-    window.regRecaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha-container", {size:"invisible"});
-    // Firestore-dan telefon nömrəsini götür
-    const snap = await getDoc(doc(db,"users",user.uid));
-    const phone = snap.exists() ? snap.data()?.phoneNumber : null;
-    if(!phone){ authStatus("Telefon nömrəsi tapılmadı."); return; }
-    window._regPhoneConfirmation = await linkWithPhoneNumber(user, phone, window.regRecaptchaVerifier);
-    authStatus("Yeni SMS kod göndərildi.");
-  }catch(e){
-    console.error(e);
-    authStatus("SMS göndərilə bilmədi: " + (e.code || e.message));
   }
 }
 
@@ -6785,12 +6705,32 @@ window.submitAd = async function(){
     const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
-    // Çatdırılma üsulu və hesab məlumatları
+    // Satış üsulu: platform (sayt vasitəsilə) və ya direct_contact (özüm satıram)
+    const contactMode  = document.getElementById("adContactMode")?.value || "platform";
     const deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
     const chatMode     = document.getElementById("adChatMode")?.value || "chat_only";
 
+    let directPhone = "", directWhatsapp = "";
+    if(contactMode === "direct_contact"){
+      directPhone    = (document.getElementById("adDirectPhone")?.value    || "").trim();
+      directWhatsapp = (document.getElementById("adDirectWhatsapp")?.value || "").trim();
+      if(!directPhone && !directWhatsapp){
+        authStatus("Özüm satıram üçün ən azı bir əlaqə nömrəsi lazımdır.");
+        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
+        return;
+      }
+    } else {
+      // Platform üsulunda şərtlər qəbul edilməlidir
+      const termsChk = document.getElementById("adPlatformTerms");
+      if(termsChk && !termsChk.checked){
+        authStatus("Sayt vasitəsilə satmaq üçün qaydaları qəbul etməlisən.");
+        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
+        return;
+      }
+    }
+
     let accountCredentials = null;
-    if(deliveryMode === "direct"){
+    if(contactMode === "platform" && deliveryMode === "direct"){
       const mailEmail    = (document.getElementById("adMailEmail")?.value    || "").trim();
       const mailPassword = (document.getElementById("adMailPassword")?.value || "").trim();
       const accLogin     = (document.getElementById("adAccountLogin")?.value || "").trim();
@@ -6819,8 +6759,11 @@ window.submitAd = async function(){
       sellerUserId,
       sellerVerified,
       hasCredentials: !!accountCredentials,
-      deliveryMode,
-      chatMode: deliveryMode==="chat" ? chatMode : null,
+      contactMode,
+      directPhone,
+      directWhatsapp,
+      deliveryMode: contactMode === "platform" ? deliveryMode : null,
+      chatMode: (contactMode === "platform" && deliveryMode==="chat") ? chatMode : null,
       updatedAt: serverTimestamp()
     };
 
@@ -8467,260 +8410,44 @@ async function disputeOrder(id){
   }catch(e){ console.error(e); toast("Mübahisə açılmadı."); }
 }
 
-// ===== SATIŞLARIM — GENİŞLƏNDİRİLMİŞ (statistika, filtr, top məhsullar, CSV) =====
-let unsubSales = null;
-window._salesData = { orders: [], filter: {status:'all', dateRange:'all', search:''} };
-
-function computeSalesStats(orders){
-  const now = new Date();
-  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()/1000;
-  const last30Start = (Date.now() - 30*24*3600*1000)/1000;
-  const stats = {
-    totalCount: orders.length,
-    totalRevenue: 0, thisMonthRevenue: 0, last30Revenue: 0,
-    activeCount: 0, completedCount: 0, disputedCount: 0,
-    pendingPayout: 0, paidOut: 0, avgOrder: 0,
-    topProducts: [], uniqueBuyers: 0
-  };
-  const productCount = {};
-  const buyerSet = new Set();
-  let revenueCount = 0;
-  orders.forEach(o=>{
-    const price = Number(o.price||0);
-    const net = price * 0.95; // 5% komissiya sonra
-    const ts = o.createdAt?.seconds || 0;
-    const cancelled = o.status === "Ləğv edildi" || o.status === "Rədd edildi";
-    if(!cancelled){
-      stats.totalRevenue += net;
-      revenueCount++;
-      if(ts*1000 >= thisMonthStart*1000) stats.thisMonthRevenue += net;
-      if(ts >= last30Start) stats.last30Revenue += net;
-    }
-    if(o.status === "Aktiv") stats.activeCount++;
-    else if(o.status === "Tamamlandı") stats.completedCount++;
-    else if(o.status === "Mübahisə") stats.disputedCount++;
-    if(o.payoutRequested && !o.payoutDone) stats.pendingPayout += net;
-    if(o.payoutDone) stats.paidOut += net;
-    if(o.productTitle) productCount[o.productTitle] = (productCount[o.productTitle]||0) + 1;
-    if(o.buyerUid) buyerSet.add(o.buyerUid);
-  });
-  stats.avgOrder = revenueCount > 0 ? stats.totalRevenue / revenueCount : 0;
-  stats.uniqueBuyers = buyerSet.size;
-  stats.topProducts = Object.entries(productCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  return stats;
-}
-
-function applySalesFilter(orders, f){
-  let arr = orders;
-  if(f.status && f.status !== 'all') arr = arr.filter(o => (o.status||'') === f.status);
-  if(f.dateRange && f.dateRange !== 'all'){
-    let cutoff = 0;
-    const nowSec = Date.now()/1000;
-    if(f.dateRange === 'week') cutoff = nowSec - 7*24*3600;
-    else if(f.dateRange === 'month') cutoff = nowSec - 30*24*3600;
-    else if(f.dateRange === '3months') cutoff = nowSec - 90*24*3600;
-    arr = arr.filter(o => (o.createdAt?.seconds||0) >= cutoff);
-  }
-  if(f.search && f.search.trim()){
-    const s = f.search.trim().toLowerCase();
-    arr = arr.filter(o =>
-      (o.productTitle||"").toLowerCase().includes(s) ||
-      (o.buyerEmail||"").toLowerCase().includes(s) ||
-      (o.category||"").toLowerCase().includes(s)
-    );
-  }
-  return arr;
-}
-
-window.exportSalesCSV = function(){
-  const orders = (window._salesData?.orders) || [];
-  if(!orders.length){ toast("İxrac üçün satış yoxdur."); return; }
-  const headers = ["Tarix","Məhsul","Kateqoriya","Alıcı email","Qiymət (₼)","Komissiya (₼)","Xalis (₼)","Status","Ödəniş"];
-  const rows = orders.map(o=>{
-    const date = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('az-AZ') : "";
-    const price = Number(o.price||0);
-    const commission = (price*0.05).toFixed(2);
-    const net = (price*0.95).toFixed(2);
-    const payout = o.payoutDone ? "Ödənilib" : (o.payoutRequested ? "Tələb edilib" : "-");
-    return [date, o.productTitle||"", o.category||"", o.buyerEmail||"", price.toFixed(2), commission, net, o.status||"", payout];
-  });
-  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
-  // BOM əlavə edirik ki, Excel Azərbaycan hərflərini düzgün oxusun
-  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `satislarim_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 100);
-  toast("CSV yükləndi");
-}
-
-window.renderSales = function(){
-  const el = document.getElementById("cabSales");
-  if(!el) return;
-  const {orders, filter} = window._salesData;
-  const stats = computeSalesStats(orders);
-  const filtered = applySalesFilter(orders, filter);
-  const fmt = n => `${Number(n||0).toFixed(2)} ₼`;
-
-  const statsHtml = `
-    <div class="sales-stats-grid">
-      <div class="sales-stat-card">
-        <span class="sales-stat-label">Ümumi satış</span>
-        <b class="sales-stat-value">${stats.totalCount}</b>
-        <small class="sales-stat-sub">${stats.completedCount} tamamlanmış</small>
-      </div>
-      <div class="sales-stat-card">
-        <span class="sales-stat-label">Ümumi qazanc</span>
-        <b class="sales-stat-value">${fmt(stats.totalRevenue)}</b>
-        <small class="sales-stat-sub">5% komissiyadan sonra</small>
-      </div>
-      <div class="sales-stat-card">
-        <span class="sales-stat-label">Bu ay</span>
-        <b class="sales-stat-value" style="color:#22c55e">${fmt(stats.thisMonthRevenue)}</b>
-        <small class="sales-stat-sub">Son 30 gün: ${fmt(stats.last30Revenue)}</small>
-      </div>
-      <div class="sales-stat-card">
-        <span class="sales-stat-label">Aktiv sifariş</span>
-        <b class="sales-stat-value" style="color:#fb923c">${stats.activeCount}</b>
-        <small class="sales-stat-sub">${stats.disputedCount>0?stats.disputedCount+' mübahisə':'Mübahisə yox'}</small>
-      </div>
-      <div class="sales-stat-card">
-        <span class="sales-stat-label">Gözləyən ödəniş</span>
-        <b class="sales-stat-value" style="color:#38bdf8">${fmt(stats.pendingPayout)}</b>
-        <small class="sales-stat-sub">Ödənilib: ${fmt(stats.paidOut)}</small>
-      </div>
-      <div class="sales-stat-card">
-        <span class="sales-stat-label">Orta satış</span>
-        <b class="sales-stat-value">${fmt(stats.avgOrder)}</b>
-        <small class="sales-stat-sub">${stats.uniqueBuyers} unikal alıcı</small>
-      </div>
-    </div>`;
-
-  const topHtml = stats.topProducts.length ? `
-    <div class="sales-top-products">
-      <div class="sales-top-title-row">🏆 Ən çox satılan məhsullar</div>
-      <div class="sales-top-list">
-        ${stats.topProducts.map((p,i)=>`
-          <div class="sales-top-item">
-            <span class="sales-top-rank">${i+1}</span>
-            <span class="sales-top-name">${esc(p[0])}</span>
-            <span class="sales-top-count">${p[1]} satış</span>
-          </div>`).join('')}
-      </div>
-    </div>` : '';
-
-  const actionsHtml = `
-    <div class="sales-actions-row">
-      <button type="button" class="primary" onclick="showTab('withdraw')">💰 Çıxarış müraciəti</button>
-      <button type="button" onclick="exportSalesCSV()">📥 CSV ixrac</button>
-      <button type="button" onclick="renderSales()">🔄 Yenilə</button>
-    </div>`;
-
-  const filterHtml = `
-    <div class="sales-filter-row">
-      <select id="salesFilterStatus" class="sales-filter-input">
-        <option value="all">Bütün statuslar</option>
-        <option value="Aktiv">Aktiv</option>
-        <option value="Tamamlandı">Tamamlandı</option>
-        <option value="Mübahisə">Mübahisə</option>
-        <option value="Ləğv edildi">Ləğv edildi</option>
-      </select>
-      <select id="salesFilterDate" class="sales-filter-input">
-        <option value="all">Bütün vaxt</option>
-        <option value="week">Son 7 gün</option>
-        <option value="month">Son 30 gün</option>
-        <option value="3months">Son 3 ay</option>
-      </select>
-      <input id="salesFilterSearch" class="sales-filter-input" placeholder="🔍 Məhsul, alıcı və ya kateqoriya üzrə axtar" value="${esc(filter.search||'')}">
-    </div>`;
-
-  const tableHtml = filtered.length ? `
-    <table class="cabinet-table">
-      <thead>
-        <tr><th>Tarix</th><th>Məhsul</th><th>Alıcı</th><th>Qiymət / Xalis</th><th>Status</th><th>Əməliyyat</th></tr>
-      </thead>
-      <tbody>
-        ${filtered.map(o=>{
-          const both = o.buyerConfirmed && o.sellerConfirmed;
-          const price = Number(o.price||0);
-          const net = (price*0.95).toFixed(2);
-          const commission = (price*0.05).toFixed(2);
-          const date = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'short',year:'2-digit'}) : '-';
-          let btns = '';
-          if(o.deliveryType==="trade" && o.status==="Aktiv"){
-            if(o.tradeInfo) btns += `<small style="color:#38bdf8;display:block;margin-bottom:4px">🔗 Alıcı trade: ${esc(String(o.tradeInfo).slice(0,44))}</small>`;
-            else btns += `<small style="color:#64748b;display:block;margin-bottom:4px">⏳ Alıcının trade linki gözlənilir</small>`;
-          }
-          if(o.status==="Aktiv"){
-            if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
-            else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
-            if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
-            if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
-            if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
-            if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
-              btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
-            }
-          } else if(o.status==="Tamamlandı"){
-            if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
-            else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
-            else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
-          }
-          const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
-          return `<tr>
-            <td><small style="color:#94a3b8">${date}</small></td>
-            <td><b>${esc(o.productTitle||'-')}</b><br>${confirmedInfo}</td>
-            <td><small>${esc(o.buyerEmail||'-')}</small></td>
-            <td><b>${price.toFixed(2)} ₼</b><br><small style="color:#22c55e">Xalis: ${net} ₼</small><br><small style="color:#64748b">Komissiya: ${commission} ₼</small></td>
-            <td>${statusHtml(o.status)}</td>
-            <td><div class="order-actions">${btns}</div></td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>` : `<div class="cabinet-empty">${orders.length ? '🔍 Filtrə uyğun satış tapılmadı. Filtri dəyişin.' : '📦 Hələ satış yoxdur. Elan yerləşdirin və ilk satışınızı gözləyin!'}</div>`;
-
-  el.innerHTML = `
-    <div class="sales-header">
-      <h3>Satışlarım</h3>
-      <small style="color:#64748b">Ümumi ${orders.length} sifariş • Göstərilir: ${filtered.length}</small>
-    </div>
-    ${statsHtml}
-    ${topHtml}
-    ${actionsHtml}
-    ${filterHtml}
-    ${tableHtml}`;
-
-  // Sifariş əməliyyat düymələri
-  el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
-  el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
-
-  // Filtr handler-ləri
-  const statusSel = document.getElementById("salesFilterStatus");
-  const dateSel = document.getElementById("salesFilterDate");
-  const searchIn = document.getElementById("salesFilterSearch");
-  if(statusSel){ statusSel.value = filter.status||'all'; statusSel.onchange = ()=>{ window._salesData.filter.status = statusSel.value; renderSales(); }; }
-  if(dateSel){ dateSel.value = filter.dateRange||'all'; dateSel.onchange = ()=>{ window._salesData.filter.dateRange = dateSel.value; renderSales(); }; }
-  if(searchIn){
-    searchIn.oninput = ()=>{
-      clearTimeout(window._salesSearchTimer);
-      window._salesSearchTimer = setTimeout(()=>{
-        window._salesData.filter.search = searchIn.value;
-        renderSales();
-      }, 250);
-    };
-  }
-}
-
 function listenSales(){
   const el=document.getElementById("cabSales"); if(!el || !currentUser) return;
-  if(unsubSales){ try{ unsubSales(); }catch(_){} unsubSales=null; }
   const q=query(collection(db,"orders"),where("sellerUid","==",currentUser.uid));
-  unsubSales = onSnapshot(q,snap=>{
+  onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    window._salesData.orders = arr;
-    renderSales();
-  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi. Firestore Rules yoxla.</div>'; });
+    if(!arr.length){ el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Hələ satış yoxdur.</div>'; return; }
+    el.innerHTML='<h3>Satışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
+      const both = o.buyerConfirmed && o.sellerConfirmed;
+      let btns = '';
+      // SKIN (trade) — satıcıya alıcının trade linkini göstər
+      if(o.deliveryType==="trade" && o.status==="Aktiv"){
+        if(o.tradeInfo){
+          btns += `<small style="color:#38bdf8;display:block;margin-bottom:4px">🔗 Alıcı trade: ${esc(String(o.tradeInfo).slice(0,44))}</small>`;
+        } else {
+          btns += `<small style="color:#64748b;display:block;margin-bottom:4px">⏳ Alıcının trade linki gözlənilir</small>`;
+        }
+      }
+      if(o.status==="Aktiv"){
+        if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
+        else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
+        if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+        if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+        if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+        // Sosial media hold məlumatı
+        if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
+          btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
+        }
+      } else if(o.status==="Tamamlandı"){
+        if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+        else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+        else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+      }
+      const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
+      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.buyerEmail||'-')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
+    }).join('')+'</tbody></table>';
+    el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
+    el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
+  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
 }
 
 function listenPurchases(){
@@ -9126,8 +8853,6 @@ function wire(){
   document.getElementById("emailLoginTabBtn")?.addEventListener("click",showEmailLogin);
   document.getElementById("sendPhoneCodeBtn")?.addEventListener("click",sendPhoneCode);
   document.getElementById("verifyPhoneCodeBtn")?.addEventListener("click",verifyPhoneCode);
-  document.getElementById("confirmRegPhoneBtn")?.addEventListener("click",confirmRegPhoneCode);
-  document.getElementById("resendRegPhoneCodeBtn")?.addEventListener("click",resendRegPhoneCode);
   document.getElementById("adGame")?.addEventListener("change", updateAdGameCustomVisibility);
   document.getElementById("adCategory")?.addEventListener("change", syncAdFormToCategory);
   updateAdGameCustomVisibility();
