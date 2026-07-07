@@ -5134,14 +5134,17 @@ const CLOUDINARY_CLOUD_NAME = atob("ZHRpcHpoM2x4");
 const CLOUDINARY_UPLOAD_PRESET = atob("Z2FtZXNhdGlz");
 
 // İcazə verilən şəkil formatları (MIME + extension)
-const _ALLOWED_MIME = new Set(["image/jpeg","image/jpg","image/png","image/webp","image/gif"]);
-const _ALLOWED_EXT  = /\.(jpe?g|png|webp|gif)$/i;
+const _ALLOWED_MIME = new Set(["image/jpeg","image/jpg","image/png","image/webp","image/gif","image/heic","image/heif"]);
+const _ALLOWED_EXT  = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
 const _MAX_SIZE_MB  = 5;
 
 function validateImageFile(file){
   if(!file) return "Fayl seçilməyib.";
-  if(!_ALLOWED_MIME.has(file.type.toLowerCase())) return "Yalnız JPG, PNG, WEBP, GIF formatları qəbul edilir.";
-  if(!_ALLOWED_EXT.test(file.name)) return "Fayl adı icazəsiz formatdadır.";
+  // Mobil kamera faylları bəzən MIME və ya uzantısız gəlir — biri keçərlidirsə qəbul et
+  const mimeOk = file.type && _ALLOWED_MIME.has(file.type.toLowerCase());
+  const extOk  = _ALLOWED_EXT.test(file.name || "");
+  const genericImage = file.type && file.type.toLowerCase().startsWith("image/");
+  if(!mimeOk && !extOk && !genericImage) return "Yalnız JPG, PNG, WEBP, GIF, HEIC formatları qəbul edilir.";
   if(file.size > _MAX_SIZE_MB * 1024 * 1024) return `Şəkil maksimum ${_MAX_SIZE_MB}MB olmalıdır.`;
   return null;
 }
@@ -5226,13 +5229,20 @@ async function uploadSingleImageToCloudinary(file){
   if(!currentUser) throw new Error("Giriş tələb olunur.");
   const err = validateImageFile(file);
   if(err) throw new Error(err);
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  formData.append("folder", "ads");
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-    method: "POST", body: formData
-  });
+  async function _doUpload(withFolder){
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    if(withFolder) formData.append("folder", "ads");
+    return fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+      method: "POST", body: formData
+    });
+  }
+  let res = await _doUpload(true);
+  if(!res.ok){
+    // Bəzi unsigned preset-lər folder parametrini qəbul etmir — folder-siz təkrar cəhd
+    res = await _doUpload(false);
+  }
   if(!res.ok){ const txt = await res.text().catch(()=>""); throw new Error("Şəkil yüklənmədi: "+txt); }
   const data = await res.json();
   const url = data.secure_url || "";
@@ -5250,12 +5260,26 @@ async function uploadAdImageToCloudinary(){
     if(err){ toast(f.name+": "+err); return false; }
     return true;
   }).slice(0, 5);
-  if(!valid.length) return [];
+  if(!valid.length){
+    // Şəkil seçilib amma heç biri keçmədi — səssizcə şəkilsiz göndərmə
+    throw new Error("Seçilən şəkillərin heç biri qəbul edilmədi. Format/ölçünü yoxla.");
+  }
   const submitBtn = document.getElementById("adSubmit");
   const urls = [];
+  let lastErr = null;
   for(let i = 0; i < valid.length; i++){
     if(submitBtn) submitBtn.textContent = "Şəkil yüklənir "+(i+1)+"/"+valid.length+"...";
-    urls.push(await uploadSingleImageToCloudinary(valid[i]));
+    try{
+      const u = await uploadSingleImageToCloudinary(valid[i]);
+      if(u) urls.push(u);
+    }catch(upErr){
+      lastErr = upErr;
+      console.error("Şəkil yüklənmədi:", valid[i].name, upErr);
+      toast("⚠️ "+valid[i].name+" yüklənmədi, davam edilir.");
+    }
+  }
+  if(!urls.length){
+    throw new Error("Şəkillər yüklənmədi: " + (lastErr && lastErr.message ? lastErr.message : "naməlum xəta"));
   }
   return urls;
 }
@@ -6329,6 +6353,7 @@ window.editMyAd = async function(id,arr){
   if(document.getElementById("adVideo"))   document.getElementById("adVideo").value=a.video || "";
   document.getElementById("adDesc").value=a.desc || "";
   const btn=document.getElementById("adSubmit"); if(btn){ btn.textContent="Elanı yenilə"; btn.dataset.editingId=id; }
+  window._existingAdImages = Array.isArray(a.imageUrls) && a.imageUrls.length ? a.imageUrls.slice() : (a.imageUrl ? [a.imageUrl] : []);
 }
 window.deleteMyAd = async function(id){
   await refreshUser(); if(!currentUser) return;
@@ -6388,10 +6413,14 @@ window.submitAd = async function(){
   try{
     if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent="Göndərilir..."; }
 
-    const imageUrls = await uploadAdImageToCloudinary();
+    const editingId = submitBtn?.dataset?.editingId || "";
+    let imageUrls = await uploadAdImageToCloudinary();
+    // Redaktə zamanı yeni şəkil seçilməyibsə köhnə şəkilləri saxla
+    if(!imageUrls.length && editingId && Array.isArray(window._existingAdImages) && window._existingAdImages.length){
+      imageUrls = window._existingAdImages.slice(0, 5);
+    }
     const imageUrl  = imageUrls[0] || "";
     const tags = tagsRaw ? tagsRaw.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
-    const editingId = submitBtn?.dataset?.editingId || "";
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
     const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
@@ -6485,6 +6514,7 @@ window.submitAd = async function(){
     clearAdProfessionalFields();
     if(document.getElementById("adImageFile"))    document.getElementById("adImageFile").value="";
     if(document.getElementById("adImagePreview")) document.getElementById("adImagePreview").innerHTML="";
+    window._existingAdImages = [];
 
     // Admin paneli yenilə (əgər açıqdırsa)
     if(typeof _fetchPendingAds==="function") setTimeout(_fetchPendingAds, 1000);
@@ -8465,7 +8495,7 @@ function wire(){
     preview.innerHTML = "";
     if(!files.length) return;
     if(files.length > 5) toast("Yalnız ilk 5 şəkil götürüləcək.");
-    files.filter(function(f){ return f.type.startsWith("image/"); }).slice(0,5).forEach(function(file, idx){
+    files.filter(function(f){ return (f.type && f.type.startsWith("image/")) || _ALLOWED_EXT.test(f.name||""); }).slice(0,5).forEach(function(file, idx){
       var url = URL.createObjectURL(file);
       var wrap = document.createElement("div");
       wrap.style.cssText = "position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid #333;flex-shrink:0;";
