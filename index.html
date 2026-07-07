@@ -1147,6 +1147,19 @@ body.light-mode .admin-tag{background:#f5f7fa;border:1px solid #dde1e7;color:#4a
 .chat-item:hover,.chat-item.active{background:#111827}
 .chat-item b{display:block;font-size:13px;color:#f8fafc}
 .chat-item small{display:block;color:#9ca3af;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-item-wrap{position:relative;border-bottom:1px solid #1f2937}
+.chat-item-wrap.active .chat-item{background:#111827}
+.chat-item-wrap .chat-item{border-bottom:none}
+.chat-item-delete{
+  position:absolute;top:50%;right:10px;transform:translateY(-50%);
+  width:30px;height:30px;padding:0;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+  border-radius:8px;color:#ef4444;cursor:pointer;transition:all .15s;
+}
+.chat-item-wrap:hover .chat-item-delete{display:flex}
+.chat-item-delete:hover{background:#ef4444;color:#fff;border-color:#ef4444}
+@media(max-width:700px){.chat-item-delete{display:flex}}
 .chat-box{background:#090b0d;border:1px solid #252b32;border-radius:12px;display:grid;grid-template-rows:auto 1fr auto;min-height:420px}
 .chat-head{padding:12px;border-bottom:1px solid #1f2937}
 .chat-head b{display:block;color:#f8fafc}
@@ -7316,14 +7329,53 @@ function listenMyChats(){
   },e=>console.error(e)));
 }
 function drawChatList(arr){
+  arr = arr.filter(c => {
+    if(!currentUser) return false;
+    if(c.buyerUid === currentUser.uid && c.hiddenBuyer) return false;
+    if(c.sellerUid === currentUser.uid && c.hiddenSeller) return false;
+    return true;
+  });
   const el=document.getElementById("chatList"); if(!el) return;
   if(!arr.length){ el.innerHTML='<div class="cabinet-empty">Hələ yazışma yoxdur. Məhsul səhifəsindən “Satıcıya yaz” seç.</div>'; return; }
   el.innerHTML=arr.map(c=>{
     const unread=c.buyerUid===currentUser.uid?Number(c.unreadBuyer||0):Number(c.unreadSeller||0);
-    return `<button class="chat-item ${c.id===activeChatId?'active':''}" type="button" data-chat-open="${esc(c.id)}"><b>${esc(chatOtherTitle(c))}${unread?`<span class="chat-unread">${unread}</span>`:""}</b><small>${esc(c.lastMessage||"Yeni yazışma")}</small></button>`;
+    return `<div class="chat-item-wrap ${c.id===activeChatId?'active':''}">
+      <button class="chat-item" type="button" data-chat-open="${esc(c.id)}"><b>${esc(chatOtherTitle(c))}${unread?`<span class="chat-unread">${unread}</span>`:""}</b><small>${esc(c.lastMessage||"Yeni yazışma")}</small></button>
+      <button class="chat-item-delete" type="button" title="Yazışmanı sil" data-chat-delete="${esc(c.id)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>`;
   }).join("");
   el.querySelectorAll("[data-chat-open]").forEach(b=>b.onclick=()=>openChat(b.dataset.chatOpen));
+  el.querySelectorAll("[data-chat-delete]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); window.deleteChatConversation(b.dataset.chatDelete); });
 }
+window.deleteChatConversation = async function(chatId){
+  if(!chatId || !currentUser){ toast("Xəta."); return; }
+  const ok = await (window.showConfirm ? window.showConfirm("Bu yazışma tam silinsin? Bu əməliyyat geri qaytarıla bilməz.","🗑️") : Promise.resolve(window.confirm("Yazışma silinsin?")));
+  if(!ok) return;
+  try{
+    // Chat sənədinə "hidden" flag qoy — istifadəçi öz tərəfindən silmiş kimi
+    const ref = doc(db,"chats",chatId);
+    const snap = await getDoc(ref);
+    if(!snap.exists()){ toast("Yazışma tapılmadı."); return; }
+    const c = snap.data();
+    const patch = {};
+    if(c.buyerUid === currentUser.uid) patch.hiddenBuyer = true;
+    else if(c.sellerUid === currentUser.uid) patch.hiddenSeller = true;
+    else { toast("İcazə yoxdur."); return; }
+    await updateDoc(ref, patch);
+    toast("Yazışma silindi.");
+    if(activeChatId === chatId){
+      activeChatId = null;
+      window._currentChatId = "";
+      const box = document.getElementById("chatBox");
+      if(box) box.innerHTML = '<div class="chat-head"><b>Yazışma seç</b><small>Soldan alıcı/satıcı yazışmasını aç.</small></div><div class="chat-messages"></div><div class="chat-form"><input disabled placeholder="Yazışma seç"><button class="hbtn" disabled>Göndər</button></div>';
+    }
+  }catch(e){
+    console.error("Yazışma silinmədi:", e);
+    toast("Yazışma silinmədi: " + (e.message || e.code || "icazə xətası"));
+  }
+};
 async function openChat(chatId,adminMode=false){
   const box=document.getElementById(adminMode?"adminChatBox":"chatBox"); if(!box) return;
   const ref=doc(db,"chats",chatId);
