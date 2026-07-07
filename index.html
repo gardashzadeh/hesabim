@@ -356,6 +356,175 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .ficon svg{width:100%;height:100%;fill:#fff}
 .follow small{color:#aaa}.follow button{height:32px;border:1px solid #555;background:#151616;border-radius:6px;color:#fff;font-weight:800;width:100%}
 .whats{position:fixed;right:22px;bottom:22px;background:#111212;border:1px solid #303232;border-radius:999px;padding:11px 24px 11px 12px;display:flex;align-items:center;gap:13px;z-index:999}
+/* ===== CANLI DƏSTƏK WIDGET ===== */
+.whats{display:none!important} /* Köhnə WhatsApp düyməsini gizlədirik — dəstək widget-i onu əvəz edir */
+#supportBtn{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;border-radius:999px;padding:13px 20px 13px 16px;color:#fff;font-family:inherit;font-weight:700;font-size:13.5px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 12px 30px rgba(255,90,0,.35),0 4px 12px rgba(0,0,0,.4);transition:.22s ease;z-index:99998}
+#supportBtn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(255,90,0,.5),0 6px 18px rgba(0,0,0,.5)}
+#supportBtn svg{width:22px;height:22px;fill:#fff}
+#supportBtn .sup-status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(255,255,255,.25);animation:supPulse 2s infinite}
+#supportBtn.offline .sup-status-dot{background:#94a3b8;animation:none}
+#supportBtn .sup-badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 6px;font-size:11.5px;font-weight:800;display:grid;place-items:center;border:2px solid #0e1219;box-shadow:0 4px 12px rgba(239,68,68,.5)}
+@keyframes supPulse{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.4)}50%{box-shadow:0 0 0 7px rgba(34,197,94,.05)}}
+
+#supportPanel{position:fixed;right:22px;bottom:22px;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 40px);background:#0e1219;border:1px solid #1c2330;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.7);z-index:99999;display:none;flex-direction:column;overflow:hidden;font-family:inherit;animation:supSlideUp .28s cubic-bezier(.4,0,.2,1)}
+#supportPanel.open{display:flex}
+@keyframes supSlideUp{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.sup-header{background:linear-gradient(135deg,#ff7a18,#c94800);padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sup-header-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sup-header-title{font-weight:800;font-size:15px;letter-spacing:.2px}
+.sup-header-status{font-size:11.5px;opacity:.95;display:flex;align-items:center;gap:6px}
+.sup-header-status .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.3)}
+.sup-header-status .dot.offline{background:#cbd5e1;box-shadow:none}
+.sup-header-actions{display:flex;gap:6px;align-items:center}
+.sup-header-btn{background:rgba(255,255,255,.15);border:0;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.15s ease}
+.sup-header-btn:hover{background:rgba(255,255,255,.28)}
+.sup-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#0a0c10}
+.sup-body::-webkit-scrollbar{width:6px}
+.sup-body::-webkit-scrollbar-thumb{background:#1c2330;border-radius:3px}
+.sup-welcome{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px;font-size:12.5px;color:#94a3b8;line-height:1.5;text-align:center;margin-bottom:4px}
+.sup-msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-wrap:break-word;position:relative;animation:supMsgIn .2s ease}
+@keyframes supMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.sup-msg.user{align-self:flex-end;background:linear-gradient(135deg,#ff7a18,#ff5a00);color:#fff;border-bottom-right-radius:4px}
+.sup-msg.admin{align-self:flex-start;background:#1a1f2e;color:#e2e8f0;border-bottom-left-radius:4px;border:1px solid #262d3d}
+.sup-msg-time{font-size:10px;opacity:.7;margin-top:3px}
+.sup-msg.user .sup-msg-time{text-align:right}
+.sup-day-separator{align-self:center;font-size:10.5px;color:#64748b;background:#11151d;padding:3px 10px;border-radius:10px;margin:6px 0;letter-spacing:.3px}
+
+.sup-prechat{padding:18px;display:flex;flex-direction:column;gap:10px;background:#0a0c10;flex:1;overflow-y:auto}
+.sup-prechat-title{color:#f1f5f9;font-size:15px;font-weight:800;margin:0}
+.sup-prechat-desc{color:#94a3b8;font-size:12.5px;line-height:1.5;margin:0 0 6px}
+.sup-prechat input,.sup-prechat select,.sup-prechat textarea{background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-family:inherit;font-size:13.5px;outline:0;transition:.15s}
+.sup-prechat input:focus,.sup-prechat select:focus,.sup-prechat textarea:focus{border-color:#fb923c}
+.sup-prechat textarea{min-height:70px;resize:vertical}
+.sup-prechat-btn{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;padding:12px;border-radius:8px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;transition:.15s}
+.sup-prechat-btn:hover{filter:brightness(1.12)}
+
+.sup-input-row{display:flex;gap:8px;padding:10px 12px;background:#11151d;border-top:1px solid #1c2330;align-items:flex-end}
+.sup-input{flex:1;background:#0a0c10;border:1px solid #1c2330;border-radius:20px;color:#e2e8f0;padding:10px 14px;font-family:inherit;font-size:13.5px;outline:0;resize:none;max-height:100px;line-height:1.4;transition:.15s}
+.sup-input:focus{border-color:#fb923c}
+.sup-send-btn{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;border-radius:50%;width:38px;height:38px;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-send-btn:hover{transform:scale(1.06)}
+.sup-send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.sup-send-btn svg{width:16px;height:16px;fill:#fff}
+
+.sup-fallback-links{padding:10px 14px;background:#0a0c10;border-top:1px solid #1c2330;display:flex;gap:10px;justify-content:center;font-size:11.5px;color:#64748b}
+.sup-fallback-links a{color:#94a3b8;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:.15s}
+.sup-fallback-links a:hover{color:#fb923c}
+
+/* Admin panel — dəstək söhbətləri siyahısı */
+.admin-support-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.admin-support-item{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px 14px;cursor:pointer;transition:.15s;display:grid;grid-template-columns:1fr auto;gap:6px}
+.admin-support-item:hover{border-color:#fb923c66;transform:translateY(-1px)}
+.admin-support-item.unread{background:linear-gradient(to right,rgba(251,146,60,.1),transparent);border-color:#fb923c55}
+.admin-support-item.closed{opacity:.6}
+.admin-support-name{font-weight:700;color:#e2e8f0;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.admin-support-badge{background:#ef4444;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;min-width:22px;text-align:center}
+.admin-support-meta{font-size:11.5px;color:#64748b}
+.admin-support-preview{font-size:12.5px;color:#94a3b8;grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+.admin-support-time{font-size:11px;color:#64748b;text-align:right}
+.admin-support-status-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.3px}
+.admin-support-status-tag.open{background:#052e1a;color:#4ade80}
+.admin-support-status-tag.closed{background:#1a1a1a;color:#94a3b8}
+
+@media(max-width:500px){
+  #supportPanel{right:10px;bottom:10px;left:10px;width:auto;height:calc(100vh - 20px);max-height:100%;border-radius:14px}
+  #supportBtn{right:14px;bottom:14px;padding:11px 16px 11px 12px;font-size:12.5px}
+  #supportBtn svg{width:18px;height:18px}
+}
+
+body.light-mode #supportPanel{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-body{background:#f8fafc}
+body.light-mode .sup-msg.admin{background:#fff;color:#1a1d23;border-color:#e2e8f0}
+body.light-mode .sup-input-row{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-input{background:#f8fafc;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .sup-prechat{background:#f8fafc}
+body.light-mode .sup-prechat-title{color:#1a1d23}
+body.light-mode .sup-prechat input,body.light-mode .sup-prechat select,body.light-mode .sup-prechat textarea{background:#fff;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .sup-welcome{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-fallback-links{background:#f8fafc;border-color:#e2e8f0}
+body.light-mode .sup-day-separator{background:#fff;color:#64748b}
+body.light-mode .admin-support-item{background:#fff;border-color:#e2e8f0}
+body.light-mode .admin-support-name{color:#1a1d23}
+/* ===== YENİ WIDGET FUNKSİYALARI ===== */
+/* Typing indicator (yazır...) */
+.sup-typing{align-self:flex-start;background:#1a1f2e;border:1px solid #262d3d;padding:11px 14px;border-radius:14px;border-bottom-left-radius:4px;display:none;gap:4px;align-items:center;animation:supMsgIn .2s ease}
+.sup-typing.show{display:flex}
+.sup-typing span{width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:supTypeDot 1.4s infinite}
+.sup-typing span:nth-child(2){animation-delay:.2s}
+.sup-typing span:nth-child(3){animation-delay:.4s}
+@keyframes supTypeDot{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+
+/* Read receipts (checkmark) */
+.sup-msg-checks{display:inline-flex;gap:1px;margin-left:4px;font-size:11px;letter-spacing:-2px}
+.sup-msg-checks.read{color:#38bdf8}
+.sup-msg.user .sup-msg-time{display:flex;align-items:center;justify-content:flex-end;gap:2px}
+
+/* Şəkil mesajı */
+.sup-msg-image{max-width:220px;max-height:220px;border-radius:8px;cursor:pointer;display:block;margin:2px 0}
+.sup-msg-file{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.08);border-radius:8px;text-decoration:none;color:inherit;font-size:12.5px}
+.sup-msg-file svg{width:20px;height:20px;flex:none;opacity:.8}
+.sup-msg-file:hover{background:rgba(255,255,255,.14)}
+.sup-msg.admin .sup-msg-file{background:#0e1219;border:1px solid #262d3d}
+.sup-msg.admin .sup-msg-file:hover{background:#151a26}
+
+/* Attach button + upload progress */
+.sup-attach-btn{background:transparent;border:0;color:#94a3b8;width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-attach-btn:hover{background:#1c2330;color:#fb923c}
+.sup-attach-btn svg{width:20px;height:20px;fill:currentColor}
+.sup-upload-bar{height:3px;background:#1c2330;border-radius:2px;overflow:hidden;margin:6px 12px 0}
+.sup-upload-bar-fill{height:100%;background:linear-gradient(90deg,#ff7a18,#ff5a00);width:0%;transition:width .2s ease}
+
+/* Rating UI */
+.sup-rating-panel{padding:20px;text-align:center;background:#0a0c10;border-top:1px solid #1c2330}
+.sup-rating-panel h4{color:#f1f5f9;margin:0 0 4px;font-size:15px}
+.sup-rating-panel p{color:#94a3b8;font-size:12.5px;margin:0 0 12px;line-height:1.4}
+.sup-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
+.sup-star{font-size:32px;cursor:pointer;color:#334155;transition:.15s;user-select:none;line-height:1}
+.sup-star:hover,.sup-star.active{color:#ffae00;transform:scale(1.15)}
+.sup-rating-textarea{width:100%;background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-family:inherit;font-size:12.5px;outline:0;resize:vertical;min-height:60px;margin-bottom:8px}
+.sup-rating-textarea:focus{border-color:#fb923c}
+.sup-rating-submit{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;padding:9px 24px;border-radius:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.sup-rating-submit:hover{filter:brightness(1.1)}
+.sup-rating-submitted{color:#22c55e;font-size:13px;padding:14px;text-align:center}
+
+/* Canned responses (admin quick replies) */
+.sup-canned-wrap{position:relative}
+.sup-canned-btn{background:transparent;border:0;color:#94a3b8;width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-canned-btn:hover{background:#1c2330;color:#fb923c}
+.sup-canned-btn svg{width:19px;height:19px;fill:currentColor}
+.sup-canned-menu{position:absolute;bottom:44px;left:0;background:#11151d;border:1px solid #1c2330;border-radius:10px;min-width:260px;max-width:320px;max-height:280px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:100000;display:none;padding:6px}
+.sup-canned-menu.open{display:block}
+.sup-canned-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12.5px;color:#e2e8f0;line-height:1.4;transition:.12s;display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.sup-canned-item:hover{background:#1a1f2e}
+.sup-canned-item small{color:#64748b;font-size:10.5px;flex:none}
+.sup-canned-item-title{font-weight:700;color:#fb923c;font-size:11px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;display:block}
+.sup-canned-item-text{color:#94a3b8;font-size:12px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sup-canned-menu-header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid #1c2330;margin-bottom:4px;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.sup-canned-add-btn{background:#fb923c;color:#fff;border:0;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;font-weight:700}
+.sup-canned-add-btn:hover{filter:brightness(1.1)}
+.sup-canned-item-remove{color:#64748b;background:transparent;border:0;cursor:pointer;font-size:12px;padding:2px 4px;line-height:1}
+.sup-canned-item-remove:hover{color:#ef4444}
+
+/* FAQ quick suggestions */
+.sup-faq{padding:12px 14px 4px;background:#0a0c10}
+.sup-faq-title{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:8px}
+.sup-faq-list{display:flex;flex-wrap:wrap;gap:6px}
+.sup-faq-chip{background:#11151d;border:1px solid #1c2330;color:#cbd5e1;padding:6px 12px;border-radius:14px;font-size:12px;cursor:pointer;transition:.15s;font-family:inherit}
+.sup-faq-chip:hover{border-color:#fb923c;color:#fb923c;background:#1a1105}
+
+/* User profile link (admin baxışında) */
+.sup-profile-link{background:rgba(255,255,255,.15);border:0;color:#fff;padding:5px 12px;border-radius:14px;font-size:11.5px;cursor:pointer;font-weight:600;font-family:inherit;transition:.15s}
+.sup-profile-link:hover{background:rgba(255,255,255,.28)}
+
+body.light-mode .sup-typing{background:#f8fafc;border-color:#e2e8f0}
+body.light-mode .sup-canned-menu{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-canned-item{color:#1a1d23}
+body.light-mode .sup-canned-item:hover{background:#f5f7fa}
+body.light-mode .sup-rating-panel{background:#f8fafc;border-color:#e2e8f0}
+body.light-mode .sup-rating-panel h4{color:#1a1d23}
+body.light-mode .sup-rating-textarea{background:#fff;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .sup-faq{background:#f8fafc}
+body.light-mode .sup-faq-chip{background:#fff;border-color:#e2e8f0;color:#1a1d23}
 .whats i{width:54px;height:54px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;padding:12px}
 .whats i svg{width:100%;height:100%;fill:#fff}
 .whats span{display:block;font-size:12px;color:#ccc}
@@ -499,6 +668,43 @@ body.is-admin #adminTabBtn{display:block!important}
 .status.sold{background:#13233d;color:#70a7ff}
 .status.rejected{background:#421616;color:#ff6b6b}
 .cabinet-empty{color:#6b7280;font-size:13px;padding:16px;border:1px dashed #2a2d2d;border-radius:10px;letter-spacing:.2px;font-weight:400;line-height:1.6;text-align:center}
+/* ===== SATIŞLARIM — Statistika, filtr, top məhsullar ===== */
+.sales-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sales-header h3{margin:0}
+.sales-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.sales-stat-card{background:linear-gradient(135deg,#11151d,#0c0f15);border:1px solid #1c2330;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;transition:.16s ease}
+.sales-stat-card:hover{border-color:#fb923c44;transform:translateY(-1px)}
+.sales-stat-label{font-size:10.5px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.sales-stat-value{font-size:19px;color:#f1f5f9;font-weight:800;letter-spacing:.2px;line-height:1.2}
+.sales-stat-sub{font-size:10.5px;color:#475569;line-height:1.4}
+.sales-top-products{background:#0e1219;border:1px solid #1c2330;border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.sales-top-title-row{font-size:11px;color:#94a3b8;letter-spacing:.6px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.sales-top-list{display:flex;flex-direction:column;gap:6px}
+.sales-top-item{display:flex;align-items:center;gap:10px;padding:7px 10px;background:#11151d;border-radius:7px;border:1px solid transparent}
+.sales-top-item:hover{border-color:#1c2330}
+.sales-top-rank{width:22px;height:22px;background:linear-gradient(135deg,#fb923c,#c94800);border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff;flex:none}
+.sales-top-name{flex:1;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.sales-top-count{font-size:12px;color:#fb923c;font-weight:700;flex:none;background:#1a1105;padding:2px 8px;border-radius:10px}
+.sales-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sales-actions-row button{padding:9px 14px;font-size:12.5px;font-weight:600;border-radius:8px;border:1px solid #2d3648;background:#151b25;color:#c8ccd0;cursor:pointer;font-family:inherit;transition:.15s ease}
+.sales-actions-row button:hover{border-color:#fb923c;color:#fb923c}
+.sales-actions-row button.primary{background:linear-gradient(#ff7a18,#ff5a00);border:0;color:#fff}
+.sales-actions-row button.primary:hover{color:#fff;filter:brightness(1.1)}
+.sales-filter-row{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px;margin-bottom:12px}
+.sales-filter-input{background:#0c0d0d;border:1px solid #333636;border-radius:8px;color:#e8eaed;padding:9px 12px;font-family:inherit;font-size:13px;outline:0;transition:.15s ease}
+.sales-filter-input:focus{border-color:#fb923c}
+@media(max-width:640px){
+  .sales-filter-row{grid-template-columns:1fr}
+  .sales-stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .sales-stat-value{font-size:16px}
+}
+body.light-mode .sales-stat-card{background:linear-gradient(135deg,#fff,#f8fafc);border:1px solid #dde1e7}
+body.light-mode .sales-stat-value{color:#1a1d23}
+body.light-mode .sales-top-products{background:#fff;border-color:#dde1e7}
+body.light-mode .sales-top-item{background:#f5f7fa}
+body.light-mode .sales-top-name{color:#1a1d23}
+body.light-mode .sales-filter-input{background:#fff;border-color:#dde1e7;color:#1a1d23}
+body.light-mode .sales-actions-row button{background:#fff;border-color:#dde1e7;color:#1a1d23}
 @media(max-width:800px){.cabinet-body{grid-template-columns:1fr}.cabinet-menu{border-right:0;border-bottom:1px solid #292b2b}}
 
 .auth-tabs{display:flex;gap:8px;margin:10px 0 12px}
@@ -3269,6 +3475,106 @@ button,input,select,textarea{max-width:100%}
   <div><b>Canlı dəstək</b><span>WhatsApp</span></div>
 </a>
 
+<!-- ===== CANLI DƏSTƏK WIDGET ===== -->
+<button id="supportBtn" type="button" aria-label="Canlı dəstək aç">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+  <span>Dəstək</span>
+  <span class="sup-status-dot" title="Admin onlayn"></span>
+  <span class="sup-badge" id="supBadge" style="display:none">0</span>
+</button>
+
+<div id="supportPanel" role="dialog" aria-label="Canlı dəstək">
+  <div class="sup-header">
+    <div class="sup-header-info">
+      <div class="sup-header-title">Hesablar Dəstək</div>
+      <div class="sup-header-status">
+        <span class="dot" id="supAdminDot"></span>
+        <span id="supAdminStatus">Onlayn — dərhal cavab</span>
+      </div>
+    </div>
+    <div class="sup-header-actions">
+      <button class="sup-profile-link" id="supUserProfile" title="İstifadəçi profili" style="display:none">👤 Profil</button>
+      <button class="sup-header-btn" id="supCloseChat" title="Söhbəti bağla" style="display:none" aria-label="Bağla">✕</button>
+      <button class="sup-header-btn" id="supMinimize" title="Kiçilt" aria-label="Kiçilt">−</button>
+    </div>
+  </div>
+
+  <!-- Pre-chat form (guest üçün) -->
+  <div class="sup-prechat" id="supPrechat" style="display:none">
+    <h4 class="sup-prechat-title">Sizə necə köməklik edə bilərik?</h4>
+    <p class="sup-prechat-desc">Aşağıdakı məlumatları doldurun — komandamız qısa müddətdə cavab verəcək.</p>
+    <input id="supPreName" type="text" placeholder="Adınız" maxlength="60">
+    <input id="supPreEmail" type="email" placeholder="Email" autocomplete="email">
+    <select id="supPreCategory">
+      <option value="">Kateqoriya seçin...</option>
+      <option value="Sifariş">Sifariş problemi</option>
+      <option value="Elan">Elan yerləşdirmə</option>
+      <option value="Ödəniş">Ödəniş / Balans</option>
+      <option value="Hesab">Hesab / Qeydiyyat</option>
+      <option value="Digər">Digər</option>
+    </select>
+    <textarea id="supPreMessage" placeholder="Probleminizi qısaca yazın..." maxlength="500"></textarea>
+    <button class="sup-prechat-btn" id="supPreSubmit" type="button">Söhbətə başla</button>
+  </div>
+
+  <!-- FAQ tez suallar (chat açılan kimi göstərilir) -->
+  <div class="sup-faq" id="supFaq" style="display:none">
+    <div class="sup-faq-title">💡 Tez-tez verilən suallar</div>
+    <div class="sup-faq-list" id="supFaqList"></div>
+  </div>
+
+  <!-- Chat body -->
+  <div class="sup-body" id="supBody" style="display:none"></div>
+
+  <!-- Typing indicator -->
+  <div style="padding:0 14px" id="supTypingWrap" style="display:none">
+    <div class="sup-typing" id="supTyping"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- Upload progress bar -->
+  <div class="sup-upload-bar" id="supUploadBar" style="display:none"><div class="sup-upload-bar-fill" id="supUploadFill"></div></div>
+
+  <!-- Rating panel (söhbət bağlananda göstərilir) -->
+  <div class="sup-rating-panel" id="supRating" style="display:none">
+    <h4>Söhbət bitdi 👋</h4>
+    <p>Xidmətimizi qiymətləndirin — irəliyə doğru inkişaf etməyimizə kömək edin.</p>
+    <div class="sup-stars" id="supStars">
+      <span class="sup-star" data-star="1">★</span>
+      <span class="sup-star" data-star="2">★</span>
+      <span class="sup-star" data-star="3">★</span>
+      <span class="sup-star" data-star="4">★</span>
+      <span class="sup-star" data-star="5">★</span>
+    </div>
+    <textarea class="sup-rating-textarea" id="supRatingComment" placeholder="Rəyiniz (istəyə bağlı)..." maxlength="300"></textarea>
+    <button class="sup-rating-submit" id="supRatingSubmit" type="button">Göndər</button>
+  </div>
+
+  <!-- Input row -->
+  <div class="sup-input-row" id="supInputRow" style="display:none">
+    <div class="sup-canned-wrap" id="supCannedWrap" style="display:none">
+      <button class="sup-canned-btn" id="supCannedBtn" type="button" title="Hazır cavablar" aria-label="Hazır cavab">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      </button>
+      <div class="sup-canned-menu" id="supCannedMenu"></div>
+    </div>
+    <button class="sup-attach-btn" id="supAttachBtn" type="button" title="Şəkil/fayl əlavə et" aria-label="Fayl əlavə et">
+      <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5C7 20.54 9.46 23 12.5 23s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+    </button>
+    <input type="file" id="supFileInput" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none">
+    <textarea class="sup-input" id="supInput" placeholder="Mesajınızı yazın..." rows="1" maxlength="1000"></textarea>
+    <button class="sup-send-btn" id="supSendBtn" type="button" aria-label="Göndər">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+
+  <!-- Fallback links -->
+  <div class="sup-fallback-links" id="supFallback" style="display:none">
+    <span>Digər əlaqə:</span>
+    <a href="https://wa.me/994555707071" target="_blank" rel="noopener">WhatsApp</a>
+    <a href="mailto:info@hesablar.net">Email</a>
+  </div>
+</div>
+
 <div class="modal" id="loginModal">
   <div class="modal-box" style="max-height:88vh;overflow-y:auto">
     <h3>Giriş / qeydiyyat</h3>
@@ -3313,11 +3619,25 @@ button,input,select,textarea{max-width:100%}
       <input id="regUserId" type="text" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off">
       <small id="regUserIdHint" style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Yalnız hərf, rəqəm və alt xətt (_) — elanlarınızda bu ID görünəcək</small>
       <input id="regEmail" type="email" placeholder="Email" autocomplete="email">
+      <input id="regPhone" type="tel" placeholder="Telefon (+994551234567)" autocomplete="tel" inputmode="tel">
+      <small style="display:block;margin:-6px 0 6px;font-size:11px;color:#64748b">Ölkə kodu ilə: +994... — SMS ilə təsdiq olunacaq</small>
       <input id="regPassword" type="password" placeholder="Şifrə (minimum 6 simvol)">
       <input id="regPassword2" type="password" placeholder="Şifrəni təkrar et">
       <div class="modal-actions">
         <button class="hbtn" type="button" onclick="closeModal('loginModal')">Bağla</button>
         <button class="hbtn orange" type="button" id="firebaseRegisterBtn">Qeydiyyatdan keç</button>
+      </div>
+    </div>
+
+    <div id="regPhoneStep" class="auth-step">
+      <p style="margin:4px 0 10px;font-size:13px;color:#94a3b8">
+        Emailinizə təsdiq linki göndərildi. İndi telefon nömrənizə göndərilən 6 rəqəmli SMS kodu daxil edin.
+      </p>
+      <input id="regPhoneCode" type="text" placeholder="SMS kod (6 rəqəm)" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+      <div id="reg-recaptcha-container"></div>
+      <div class="modal-actions">
+        <button class="hbtn" type="button" id="resendRegPhoneCodeBtn">Kodu yenidən göndər</button>
+        <button class="hbtn orange" type="button" id="confirmRegPhoneBtn">Təsdiqlə</button>
       </div>
     </div>
 
@@ -3398,38 +3718,35 @@ button,input,select,textarea{max-width:100%}
                   <option>Platinum</option><option>Diamond</option><option>Master / Grandmaster</option>
                   <option>Challenger / Radiant</option><option>Digər</option>
                 </select>
-                <input id="adLevel" type="hidden" value="">
+                <input id="adLevel" placeholder="Level / Səviyyə" inputmode="numeric" type="text">
               </div>
 
-              <!-- Çatdırılma / satış üsulu seçimi -->
+              <!-- Çatdırılma üsulu seçimi -->
               <div style="margin-top:14px">
-                <div style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px">Satış üsulu <span style="color:#ef4444">*</span></div>
+                <div style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px">Çatdırılma üsulu</div>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-                  <button type="button" id="contactBtnPlatform" onclick="setContactMode('platform')"
-                    style="padding:14px 12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
-                    🛡️ Sayt vasitəsilə
-                    <div style="font-weight:400;font-size:10.5px;color:#94a3b8;margin-top:4px">Alıcı ödəyir, admin nəzarətdə. Təhlükəsiz.</div>
+                <!-- Seçim düymələri -->
+                <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+                  <button type="button" id="deliveryBtnDirect" onclick="setDeliveryMode('direct')"
+                    style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12px;cursor:pointer;transition:.15s">
+                    ⚡ Birbaşa çatdırılma
                   </button>
-                  <button type="button" id="contactBtnDirect" onclick="setContactMode('direct_contact')"
-                    style="padding:14px 12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
-                    📞 Özüm satıram
-                    <div style="font-weight:400;font-size:10.5px;color:#475569;margin-top:4px">Nömrə göstərilir. Sən özün alıcı ilə əlaqə saxla.</div>
+                  <button type="button" id="deliveryBtnChat" onclick="setDeliveryMode('chat')"
+                    style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12px;cursor:pointer;transition:.15s">
+                    💬 Chat vasitəsilə
                   </button>
                 </div>
-                <input type="hidden" id="adContactMode" value="platform">
                 <input type="hidden" id="adDeliveryMode" value="direct">
-                <input type="hidden" id="adChatMode" value="chat_only">
 
-                <!-- Sayt vasitəsilə: hesab məlumatları + şərtlər -->
-                <div id="contactPlatformSection">
+                <!-- Birbaşa çatdırılma bölməsi -->
+                <div id="deliveryDirectSection">
                   <div style="background:#0a0e14;border:1px solid #fb923c33;border-radius:10px;padding:14px;margin-bottom:10px">
                     <div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px;display:flex;align-items:center;gap:6px">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                      HESAB MƏLUMATLARI
+                      BİRBAŞA ÇATDIRILMA
                     </div>
                     <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
-                      Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşandan sonra <b style="color:#94a3b8">əvvəlcə admin təsdiqləyir</b>, sonra alıcıya çatdırılır.
+                      Aşağıdakı məlumatlar satış reallaşdıqda <b style="color:#94a3b8">birbaşa alıcıya deyil, əvvəlcə adminə</b> göndəriləcək. Admin yoxlayıb təsdiqlədikdən sonra alıcıya çatdıracaq.
                     </p>
 
                     <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları</div>
@@ -3443,35 +3760,36 @@ button,input,select,textarea{max-width:100%}
                     <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər)</span></div>
                     <textarea id="adExtraInfo" placeholder="Məs: Wallet balansı: 50$, Bağlı kart: yoxdur, İkili təsdiqləmə: söndürülüb..." rows="3" style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
                   </div>
-
-                  <!-- Şərtlər checkbox -->
-                  <div style="background:#0a0e14;border:1px solid #22c55e33;border-radius:10px;padding:12px;margin-bottom:10px">
-                    <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:8px">📋 QAYDALARI OXU VƏ QƏBUL ET</div>
-                    <div style="font-size:11.5px;color:#94a3b8;line-height:1.7;margin-bottom:10px">
-                      • Verdiyin məlumat düzgün olmalıdır. Yalan/köhnə şifrə üçün balansın dondurulur.<br>
-                      • Satışdan sonra hesabın şifrəsini dəyişməyəcəksən. Dəyişsən — balansın bloklanır.<br>
-                      • Admin təsdiq edənə qədər hesabı başqasına satmayacaqsan.<br>
-                      • Şikayət olsa, məhsul qaytarılırsa, pul geri alıcıya köçürülür.<br>
-                      • Alıcıdan xaric ödəniş üsulu (WhatsApp, birbaşa köçürmə) tələb edə bilməzsən.<br>
-                      • Qaydaları pozmaq → hesab müvəqqəti/tam bloklanır.
-                    </div>
-                    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:#e2e8f0">
-                      <input type="checkbox" id="adPlatformTerms" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:#22c55e">
-                      <span>Yuxarıdakı qaydaları oxudum və qəbul edirəm.</span>
-                    </label>
-                  </div>
                 </div>
 
-                <!-- Özüm satıram: nömrə -->
-                <div id="contactDirectSection" style="display:none">
-                  <div style="background:#0a0e14;border:1px solid #64748b33;border-radius:10px;padding:14px;margin-bottom:10px">
-                    <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px">📞 ƏLAQƏ NÖMRƏSİ</div>
+                <!-- Chat vasitəsilə bölməsi -->
+                <div id="deliveryChatSection" style="display:none">
+                  <div style="background:#0a0e14;border:1px solid #1c2330;border-radius:10px;padding:14px">
+                    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">💬 CHAT VASİTƏSİLƏ ÇATDIRILMA</div>
                     <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
-                      Alıcılar bu nömrəyə zəng edəcək. WhatsApp və ya telefon nömrəsi olsun.
-                      <b style="color:#f97316">Sayt zəmanət vermir</b> — bütün riski öz üzərinə götürürsən.
+                      Satış reallaşdıqda alıcı ilə chat açılacaq. Hesab məlumatlarını özünüz chat vasitəsilə çatdıracaqsınız.
                     </p>
-                    <input id="adDirectPhone" placeholder="Telefon nömrəsi: +994551234567" inputmode="tel" autocomplete="off" style="margin-bottom:8px">
-                    <input id="adDirectWhatsapp" placeholder="WhatsApp nömrəsi (istəyə görə): +994551234567" inputmode="tel" autocomplete="off">
+                    <div style="font-size:11px;color:#94a3b8;font-weight:600;margin-bottom:8px">Chat + Avtomatik çatdırılma:</div>
+                    <div style="display:flex;gap:8px">
+                      <button type="button" id="chatModeOnlyChat" onclick="setChatMode('chat_only')"
+                        style="flex:1;padding:8px;border-radius:8px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-size:12px;font-weight:700;cursor:pointer">
+                        Yalnız chat
+                      </button>
+                      <button type="button" id="chatModeBoth" onclick="setChatMode('chat_and_auto')"
+                        style="flex:1;padding:8px;border-radius:8px;border:1px solid #1c2330;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer">
+                        Həm chat + avtomatik
+                      </button>
+                    </div>
+                    <input type="hidden" id="adChatMode" value="chat_only">
+
+                    <!-- Həm chat + avtomatik seçiləndə məlumat sahələri açılsın -->
+                    <div id="chatAutoSection" style="display:none;margin-top:12px">
+                      <div style="font-size:11px;color:#5b6678;margin-bottom:8px;line-height:1.5">
+                        ℹ️ Avtomatik hissə üçün hesab məlumatlarını daxil edin — satış reallaşanda adminə göndəriləcək.
+                      </div>
+                      <input id="adChatAutoLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
+                      <input id="adChatAutoPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off">
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3609,17 +3927,28 @@ button,input,select,textarea{max-width:100%}
             </div>
 
             <!-- QİYMƏT — hamı üçün -->
-            <div style="margin-top:6px">
-              <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
-              <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
-              <input id="adOriginalPrice" type="hidden" value="">
-              <input id="adTags" type="hidden" value="">
-              <input id="adVideo" type="hidden" value="">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+              <div>
+                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
+                <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
+              </div>
+              <div>
+                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Köhnə qiymət (₼) — İstəyə görə</label>
+                <input id="adOriginalPrice" placeholder="Məsələn: 70" inputmode="decimal" type="text">
+              </div>
             </div>
-            <input id="adContact" placeholder="WhatsApp nömrəsi: +994551234567 (istəyə görə)" style="margin-top:8px">
-            <div>
-              <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Stok sayı</label>
-              <input id="adStock" placeholder="Məsələn: 1" inputmode="numeric" type="text">
+            <input id="adTags" placeholder="Teqlər: pubg, hesab, uc (vergüllə ayır)" style="margin-top:8px;">
+            <p class="hint" style="margin-top:-4px;margin-bottom:8px;">Teqlər axtarışı asanlaşdırır.</p>
+            <input id="adContact" placeholder="WhatsApp nömrəsi: +994551234567 (istəyə görə)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div>
+                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Stok sayı</label>
+                <input id="adStock" placeholder="Məsələn: 1" inputmode="numeric" type="text">
+              </div>
+              <div>
+                <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Video linki (YouTube/TikTok)</label>
+                <input id="adVideo" placeholder="https://youtube.com/..." type="url">
+              </div>
             </div>
             <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
             <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
@@ -3708,10 +4037,6 @@ button,input,select,textarea{max-width:100%}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:17px;height:17px;margin-right:7px;vertical-align:middle"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
             Səbətə əlavə et
           </button>
-          <a class="fullbtn" type="button" id="pdCallBtn" href="#" style="display:none;text-decoration:none;background:linear-gradient(135deg,#22c55e,#16a34a);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:17px;height:17px;margin-right:7px;vertical-align:middle"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
-            Zəng et
-          </a>
           <div class="pd-secondary-row">
             <button class="pd-action-btn" type="button" id="pdFav">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
@@ -4483,9 +4808,6 @@ window.renderMarketAds = function renderMarketAds(){
     sellerEmail: a.sellerEmail || "",
     sellerVerified: !!a.sellerVerified,
     imageUrls: a.imageUrls || [],
-    contactMode: a.contactMode || "platform",
-    directPhone: a.directPhone || "",
-    directWhatsapp: a.directWhatsapp || "",
     stock: Number(a.stock || 1),
     video: a.video || "",
     adNumber: a.adNumber || ""
@@ -4542,9 +4864,6 @@ window.renderMarketAds = function renderMarketAds(){
       views: Number(btn.dataset.views||0),
       originalPrice: Number(btn.dataset.originalprice||0),
       contact: btn.dataset.contact,
-      contactMode: btn.dataset.contactmode || "platform",
-      directPhone: btn.dataset.directphone || "",
-      directWhatsapp: btn.dataset.directwhatsapp || "",
       tags: tags,
       imageUrls: imageUrls,
       adNumber: btn.dataset.adnumber,
@@ -4596,9 +4915,6 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-views="'+Number(a.views||0)+'" '
         + 'data-originalprice="'+Number(a.originalPrice||0)+'" '
         + 'data-contact="'+attr(a.contact)+'" '
-        + 'data-contactmode="'+attr(a.contactMode||"platform")+'" '
-        + 'data-directphone="'+attr(a.directPhone||"")+'" '
-        + 'data-directwhatsapp="'+attr(a.directWhatsapp||"")+'" '
         + 'data-tags="'+tagsB64+'" '
         + 'data-imgs="'+imgsB64+'" '
         + 'data-adnumber="'+attr(a.adNumber||'')+'" '
@@ -4840,27 +5156,10 @@ function openProductDetail(p){
       }
     };
   }
-  // Satış üsuluna görə düymələr
-  const isDirect  = currentDetailProduct.contactMode === "direct_contact";
-  const _addCart  = document.getElementById("pdAddCart");
-  const callBtn   = document.getElementById("pdCallBtn");
-  const dirPhone  = (currentDetailProduct.directPhone || "").trim();
-  const dirWa     = (currentDetailProduct.directWhatsapp || "").trim();
-  if(isDirect){
-    if(_addCart) _addCart.style.display = "none";
-    if(callBtn && dirPhone){
-      callBtn.href = "tel:" + dirPhone.replace(/[^0-9+]/g,"");
-      callBtn.style.display = "";
-    } else if(callBtn){ callBtn.style.display = "none"; }
-  } else {
-    if(_addCart) _addCart.style.display = "";
-    if(callBtn) callBtn.style.display = "none";
-  }
   // WhatsApp əlaqə düyməsi
   const waBtn = document.getElementById("pdWhatsapp");
   if(waBtn){
-    // Direct-də directWhatsapp, digər halda contact sahəsi
-    const contact = isDirect ? (dirWa || dirPhone) : (currentDetailProduct.contact || "");
+    const contact = currentDetailProduct.contact || "";
     if(contact){
       const phone = contact.replace(/[^0-9+]/g,"");
       const wmsg = encodeURIComponent("Salam, \"" + (currentDetailProduct.title||"məhsul") + "\" elanınızla maraqlandım.");
@@ -4886,20 +5185,7 @@ window.moneyToNumber = moneyToNumber;
 window.quickAddToCart = function(el){
   const btn = el.closest(".ad");
   if(!btn) return;
-  // Özüm satıram elanı — səbətə əlavə oluna bilməz, alıcıya izah göstər
-  if(btn.dataset.contactmode === "direct_contact"){
-    const phone = btn.dataset.directphone || btn.dataset.directwhatsapp || "";
-    showToast("Bu elan sayt üzərindən satılmır. Satıcı özü satır — " + (phone ? "zəng et: " + phone : "əlaqə nömrəsi elandadır."));
-    return;
-  }
   addToCart(btn.dataset.title||"Məhsul", btn.dataset.price||"0.00 ₼", btn.dataset.adid||"", btn.dataset.selleruid||"", btn.dataset.selleremail||"");
-};
-
-// Özüm satıram — kartdan birbaşa zəng
-window._quickCall = function(el){
-  const phone = (el && el.dataset && el.dataset.phone) || "";
-  if(!phone){ showToast("Nömrə yoxdur"); return; }
-  location.href = "tel:" + phone.replace(/[^0-9+]/g,"");
 };
 
 // Ana səhifə kartındakı ürək düyməsi — elanı açmadan yadda saxla/çıxar
@@ -5101,12 +5387,6 @@ window.goToPage = function(page){
 };
 
 function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
-  // Özüm satıram elanı — səbətə əlavə oluna bilməz
-  const p = currentDetailProduct || {};
-  if(p.contactMode === "direct_contact" || window._pendingContactMode === "direct_contact"){
-    showToast("Bu elan sayt vasitəsilə satılmır. Satıcı ilə birbaşa əlaqə saxla (telefon/WhatsApp).");
-    return;
-  }
   if(adId && cart.some(x=>x.adId===adId)){
     showToast("Bu məhsul artıq səbətdədir");
     return;
@@ -5232,6 +5512,7 @@ import {
   getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  linkWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -5261,6 +5542,13 @@ import {
   limit,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  uploadBytesResumable,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAhGuZ-L8iZ5pRVD-446PI1_iJbPREvdLQ",
@@ -5294,6 +5582,7 @@ async function tgNotify(msg){
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 window.incrementAdView = async function(adId, currentViews = 0){
   if(!adId) return currentViews;
@@ -5545,22 +5834,56 @@ async function _handleSlotFilePicked(file){
 
 
 let currentUser = null;
-let currentUserRole = "user"; // Firestore-dan cache-lənir, isAdmin() bunu istifadə edir
+let currentUserRole = "user"; // Firebase token claim-dən oxunur (etibarlı)
 
 async function loadCurrentUserRole(){
   if(!currentUser){ currentUserRole="user"; syncAdminBodyClass(); return; }
   try{
-    const snap=await getDoc(doc(db,"users",currentUser.uid));
-    currentUserRole=(snap.exists()&&snap.data()?.role)||"user";
-  }catch(e){ currentUserRole="user"; }
+    // ƏSAS QORUMA: Admin flag Firebase Custom Claim-dən götürülür.
+    // Bu claim yalnız Admin SDK ilə (sizin serviceAccount.json ilə) qoyulur.
+    // Client-dən dəyişilmir. Firestore Rules də eyni claim-i yoxlayır.
+    const tokenResult = await currentUser.getIdTokenResult(false); // cache-dən oxu
+    if(tokenResult?.claims?.admin === true){
+      currentUserRole = "admin";
+    } else {
+      // Geriyə uyğunluq üçün Firestore role sahəsinə də baxırıq (köhnə hesablar üçün)
+      // AMMA bu yalnız UI göstərmək üçündür — real yoxlama Firestore Rules-da token claim üzərindəndir.
+      try{
+        const snap = await getDoc(doc(db,"users",currentUser.uid));
+        currentUserRole = (snap.exists() && snap.data()?.role) || "user";
+      }catch(_){ currentUserRole = "user"; }
+    }
+  }catch(e){
+    console.warn("Role yüklənmədi:", e);
+    currentUserRole="user";
+  }
   syncAdminBodyClass();
+}
+
+// Token-ı zorla yenilə (custom claim yenicə qoyulubsa lazımdır — 1 saat cache-də qala bilər)
+window.forceRefreshAdminClaim = async function(){
+  if(!currentUser){ toast("Əvvəl daxil olun."); return; }
+  try{
+    await currentUser.getIdToken(true); // force refresh
+    await loadCurrentUserRole();
+    toast(currentUserRole === "admin" ? "✅ Admin claim təsdiqləndi" : "Admin claim tapılmadı. serviceAccount ilə qurmuşsunuz?");
+  }catch(e){ console.error(e); toast("Xəta: "+e.message); }
 }
 
 // body.is-admin class — CSS admin tab-ı yalnız bu class olduqda göstərir.
 // İnline style manipulyasiyasından etibarlıdır — hansısa JS budağı unudulsa belə,
 // adi istifadəçi üçün admin tab CSS !important ilə gizli qalır.
 function syncAdminBodyClass(){
-  try{ document.body.classList.toggle("is-admin", currentUser && currentUserRole === "admin"); }catch(e){}
+  try{
+    const isAdm = currentUser && currentUserRole === "admin";
+    document.body.classList.toggle("is-admin", isAdm);
+    // Admin online statusu presence sisteminə bildir
+    if(isAdm){
+      if(typeof startAdminPresence === "function") startAdminPresence();
+    } else {
+      if(typeof stopAdminPresence === "function") stopAdminPresence();
+    }
+  }catch(e){}
 }
 window.syncAdminBodyClass = syncAdminBodyClass;
 
@@ -5803,6 +6126,47 @@ function safeIcon(raw, fallback){
 // renderMarketAds adi script blokundadır — module-dan export lazımdır
 window.safeIcon = safeIcon;
 function isAdmin(){ return currentUser && currentUserRole === "admin"; }
+
+// ===== AUDIT LOG — hər admin əməliyyatı qeyd olunur =====
+// Kolleksiya: audit_logs (Firestore Rules-da yalnız admin oxuya bilər, silinmə qadağandır)
+async function auditLog(action, details){
+  if(!currentUser) return;
+  try{
+    await addDoc(collection(db,"audit_logs"),{
+      action: action || "unknown",
+      details: details || {},
+      actorUid: currentUser.uid,
+      actorEmail: currentUser.email || "",
+      userAgent: (navigator.userAgent||"").slice(0,200),
+      timestamp: serverTimestamp()
+    });
+  }catch(e){ console.warn("Audit log yazılmadı:", e); }
+}
+window.auditLog = auditLog;
+
+// ===== HƏSSAS ƏMƏLİYYAT ÜÇÜN YENİDƏN DOĞRULAMA =====
+// Kritik əməliyyatdan əvvəl (məs. ödəniş təsdiqi, blok, rol dəyişikliyi) parolu yenidən istəyir.
+// Firebase reauthenticateWithCredential istifadə edir.
+async function requireRecentAuth(){
+  if(!currentUser) return false;
+  const lastAuth = currentUser.metadata?.lastSignInTime;
+  if(lastAuth){
+    const ageMin = (Date.now() - new Date(lastAuth).getTime()) / 60000;
+    if(ageMin < 15) return true; // son 15 dəqiqədə giriş edibsə OK
+  }
+  const pass = window.prompt("Kritik əməliyyat üçün şifrənizi təsdiqləyin:");
+  if(!pass) return false;
+  try{
+    const { EmailAuthProvider, reauthenticateWithCredential } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+    const cred = EmailAuthProvider.credential(currentUser.email, pass);
+    await reauthenticateWithCredential(currentUser, cred);
+    return true;
+  }catch(e){
+    toast("Şifrə yanlışdır. Əməliyyat ləğv edildi.");
+    return false;
+  }
+}
+window.requireRecentAuth = requireRecentAuth;
 async function getUserProfile(uid){
   if(!uid) return {};
   const snap=await getDoc(doc(db,"users",uid)).catch(()=>null);
@@ -6130,32 +6494,12 @@ async function decryptCreds(blob){
   }catch(e){ console.warn("Deşifrə xətası:", e); return null; }
 }
 
-window.setContactMode = function(mode){
-  const inp = document.getElementById("adContactMode"); if(inp) inp.value = mode;
-  const platSec = document.getElementById("contactPlatformSection");
-  const dirSec  = document.getElementById("contactDirectSection");
-  const btnPlat = document.getElementById("contactBtnPlatform");
-  const btnDir  = document.getElementById("contactBtnDirect");
-  if(mode === "platform"){
-    if(platSec) platSec.style.display = "";
-    if(dirSec)  dirSec.style.display  = "none";
-    if(btnPlat){ btnPlat.style.borderColor="#fb923c"; btnPlat.style.background="rgba(251,146,60,.1)"; btnPlat.style.color="#fb923c"; }
-    if(btnDir){  btnDir.style.borderColor="#1c2330";  btnDir.style.background="transparent";           btnDir.style.color="#64748b"; }
-  } else {
-    if(platSec) platSec.style.display = "none";
-    if(dirSec)  dirSec.style.display  = "";
-    if(btnPlat){ btnPlat.style.borderColor="#1c2330"; btnPlat.style.background="transparent";          btnPlat.style.color="#64748b"; }
-    if(btnDir){  btnDir.style.borderColor="#f97316";  btnDir.style.background="rgba(249,115,22,.1)";  btnDir.style.color="#f97316"; }
-  }
-};
-
 window.setDeliveryMode = function(mode){
-  const dm = document.getElementById("adDeliveryMode"); if(dm) dm.value = mode;
+  document.getElementById("adDeliveryMode").value = mode;
   const directSection = document.getElementById("deliveryDirectSection");
   const chatSection   = document.getElementById("deliveryChatSection");
   const btnDirect     = document.getElementById("deliveryBtnDirect");
   const btnChat       = document.getElementById("deliveryBtnChat");
-  if(!directSection || !chatSection || !btnDirect || !btnChat) return; // Köhnə UI silinib
   if(mode==="direct"){
     directSection.style.display="";
     chatSection.style.display="none";
@@ -6169,11 +6513,10 @@ window.setDeliveryMode = function(mode){
   }
 };
 window.setChatMode = function(mode){
-  const cm = document.getElementById("adChatMode"); if(cm) cm.value = mode;
+  document.getElementById("adChatMode").value = mode;
   const autoSection = document.getElementById("chatAutoSection");
   const btnOnly = document.getElementById("chatModeOnlyChat");
   const btnBoth = document.getElementById("chatModeBoth");
-  if(!autoSection || !btnOnly || !btnBoth) return; // Köhnə UI silinib
   if(mode==="chat_only"){
     autoSection.style.display="none";
     btnOnly.style.borderColor="#fb923c"; btnOnly.style.background="rgba(251,146,60,.1)"; btnOnly.style.color="#fb923c";
@@ -6201,7 +6544,7 @@ function updateHeader(){
   const notifyPerm=document.getElementById("notifyPermBtn");
 
   if(currentUser && currentUser.emailVerified){
-    if(login){ login.textContent="Kabinet"; login.onclick=()=>{ document.getElementById("cabinetModal")?.classList.add("show"); }; }
+    if(login){ login.textContent=currentUser.email.split("@")[0]; login.onclick=()=>{ document.getElementById("cabinetModal")?.classList.add("show"); }; }
     if(register) register.textContent="Çıxış";
   }else{
     if(login){ login.textContent="Giriş et"; login.onclick=null; }
@@ -6221,6 +6564,7 @@ async function registerUser(){
   const birthDate=document.getElementById("regBirthDate")?.value || "";
   const userId=document.getElementById("regUserId")?.value.trim().toLowerCase() || "";
   const email=document.getElementById("regEmail").value.trim().toLowerCase();
+  const phone=document.getElementById("regPhone")?.value.trim().replace(/\s+/g,"") || "";
   const pass=document.getElementById("regPassword").value.trim();
   const pass2=document.getElementById("regPassword2").value.trim();
   if(!name){authStatus("Ad yaz.");return}
@@ -6229,6 +6573,7 @@ async function registerUser(){
   if(!userId){authStatus("İstifadəçi ID yaz.");return}
   if(!/^[a-z0-9_]{3,20}$/.test(userId)){authStatus("ID yalnız kiçik hərf, rəqəm və alt xətt (_) ola bilər, 3-20 simvol.");return}
   if(!validEmail(email)){authStatus("Düzgün email yaz.");return}
+  if(!/^\+\d{10,15}$/.test(phone)){authStatus("Telefonu ölkə kodu ilə yaz: +994551234567");return}
   if(pass.length<6){authStatus("Şifrə minimum 6 simvol olmalıdır.");return}
   if(pass!==pass2){authStatus("Şifrələr eyni deyil.");return}
 
@@ -6267,17 +6612,39 @@ async function registerUser(){
         birthDate,
         userId,
         email,
+        phoneNumber: phone,
+        phoneVerified: false,
         role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
         createdAt:serverTimestamp(),
         updatedAt:serverTimestamp()
       });
       await ensureWallet(cred.user.uid,email);
       await sendEmailVerification(cred.user);
-      await signOut(auth);
+
+      // === Telefon nömrəsinə SMS kod göndər (hesaba link edilir) ===
+      try{
+        if(window.regRecaptchaVerifier){
+          try{ window.regRecaptchaVerifier.clear(); }catch(_){}
+          window.regRecaptchaVerifier = null;
+        }
+        window.regRecaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha-container", {size:"invisible"});
+        window._regPhoneConfirmation = await linkWithPhoneNumber(cred.user, phone, window.regRecaptchaVerifier);
+        window._regPendingUid = cred.user.uid;
+
+        // Qeydiyyat formundan telefon təsdiq addımına keç
+        document.getElementById("registerStep")?.classList.remove("active");
+        document.getElementById("loginStep")?.classList.remove("active");
+        document.getElementById("regPhoneStep")?.classList.add("active");
+        authStatus("SMS kod göndərildi. Emailinizi də təsdiqləyin.");
+      }catch(smsErr){
+        console.error("SMS göndərmə xətası:", smsErr);
+        // Hesabı silmirik — istifadəçi sonra kodu yenidən istəyə bilər. Sadəcə çıxış edirik.
+        await signOut(auth).catch(()=>{});
+        currentUser = null;
+        updateHeader();
+        authStatus("Hesab yaradıldı və emailinizə link göndərildi, lakin SMS göndərilə bilmədi: " + (smsErr.code || smsErr.message) + ". Girişdən sonra telefonu təsdiqləyəcəksiniz.");
+      }
       window._isRegistering = false;
-      currentUser=null;
-      updateHeader();
-      authStatus("Qeydiyyat tamamlandı. Təsdiq linki emailinizə göndərildi.");
     }catch(fsErr){
       // Firestore yazması uğursuz oldu — hər şeyi geri al
       console.error("Qeydiyyat rollback:", fsErr);
@@ -6432,6 +6799,1050 @@ async function verifyPhoneCode(){
     authStatus("SMS kod yanlışdır.");
   }
 }
+
+// === Qeydiyyat zamanı telefon SMS kodunu təsdiqlə ===
+async function confirmRegPhoneCode(){
+  const code = document.getElementById("regPhoneCode")?.value.trim() || "";
+  if(!/^\d{6}$/.test(code)){ authStatus("6 rəqəmli SMS kodu yaz."); return; }
+  if(!window._regPhoneConfirmation){ authStatus("SMS kod göndərilməyib."); return; }
+  try{
+    const result = await window._regPhoneConfirmation.confirm(code);
+    const uid = result.user.uid;
+    // Firestore-da phoneVerified = true
+    try{
+      await setDoc(doc(db,"users",uid),{
+        phoneVerified:true,
+        phoneNumber: result.user.phoneNumber || null,
+        updatedAt: serverTimestamp()
+      },{merge:true});
+    }catch(e){ console.error("phoneVerified yazıla bilmədi:", e); }
+
+    // Təmizlik
+    window._regPhoneConfirmation = null;
+    window._regPendingUid = null;
+    if(window.regRecaptchaVerifier){
+      try{ window.regRecaptchaVerifier.clear(); }catch(_){}
+      window.regRecaptchaVerifier = null;
+    }
+
+    // İndi çıxış — istifadəçi emaildəki linki tıqlayıb girməlidir
+    await signOut(auth).catch(()=>{});
+    currentUser = null;
+    updateHeader();
+    document.getElementById("regPhoneStep")?.classList.remove("active");
+    document.getElementById("loginStep")?.classList.add("active");
+    document.getElementById("loginTabBtn")?.classList.add("active");
+    document.getElementById("registerTabBtn")?.classList.remove("active");
+    toast("Telefon təsdiqləndi! İndi email linkini açıb təsdiqləyin, sonra giriş edin.");
+    authStatus("Telefon təsdiqləndi. Email linkini də təsdiqlədikdən sonra giriş edə bilərsiniz.");
+  }catch(e){
+    console.error(e);
+    authStatus("SMS kod yanlışdır və ya vaxtı keçib: " + (e.code || e.message));
+  }
+}
+
+// === Qeydiyyat zamanı SMS kodu yenidən göndər ===
+async function resendRegPhoneCode(){
+  const user = auth.currentUser;
+  if(!user){ authStatus("Sessiya bitib. Yenidən qeydiyyatdan keçin."); return; }
+  try{
+    if(window.regRecaptchaVerifier){
+      try{ window.regRecaptchaVerifier.clear(); }catch(_){}
+      window.regRecaptchaVerifier = null;
+    }
+    window.regRecaptchaVerifier = new RecaptchaVerifier(auth, "reg-recaptcha-container", {size:"invisible"});
+    // Firestore-dan telefon nömrəsini götür
+    const snap = await getDoc(doc(db,"users",user.uid));
+    const phone = snap.exists() ? snap.data()?.phoneNumber : null;
+    if(!phone){ authStatus("Telefon nömrəsi tapılmadı."); return; }
+    window._regPhoneConfirmation = await linkWithPhoneNumber(user, phone, window.regRecaptchaVerifier);
+    authStatus("Yeni SMS kod göndərildi.");
+  }catch(e){
+    console.error(e);
+    authStatus("SMS göndərilə bilmədi: " + (e.code || e.message));
+  }
+}
+
+// ================================================================
+// ===== CANLI DƏSTƏK WIDGET — real-time chat (Firestore) =====
+// ================================================================
+// Data model:
+// support_chats/{chatId}
+//   userUid|null, userName, userEmail, category, status: 'open'|'closed',
+//   lastMessage, lastMessageBy: 'user'|'admin', lastMessageAt,
+//   unreadByAdmin, unreadByUser, adminAssigned, createdAt
+// support_chats/{chatId}/messages/{msgId}
+//   text, by: 'user'|'admin', senderName, createdAt
+// ---
+// Guest üçün chatId localStorage-də saxlanır (`sup_chatId`) ki, brauzer bağlansa da
+// eyni söhbətə davam etsin. Qeydiyyatlı istifadəçi üçün chatId = "u_" + uid.
+
+const SUP = {
+  chatId: null,
+  unsubChat: null,
+  unsubMsgs: null,
+  unsubAdminList: null,
+  adminOnline: false,
+  isViewingAsAdmin: null, // admin tərəfindən açılan chat ID (istifadəçi tərəfi üçün null)
+  _sentMsgIds: new Set()
+};
+
+function _supEsc(s){ return String(s||"").replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _supTime(ts){
+  if(!ts) return "";
+  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if(sameDay) return d.toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'});
+  const diffDays = Math.floor((now - d) / (24*3600*1000));
+  if(diffDays === 1) return "Dünən " + d.toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'});
+  if(diffDays < 7) return d.toLocaleDateString('az-AZ',{weekday:'short'}) + " " + d.toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('az-AZ',{day:'numeric',month:'short'});
+}
+
+// ===== Admin onlayn statusu — presence sistemi =====
+// Admin online olduqda hər 30 saniyədə bir `presence/admin` sənədini yeniləyir
+// İstifadəçi tərəfi bu sənədi dinləyir və 90 saniyədən köhnədirsə offline sayır
+async function updateAdminPresence(){
+  if(!isAdmin()) return;
+  try{
+    await setDoc(doc(db,"presence","admin"), {
+      lastSeen: serverTimestamp(),
+      email: currentUser.email || ""
+    }, {merge:true});
+  }catch(e){ /* səssiz */ }
+}
+
+let _adminPresenceInterval = null;
+function startAdminPresence(){
+  if(_adminPresenceInterval) clearInterval(_adminPresenceInterval);
+  updateAdminPresence();
+  _adminPresenceInterval = setInterval(updateAdminPresence, 30000); // 30 san
+}
+function stopAdminPresence(){
+  if(_adminPresenceInterval){ clearInterval(_adminPresenceInterval); _adminPresenceInterval = null; }
+}
+
+function listenAdminPresence(){
+  try{
+    onSnapshot(doc(db,"presence","admin"), snap=>{
+      const d = snap.data();
+      const lastSeen = d?.lastSeen?.seconds || 0;
+      const ageSec = (Date.now()/1000) - lastSeen;
+      SUP.adminOnline = ageSec < 90 && lastSeen > 0;
+      _supUpdateOnlineUI();
+    });
+  }catch(e){ console.warn("presence listen failed", e); }
+}
+
+function _supUpdateOnlineUI(){
+  const btn = document.getElementById("supportBtn");
+  const dot = document.getElementById("supAdminDot");
+  const status = document.getElementById("supAdminStatus");
+  if(btn) btn.classList.toggle("offline", !SUP.adminOnline);
+  if(dot) dot.classList.toggle("offline", !SUP.adminOnline);
+  if(status) status.textContent = SUP.adminOnline
+    ? "Onlayn — adətən dərhal cavab"
+    : "Hazırda oflayn — 30 dəq. ərzində cavab veririk";
+}
+
+// ===== Chat ID hazırla =====
+function _supGetOrCreateGuestId(){
+  let id = localStorage.getItem("sup_chatId");
+  if(!id){
+    id = "g_" + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    localStorage.setItem("sup_chatId", id);
+  }
+  return id;
+}
+function _supGetChatId(){
+  if(currentUser) return "u_" + currentUser.uid;
+  return _supGetOrCreateGuestId();
+}
+
+// ===== Widget aç/bağla =====
+window.openSupport = async function(){
+  const panel = document.getElementById("supportPanel");
+  const btn = document.getElementById("supportBtn");
+  if(!panel) return;
+  panel.classList.add("open");
+  if(btn) btn.style.display = "none";
+
+  const chatId = _supGetChatId();
+  SUP.chatId = chatId;
+
+  // Chat sənədi var mı yoxla
+  try{
+    const chatSnap = await getDoc(doc(db,"support_chats",chatId));
+    if(chatSnap.exists()){
+      // Mövcud söhbətə davam
+      _supShowChatUI();
+      _supListenChat(chatId);
+      _supListenMessages(chatId);
+      _supMarkReadByUser(chatId);
+    } else {
+      // Yeni söhbət — istifadəçi qeydiyyatlıdırsa dərhal başla, guest-ə form göstər
+      if(currentUser){
+        await _supCreateChat({
+          userUid: currentUser.uid,
+          userName: currentUser.email?.split("@")[0] || "İstifadəçi",
+          userEmail: currentUser.email || "",
+          category: "Ümumi",
+          firstMessage: null
+        });
+        _supShowChatUI();
+        _supListenChat(chatId);
+        _supListenMessages(chatId);
+      } else {
+        _supShowPrechat();
+      }
+    }
+  }catch(e){
+    console.error("openSupport error:", e);
+    _supShowPrechat();
+  }
+}
+
+window.closeSupport = function(){
+  const panel = document.getElementById("supportPanel");
+  const btn = document.getElementById("supportBtn");
+  if(panel) panel.classList.remove("open");
+  if(btn) btn.style.display = "";
+  if(SUP.unsubMsgs){ try{SUP.unsubMsgs()}catch(_){}; SUP.unsubMsgs=null; }
+  if(SUP.unsubChat){ try{SUP.unsubChat()}catch(_){}; SUP.unsubChat=null; }
+  SUP.isViewingAsAdmin = null;
+}
+
+function _supShowPrechat(){
+  document.getElementById("supPrechat").style.display = "flex";
+  document.getElementById("supBody").style.display = "none";
+  document.getElementById("supInputRow").style.display = "none";
+  document.getElementById("supFallback").style.display = "flex";
+  // Adı və emaili öncədən doldur
+  if(currentUser){
+    const nameEl = document.getElementById("supPreName");
+    const emailEl = document.getElementById("supPreEmail");
+    if(nameEl && !nameEl.value) nameEl.value = currentUser.email?.split("@")[0] || "";
+    if(emailEl && !emailEl.value) emailEl.value = currentUser.email || "";
+  }
+}
+
+function _supShowChatUI(){
+  document.getElementById("supPrechat").style.display = "none";
+  document.getElementById("supBody").style.display = "flex";
+  document.getElementById("supInputRow").style.display = "flex";
+  document.getElementById("supFallback").style.display = "flex";
+  // Bağla düyməsini yalnız admin baxışında göstər
+  const closeBtn = document.getElementById("supCloseChat");
+  if(closeBtn) closeBtn.style.display = SUP.isViewingAsAdmin ? "grid" : "none";
+}
+
+async function _supCreateChat({userUid, userName, userEmail, category, firstMessage}){
+  const chatId = SUP.chatId;
+  const data = {
+    userUid: userUid || null,
+    userName: userName || "Qonaq",
+    userEmail: userEmail || "",
+    category: category || "Ümumi",
+    status: "open",
+    lastMessage: firstMessage || "",
+    lastMessageBy: firstMessage ? "user" : null,
+    lastMessageAt: serverTimestamp(),
+    unreadByAdmin: firstMessage ? 1 : 0,
+    unreadByUser: 0,
+    createdAt: serverTimestamp()
+  };
+  await setDoc(doc(db,"support_chats",chatId), data);
+  if(firstMessage){
+    await addDoc(collection(db,"support_chats",chatId,"messages"), {
+      text: firstMessage,
+      by: "user",
+      senderName: userName,
+      createdAt: serverTimestamp()
+    });
+    // Telegram bildirişi
+    tgNotify(`💬 <b>Yeni dəstək sorğusu!</b>\n👤 ${userName} (${userEmail||"guest"})\n📋 Kateqoriya: ${category}\n💭 ${firstMessage.slice(0,150)}\n\nhesablar.net → Admin panel → Dəstək`);
+  }
+}
+
+function _supListenChat(chatId){
+  if(SUP.unsubChat){ try{SUP.unsubChat()}catch(_){}; }
+  SUP.unsubChat = onSnapshot(doc(db,"support_chats",chatId), snap=>{
+    if(!snap.exists()) return;
+    const d = snap.data();
+    // Söhbət bağlıdırsa input-u deaktiv et
+    const input = document.getElementById("supInput");
+    const sendBtn = document.getElementById("supSendBtn");
+    if(d.status === "closed"){
+      if(input){ input.disabled = true; input.placeholder = "Bu söhbət bağlanıb. Yeni söhbət üçün widget-i yenidən açın."; }
+      if(sendBtn) sendBtn.disabled = true;
+    } else {
+      if(input){ input.disabled = false; input.placeholder = "Mesajınızı yazın..."; }
+      if(sendBtn) sendBtn.disabled = false;
+    }
+  });
+}
+
+function _supListenMessages(chatId){
+  if(SUP.unsubMsgs){ try{SUP.unsubMsgs()}catch(_){}; }
+  const q = query(collection(db,"support_chats",chatId,"messages"));
+  SUP.unsubMsgs = onSnapshot(q, snap=>{
+    const arr = [];
+    snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
+    arr.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    _supRenderMessages(arr);
+    // Yeni mesajlarda oxundu işarələ (istifadəçi baxırsa)
+    if(!SUP.isViewingAsAdmin) _supMarkReadByUser(chatId);
+    else _supMarkReadByAdmin(chatId);
+  });
+}
+
+function _supRenderMessages(msgs){
+  const body = document.getElementById("supBody");
+  if(!body) return;
+  let lastDay = "";
+  const parts = [];
+  const isAdminView = !!SUP.isViewingAsAdmin;
+  if(!msgs.length){
+    parts.push(`<div class="sup-welcome">👋 Salam! Sualınızı yazın, komandamız qısa müddətdə cavab verəcək.</div>`);
+  }
+  msgs.forEach(m=>{
+    const ts = m.createdAt;
+    if(ts?.seconds){
+      const day = new Date(ts.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'long',year:'numeric'});
+      if(day !== lastDay){
+        parts.push(`<div class="sup-day-separator">${day}</div>`);
+        lastDay = day;
+      }
+    }
+    // Adminin baxışı: user mesajları solda, admin mesajları sağda (əksinə)
+    const isOwnSide = isAdminView ? (m.by === "admin") : (m.by === "user");
+    const cls = isOwnSide ? "user" : "admin";
+    parts.push(`
+      <div class="sup-msg ${cls}">
+        ${_supEsc(m.text)}
+        <div class="sup-msg-time">${_supTime(m.createdAt)}</div>
+      </div>`);
+  });
+  body.innerHTML = parts.join("");
+  body.scrollTop = body.scrollHeight;
+}
+
+async function _supMarkReadByUser(chatId){
+  try{ await updateDoc(doc(db,"support_chats",chatId), { unreadByUser: 0 }); }catch(_){}
+}
+async function _supMarkReadByAdmin(chatId){
+  try{ await updateDoc(doc(db,"support_chats",chatId), { unreadByAdmin: 0 }); }catch(_){}
+}
+
+// ===== Pre-chat form submit =====
+window.supSubmitPrechat = async function(){
+  const name = document.getElementById("supPreName")?.value.trim();
+  const email = document.getElementById("supPreEmail")?.value.trim();
+  const category = document.getElementById("supPreCategory")?.value;
+  const message = document.getElementById("supPreMessage")?.value.trim();
+  if(!name || name.length < 2){ toast("Adınızı yazın"); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ toast("Düzgün email yazın"); return; }
+  if(!category){ toast("Kateqoriya seçin"); return; }
+  if(!message || message.length < 5){ toast("Ən azı 5 simvol yazın"); return; }
+  if(!rateLimiter("supPrechat", 5000, "5 saniyə gözləyin.")) return;
+
+  try{
+    await _supCreateChat({
+      userUid: currentUser?.uid || null,
+      userName: name,
+      userEmail: email,
+      category,
+      firstMessage: message
+    });
+    _supShowChatUI();
+    _supListenChat(SUP.chatId);
+    _supListenMessages(SUP.chatId);
+  }catch(e){
+    console.error("Prechat submit error:", e);
+    toast("Söhbət açılmadı. Yenidən cəhd edin.");
+  }
+}
+
+// ===== Mesaj göndər =====
+window.supSendMessage = async function(){
+  const input = document.getElementById("supInput");
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+  if(text.length > 1000){ toast("Mesaj çox uzundur"); return; }
+  if(!SUP.chatId) return;
+  if(!rateLimiter("supMsg", 1000, "")) return;
+
+  const isAdminView = !!SUP.isViewingAsAdmin;
+  const senderName = isAdminView
+    ? "Dəstək komandası"
+    : (currentUser?.email?.split("@")[0] || document.getElementById("supPreName")?.value || "İstifadəçi");
+  const by = isAdminView ? "admin" : "user";
+
+  input.value = "";
+  input.style.height = "auto";
+
+  try{
+    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+      text, by, senderName,
+      createdAt: serverTimestamp()
+    });
+    const upd = {
+      lastMessage: text,
+      lastMessageBy: by,
+      lastMessageAt: serverTimestamp()
+    };
+    if(by === "user") upd.unreadByAdmin = increment(1);
+    else upd.unreadByUser = increment(1);
+    await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+
+    // Yeni istifadəçi mesajı üçün Telegram bildirişi
+    if(by === "user"){
+      tgNotify(`💬 <b>Yeni mesaj (dəstək)!</b>\n👤 ${senderName}\n💭 ${text.slice(0,200)}\n\nhesablar.net → Admin panel → Dəstək`);
+    }
+  }catch(e){
+    console.error("Mesaj göndərilə bilmədi:", e);
+    toast("Mesaj göndərilmədi. Yenidən cəhd edin.");
+    input.value = text; // itirilməsin
+  }
+}
+
+// ===== Admin: söhbəti bağla =====
+window.supCloseChat = async function(){
+  if(!SUP.chatId || !SUP.isViewingAsAdmin) return;
+  if(!await showConfirm("Bu söhbəti bağlamaq istəyirsiniz? İstifadəçi yeni mesaj yaza bilməyəcək.", "🔒")) return;
+  try{
+    await updateDoc(doc(db,"support_chats",SUP.chatId), {
+      status: "closed",
+      closedAt: serverTimestamp(),
+      closedBy: currentUser?.uid || null
+    });
+    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+      text: "Söhbət admin tərəfindən bağlandı.",
+      by: "admin",
+      senderName: "Sistem",
+      isSystem: true,
+      createdAt: serverTimestamp()
+    });
+    toast("Söhbət bağlandı");
+    closeSupport();
+    if(typeof renderAdminSupport === "function") renderAdminSupport();
+  }catch(e){ console.error(e); toast("Xəta baş verdi"); }
+}
+
+// ===== İstifadəçi tərəfində oxunmamış mesaj sayı badge-i =====
+function listenUserSupportUnread(){
+  const chatId = _supGetChatId();
+  if(!chatId) return;
+  onSnapshot(doc(db,"support_chats",chatId), snap=>{
+    const badge = document.getElementById("supBadge");
+    if(!badge) return;
+    const unread = snap.exists() ? (snap.data()?.unreadByUser || 0) : 0;
+    if(unread > 0){
+      badge.textContent = unread > 9 ? "9+" : unread;
+      badge.style.display = "grid";
+      // Səs? — hələ ki, sadəcə vizual badge
+    } else {
+      badge.style.display = "none";
+    }
+  }, ()=>{});
+}
+
+// ===== ADMIN PANEL — Dəstək söhbətləri siyahısı =====
+window.renderAdminSupport = function(){
+  const el = document.getElementById("adminSupport");
+  if(!el || !isAdmin()) return;
+
+  if(SUP.unsubAdminList){ try{SUP.unsubAdminList()}catch(_){}; }
+  const q = query(collection(db,"support_chats"));
+  SUP.unsubAdminList = onSnapshot(q, snap=>{
+    const arr = [];
+    snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
+    arr.sort((a,b)=>(b.lastMessageAt?.seconds||0)-(a.lastMessageAt?.seconds||0));
+    const openChats = arr.filter(c=>c.status !== "closed");
+    const closedChats = arr.filter(c=>c.status === "closed");
+    const totalUnread = arr.reduce((s,c)=>s+(c.unreadByAdmin||0), 0);
+
+    const renderItem = c => {
+      const unread = c.unreadByAdmin || 0;
+      const cls = (unread > 0 ? "unread " : "") + (c.status === "closed" ? "closed" : "");
+      const statusTag = c.status === "closed"
+        ? '<span class="admin-support-status-tag closed">Bağlı</span>'
+        : '<span class="admin-support-status-tag open">Açıq</span>';
+      const badge = unread > 0 ? `<span class="admin-support-badge">${unread}</span>` : "";
+      const preview = _supEsc((c.lastMessage||"").slice(0,80));
+      const previewBy = c.lastMessageBy === "admin" ? "Siz: " : "";
+      return `
+        <div class="admin-support-item ${cls}" data-open-support="${c.id}">
+          <div>
+            <div class="admin-support-name">
+              ${_supEsc(c.userName||"Qonaq")} ${badge} ${statusTag}
+            </div>
+            <div class="admin-support-meta">${_supEsc(c.userEmail||"-")} • ${_supEsc(c.category||"Ümumi")}</div>
+          </div>
+          <div class="admin-support-time">${_supTime(c.lastMessageAt)}</div>
+          <div class="admin-support-preview">${previewBy}${preview || "<i>Mesaj yoxdur</i>"}</div>
+        </div>`;
+    };
+
+    el.innerHTML = `
+      <h3>Canlı dəstək söhbətləri
+        ${totalUnread>0 ? `<span style="background:#ef4444;color:#fff;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:8px">${totalUnread} oxunmamış</span>` : ""}
+      </h3>
+      <div style="color:#64748b;font-size:12px;margin:6px 0 4px">Açıq: ${openChats.length} • Bağlı: ${closedChats.length}</div>
+      <div class="admin-support-list">
+        ${arr.length ? arr.map(renderItem).join("") : '<div class="cabinet-empty">Hələ dəstək söhbəti yoxdur.</div>'}
+      </div>`;
+
+    el.querySelectorAll("[data-open-support]").forEach(item=>{
+      item.onclick = ()=> openSupportAsAdmin(item.dataset.openSupport);
+    });
+  }, err=>{
+    console.error("Admin support list error:", err);
+    el.innerHTML = '<h3>Canlı dəstək</h3><div class="cabinet-empty">Yüklənmədi.</div>';
+  });
+}
+
+// Admin bir söhbətə klik edəndə eyni widget-i açır, amma admin rejimində
+window.openSupportAsAdmin = function(chatId){
+  if(!isAdmin()) return;
+  SUP.chatId = chatId;
+  SUP.isViewingAsAdmin = chatId;
+  const panel = document.getElementById("supportPanel");
+  const btn = document.getElementById("supportBtn");
+  if(panel) panel.classList.add("open");
+  if(btn) btn.style.display = "none";
+  _supShowChatUI();
+  _supListenChat(chatId);
+  _supListenMessages(chatId);
+  _supMarkReadByAdmin(chatId);
+}
+
+// ===== Event listener-lər =====
+function _supAttachHandlers(){
+  const btn = document.getElementById("supportBtn");
+  const minBtn = document.getElementById("supMinimize");
+  const closeBtn = document.getElementById("supCloseChat");
+  const preSubmit = document.getElementById("supPreSubmit");
+  const sendBtn = document.getElementById("supSendBtn");
+  const input = document.getElementById("supInput");
+
+  if(btn && !btn._supBound){ btn._supBound = true; btn.addEventListener("click", openSupport); }
+  if(minBtn && !minBtn._supBound){ minBtn._supBound = true; minBtn.addEventListener("click", closeSupport); }
+  if(closeBtn && !closeBtn._supBound){ closeBtn._supBound = true; closeBtn.addEventListener("click", supCloseChat); }
+  if(preSubmit && !preSubmit._supBound){ preSubmit._supBound = true; preSubmit.addEventListener("click", supSubmitPrechat); }
+  if(sendBtn && !sendBtn._supBound){ sendBtn._supBound = true; sendBtn.addEventListener("click", supSendMessage); }
+  if(input && !input._supBound){
+    input._supBound = true;
+    input.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        supSendMessage();
+      }
+    });
+    // Auto-resize textarea
+    input.addEventListener("input", ()=>{
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 100) + "px";
+    });
+  }
+}
+
+// Səhifə yüklənəndə init
+(function initSupportWidget(){
+  const boot = ()=>{
+    _supAttachHandlers();
+    listenAdminPresence();
+    _supUpdateOnlineUI();
+    // Cari istifadəçi/guest üçün oxunmamış sayı dinlə
+    try{ listenUserSupportUnread(); }catch(_){}
+    _supRenderFaq();
+    _supInitSound();
+  };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+
+// ===== FAQ — tez-tez verilən suallar =====
+const SUP_FAQ = [
+  { q: "Necə hesab almaq olar?", a: "Elan siyahısından istədiyiniz hesabı seçib 'Səbətə əlavə et' düyməsini basın. Ödəniş etdikdən sonra hesab məlumatları sizə göndəriləcək." },
+  { q: "Balansımı necə artırım?", a: "Kabinet → Balans bölməsinə keçin, m10/kart və ya bank köçürməsi ilə balans artıra bilərsiniz." },
+  { q: "Satıcı olmaq üçün nə etməliyəm?", a: "Qeydiyyatdan keçin, sonra Kabinet → Elan Yerləşdir bölməsindən elanınızı yaradın. Admin təsdiqindən sonra elan aktiv olacaq." },
+  { q: "Pulumu necə çıxaram?", a: "Kabinet → Çıxarış bölməsində m10, kart və ya bank hesabınıza pul çıxarış müraciəti yarada bilərsiniz." },
+  { q: "Sifariş problemi var", a: "Sifariş nömrənizi mənə göndərin, dərhal yoxlayıram." }
+];
+
+function _supRenderFaq(){
+  const el = document.getElementById("supFaqList");
+  if(!el) return;
+  el.innerHTML = SUP_FAQ.map((f,i)=>`<button class="sup-faq-chip" data-faq-idx="${i}">${_supEsc(f.q)}</button>`).join("");
+  el.querySelectorAll("[data-faq-idx]").forEach(b=>{
+    b.onclick = ()=>{
+      const idx = parseInt(b.dataset.faqIdx);
+      const faq = SUP_FAQ[idx];
+      if(!faq) return;
+      const input = document.getElementById("supInput");
+      if(input){ input.value = faq.q; input.focus(); }
+      // Auto-cavab olaraq FAQ cavabı da göstər (yalnız oxumaq üçün, göndərilmir)
+      const body = document.getElementById("supBody");
+      if(body && !body.dataset.faqAnswerShown){
+        // İstifadəçi FAQ chip-i basdıqda dərhal cavabı chat-də göstəririk
+      }
+    };
+  });
+}
+
+// ===== SƏS BİLDİRİŞİ (Web Audio API — kitabxana yoxdur) =====
+let _supAudioCtx = null;
+function _supInitSound(){
+  // İstifadəçi qarşılıqlı əlaqəyə girməmiş AudioContext yaratmırıq (browser bloklayır)
+  document.addEventListener("click", ()=>{
+    if(!_supAudioCtx){
+      try{ _supAudioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){}
+    }
+  }, {once:true});
+}
+function _supPlaySound(){
+  if(!_supAudioCtx) return;
+  try{
+    const ctx = _supAudioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+    // İkinci not
+    setTimeout(()=>{
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.frequency.value = 1175;
+      osc2.type = "sine";
+      gain2.gain.setValueAtTime(0, ctx.currentTime);
+      gain2.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.01);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc2.start(ctx.currentTime);
+      osc2.stop(ctx.currentTime + 0.25);
+    }, 100);
+  }catch(_){}
+}
+
+// ===== TYPING INDICATOR =====
+let _supTypingTimer = null;
+let _supLastTypingUpdate = 0;
+async function _supBroadcastTyping(){
+  if(!SUP.chatId) return;
+  const now = Date.now();
+  // Server üçün throttling — 3 saniyədə bir yenilə
+  if(now - _supLastTypingUpdate < 3000) return;
+  _supLastTypingUpdate = now;
+  const field = SUP.isViewingAsAdmin ? "typingAdminAt" : "typingUserAt";
+  try{ await updateDoc(doc(db,"support_chats",SUP.chatId), { [field]: serverTimestamp() }); }catch(_){}
+}
+
+function _supShowTyping(show){
+  const el = document.getElementById("supTyping");
+  const wrap = document.getElementById("supTypingWrap");
+  if(el) el.classList.toggle("show", show);
+  if(wrap) wrap.style.display = show ? "block" : "none";
+  const body = document.getElementById("supBody");
+  if(body && show) body.scrollTop = body.scrollHeight;
+}
+
+// Chat listener genişləndirilir — typing yoxlanılır
+function _supListenChatExtended(chatId){
+  if(SUP.unsubChat){ try{SUP.unsubChat()}catch(_){}; }
+  let prevLastMsgAt = 0;
+  SUP.unsubChat = onSnapshot(doc(db,"support_chats",chatId), snap=>{
+    if(!snap.exists()) return;
+    const d = snap.data();
+
+    // Status yoxla — bağlıdırsa input deaktiv, rating göstər
+    const input = document.getElementById("supInput");
+    const sendBtn = document.getElementById("supSendBtn");
+    const inputRow = document.getElementById("supInputRow");
+    const ratingPanel = document.getElementById("supRating");
+    if(d.status === "closed"){
+      if(input){ input.disabled = true; input.placeholder = "Bu söhbət bağlıdır."; }
+      if(sendBtn) sendBtn.disabled = true;
+      // İstifadəçi (admin olmayan) və rating hələ verməyibsə göstər
+      if(!SUP.isViewingAsAdmin && !d.rating && ratingPanel){
+        ratingPanel.style.display = "block";
+      }
+    } else {
+      if(input){ input.disabled = false; input.placeholder = SUP.isViewingAsAdmin ? "Cavab yazın..." : "Mesajınızı yazın..."; }
+      if(sendBtn) sendBtn.disabled = false;
+      if(ratingPanel) ratingPanel.style.display = "none";
+    }
+
+    // Typing indicator — qarşı tərəfi yoxla
+    const otherField = SUP.isViewingAsAdmin ? "typingUserAt" : "typingAdminAt";
+    const lastTyping = d[otherField]?.seconds || 0;
+    const ageSec = (Date.now()/1000) - lastTyping;
+    _supShowTyping(ageSec < 5 && lastTyping > 0 && d.status !== "closed");
+
+    // Admin baxışında istifadəçi profilinə keçid düyməsi
+    if(SUP.isViewingAsAdmin){
+      const profileBtn = document.getElementById("supUserProfile");
+      if(profileBtn && d.userUid){
+        profileBtn.style.display = "inline-block";
+        profileBtn.onclick = ()=>{
+          window.location.hash = "#user/" + d.userUid;
+          closeSupport();
+          if(typeof openCabinet === "function") openCabinet();
+          if(typeof showTab === "function") showTab("admin");
+          setTimeout(()=>{ if(typeof showAdminCat === "function") showAdminCat("users"); }, 200);
+        };
+      }
+    }
+  });
+}
+
+// ===== FAYL/ŞƏKİL YÜKLƏMƏ =====
+async function _supHandleFileUpload(file){
+  if(!file || !SUP.chatId) return;
+  if(file.size > 8 * 1024 * 1024){ toast("Fayl 8MB-dan böyükdür"); return; }
+  const allowed = ["image/jpeg","image/png","image/gif","image/webp","application/pdf","text/plain",
+                   "application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+  if(!allowed.includes(file.type)){ toast("Bu fayl növünə icazə yoxdur"); return; }
+
+  const bar = document.getElementById("supUploadBar");
+  const fill = document.getElementById("supUploadFill");
+  if(bar) bar.style.display = "block";
+  if(fill) fill.style.width = "0%";
+
+  const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+  const filename = `${SUP.chatId}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const ref = storageRef(storage, `support_uploads/${filename}`);
+
+  try{
+    const task = uploadBytesResumable(ref, file);
+    await new Promise((resolve, reject)=>{
+      task.on("state_changed",
+        s => {
+          if(fill) fill.style.width = ((s.bytesTransferred/s.totalBytes)*100) + "%";
+        },
+        err => reject(err),
+        () => resolve()
+      );
+    });
+    const url = await getDownloadURL(ref);
+    const isImage = file.type.startsWith("image/");
+    const by = SUP.isViewingAsAdmin ? "admin" : "user";
+    const senderName = SUP.isViewingAsAdmin
+      ? "Dəstək komandası"
+      : (currentUser?.email?.split("@")[0] || document.getElementById("supPreName")?.value || "İstifadəçi");
+
+    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+      text: "", by, senderName,
+      fileUrl: url,
+      fileName: file.name,
+      fileType: file.type,
+      isImage,
+      createdAt: serverTimestamp()
+    });
+    const upd = {
+      lastMessage: isImage ? "📷 Şəkil" : "📎 " + file.name,
+      lastMessageBy: by,
+      lastMessageAt: serverTimestamp()
+    };
+    if(by === "user") upd.unreadByAdmin = increment(1);
+    else upd.unreadByUser = increment(1);
+    await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+
+    if(by === "user"){
+      tgNotify(`📎 <b>Dəstək: fayl göndərildi</b>\n👤 ${senderName}\n${isImage?"🖼 Şəkil":"📄 "+file.name}\n\nhesablar.net → Admin panel`);
+    }
+  }catch(e){
+    console.error("Fayl yüklənmədi:", e);
+    toast("Fayl yüklənmədi. Firebase Storage rules yoxla.");
+  }finally{
+    if(bar) bar.style.display = "none";
+    if(fill) fill.style.width = "0%";
+  }
+}
+
+// ===== HAZIR CAVABLAR (canned responses) — admin, localStorage-də saxlanır =====
+const _SUP_DEFAULT_CANNED = [
+  { title: "Salamlama", text: "Salam! Hesablar.net dəstək komandasıyıq. Sizə necə köməklik edə bilərik?" },
+  { title: "Gözlət", text: "Bir dəqiqə, sifarişinizi yoxlayıram..." },
+  { title: "Təşəkkür", text: "Müraciətiniz üçün təşəkkürlər! Başqa sualınız varsa yazın." },
+  { title: "Ödəniş gecikməsi", text: "Ödəniş 24 saat ərzində icra olunur. Səbir üçün təşəkkürlər." },
+  { title: "Sifariş tamamlandı", text: "Sifarişiniz uğurla tamamlandı. Yaxşı istifadələr! ⭐" }
+];
+function _supGetCannedList(){
+  try{ return JSON.parse(localStorage.getItem("sup_canned") || "null") || _SUP_DEFAULT_CANNED; }
+  catch(_){ return _SUP_DEFAULT_CANNED; }
+}
+function _supSaveCannedList(list){
+  try{ localStorage.setItem("sup_canned", JSON.stringify(list)); }catch(_){}
+}
+window.supRenderCannedMenu = function(){
+  const menu = document.getElementById("supCannedMenu");
+  if(!menu) return;
+  const list = _supGetCannedList();
+  menu.innerHTML = `
+    <div class="sup-canned-menu-header">
+      <span>Hazır cavablar (${list.length})</span>
+      <button class="sup-canned-add-btn" onclick="supAddCanned()">+ Yeni</button>
+    </div>
+    ${list.length ? list.map((c,i)=>`
+      <div class="sup-canned-item" data-canned-idx="${i}">
+        <div style="flex:1;min-width:0">
+          <span class="sup-canned-item-title">${_supEsc(c.title)}</span>
+          <div class="sup-canned-item-text">${_supEsc(c.text)}</div>
+        </div>
+        <button class="sup-canned-item-remove" data-canned-remove="${i}" title="Sil">✕</button>
+      </div>`).join("") : '<div style="padding:10px;color:#64748b;font-size:12px;text-align:center">Hazır cavab yoxdur</div>'}
+  `;
+  menu.querySelectorAll("[data-canned-idx]").forEach(el=>{
+    el.onclick = (e)=>{
+      if(e.target.hasAttribute("data-canned-remove")) return;
+      const list = _supGetCannedList();
+      const c = list[parseInt(el.dataset.cannedIdx)];
+      if(!c) return;
+      const input = document.getElementById("supInput");
+      if(input){ input.value = c.text; input.focus(); }
+      menu.classList.remove("open");
+    };
+  });
+  menu.querySelectorAll("[data-canned-remove]").forEach(b=>{
+    b.onclick = (e)=>{
+      e.stopPropagation();
+      const idx = parseInt(b.dataset.cannedRemove);
+      const list = _supGetCannedList();
+      list.splice(idx,1);
+      _supSaveCannedList(list);
+      supRenderCannedMenu();
+    };
+  });
+}
+window.supAddCanned = function(){
+  const title = window.prompt("Cavab başlığı (məs. 'Salamlama'):");
+  if(!title) return;
+  const text = window.prompt("Cavab mətni:");
+  if(!text) return;
+  const list = _supGetCannedList();
+  list.push({title: title.slice(0,40), text: text.slice(0,500)});
+  _supSaveCannedList(list);
+  supRenderCannedMenu();
+}
+
+// ===== RATING (istifadəçi söhbətdən sonra qiymətləndirir) =====
+let _supRatingValue = 0;
+function _supAttachRatingHandlers(){
+  document.querySelectorAll(".sup-star").forEach(s=>{
+    if(s._supBound) return; s._supBound = true;
+    s.addEventListener("click", ()=>{
+      _supRatingValue = parseInt(s.dataset.star);
+      document.querySelectorAll(".sup-star").forEach(st=>{
+        st.classList.toggle("active", parseInt(st.dataset.star) <= _supRatingValue);
+      });
+    });
+  });
+  const submit = document.getElementById("supRatingSubmit");
+  if(submit && !submit._supBound){
+    submit._supBound = true;
+    submit.addEventListener("click", async()=>{
+      if(!_supRatingValue){ toast("Ulduz seçin"); return; }
+      if(!SUP.chatId) return;
+      const comment = document.getElementById("supRatingComment")?.value.trim() || "";
+      try{
+        await updateDoc(doc(db,"support_chats",SUP.chatId), {
+          rating: _supRatingValue,
+          ratingComment: comment,
+          ratedAt: serverTimestamp()
+        });
+        document.getElementById("supRating").innerHTML = '<div class="sup-rating-submitted">✓ Təşəkkürlər! Rəyiniz göndərildi.</div>';
+        tgNotify(`⭐ <b>Dəstək rəyi</b>\nQiymət: ${'★'.repeat(_supRatingValue)}${'☆'.repeat(5-_supRatingValue)} (${_supRatingValue}/5)\n${comment ? '💭 '+comment.slice(0,200) : ''}`);
+        _supRatingValue = 0;
+      }catch(e){ console.error(e); toast("Rəy göndərilmədi"); }
+    });
+  }
+}
+
+// ===== MESAJ RENDER (şəkil/fayl və oxundu işarəsi əlavə edilir) =====
+function _supRenderMessagesV2(msgs){
+  const body = document.getElementById("supBody");
+  if(!body) return;
+  let lastDay = "";
+  const parts = [];
+  const isAdminView = !!SUP.isViewingAsAdmin;
+  if(!msgs.length){
+    parts.push(`<div class="sup-welcome">👋 Salam! Sualınızı yazın, komandamız qısa müddətdə cavab verəcək.</div>`);
+  }
+  msgs.forEach(m=>{
+    const ts = m.createdAt;
+    if(ts?.seconds){
+      const day = new Date(ts.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'long',year:'numeric'});
+      if(day !== lastDay){
+        parts.push(`<div class="sup-day-separator">${day}</div>`);
+        lastDay = day;
+      }
+    }
+    const isOwnSide = isAdminView ? (m.by === "admin") : (m.by === "user");
+    const cls = isOwnSide ? "user" : "admin";
+
+    // Fayl/şəkil mesajı
+    let content = "";
+    if(m.fileUrl){
+      if(m.isImage){
+        content = `<a href="${_supEsc(m.fileUrl)}" target="_blank" rel="noopener"><img src="${_supEsc(m.fileUrl)}" class="sup-msg-image" alt="Şəkil" loading="lazy"></a>`;
+      } else {
+        content = `<a href="${_supEsc(m.fileUrl)}" target="_blank" rel="noopener" class="sup-msg-file">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+          <span>${_supEsc(m.fileName||"Fayl")}</span>
+        </a>`;
+      }
+      if(m.text) content += `<div style="margin-top:4px">${_supEsc(m.text)}</div>`;
+    } else if(m.isSystem){
+      parts.push(`<div class="sup-day-separator" style="color:#94a3b8">${_supEsc(m.text)}</div>`);
+      return;
+    } else {
+      content = _supEsc(m.text);
+    }
+
+    // Oxundu işarələri — yalnız istifadəçi öz mesajlarında görür
+    let checks = "";
+    if(isOwnSide && !isAdminView && m.by === "user"){
+      const read = !!m.readByAdmin;
+      checks = `<span class="sup-msg-checks ${read?'read':''}">${read?'✓✓':'✓'}</span>`;
+    } else if(isOwnSide && isAdminView && m.by === "admin"){
+      const read = !!m.readByUser;
+      checks = `<span class="sup-msg-checks ${read?'read':''}">${read?'✓✓':'✓'}</span>`;
+    }
+
+    parts.push(`
+      <div class="sup-msg ${cls}">
+        ${content}
+        <div class="sup-msg-time">${_supTime(m.createdAt)}${checks}</div>
+      </div>`);
+  });
+  body.innerHTML = parts.join("");
+  body.scrollTop = body.scrollHeight;
+}
+
+// Köhnə funksiyanı yeniləyirik — mövcud kod referansları qorunur
+window._supRenderMessages = _supRenderMessagesV2;
+
+// Mesaj dinləyicisi — yeni mesajlarda səs çal + oxundu işarələ
+let _supLastMsgCount = 0;
+function _supListenMessagesV2(chatId){
+  if(SUP.unsubMsgs){ try{SUP.unsubMsgs()}catch(_){}; }
+  const q = query(collection(db,"support_chats",chatId,"messages"));
+  SUP.unsubMsgs = onSnapshot(q, snap=>{
+    const arr = [];
+    snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
+    arr.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+
+    // Yeni mesaj gəldi? — səs çal (qarşı tərəfdən gələn mesajlarda)
+    if(_supLastMsgCount > 0 && arr.length > _supLastMsgCount){
+      const newest = arr[arr.length-1];
+      const isIncoming = SUP.isViewingAsAdmin ? newest.by === "user" : newest.by === "admin";
+      if(isIncoming) _supPlaySound();
+    }
+    _supLastMsgCount = arr.length;
+
+    _supRenderMessagesV2(arr);
+
+    // Oxunmamış mesajları oxundu kimi qeyd et (yalnız açıq baxılırsa)
+    const isVisible = document.getElementById("supportPanel")?.classList.contains("open");
+    if(isVisible){
+      if(SUP.isViewingAsAdmin){
+        _supMarkReadByAdmin(chatId);
+        // Hər user mesajını oxundu et
+        arr.filter(m=>m.by==="user" && !m.readByAdmin).forEach(m=>{
+          try{ updateDoc(doc(db,"support_chats",chatId,"messages",m.id), { readByAdmin: serverTimestamp() }); }catch(_){}
+        });
+      } else {
+        _supMarkReadByUser(chatId);
+        arr.filter(m=>m.by==="admin" && !m.readByUser).forEach(m=>{
+          try{ updateDoc(doc(db,"support_chats",chatId,"messages",m.id), { readByUser: serverTimestamp() }); }catch(_){}
+        });
+      }
+    }
+  });
+}
+
+// Köhnə funksiyaları yenilərlə əvəz et
+window._supListenMessages = _supListenMessagesV2;
+window._supListenChat = _supListenChatExtended;
+
+// openSupport və openSupportAsAdmin funksiyalarını yenilə — genişləndirilmiş dinləyicilərdən istifadə etsin
+const _supOrigOpen = window.openSupport;
+window.openSupport = async function(){
+  await _supOrigOpen();
+  _supLastMsgCount = 0;
+  if(SUP.chatId) _supListenChatExtended(SUP.chatId);
+  if(SUP.chatId) _supListenMessagesV2(SUP.chatId);
+  const cannedWrap = document.getElementById("supCannedWrap");
+  if(cannedWrap) cannedWrap.style.display = "none";
+  // FAQ göstər (yalnız hələ mesaj göndərilməyibsə)
+  try{
+    const chatSnap = await getDoc(doc(db,"support_chats",SUP.chatId));
+    const showFaq = !chatSnap.exists() || !(chatSnap.data()?.lastMessage);
+    document.getElementById("supFaq").style.display = showFaq ? "block" : "none";
+  }catch(_){}
+  _supAttachRatingHandlers();
+}
+const _supOrigOpenAdmin = window.openSupportAsAdmin;
+window.openSupportAsAdmin = function(chatId){
+  _supOrigOpenAdmin(chatId);
+  _supLastMsgCount = 0;
+  _supListenChatExtended(chatId);
+  _supListenMessagesV2(chatId);
+  // Admin baxışında canned responses düyməsi görünür
+  const cannedWrap = document.getElementById("supCannedWrap");
+  if(cannedWrap) cannedWrap.style.display = "";
+  document.getElementById("supFaq").style.display = "none";
+  supRenderCannedMenu();
+  _supAttachRatingHandlers();
+}
+
+// ===== INPUT HANDLER GENİŞLƏNDİRİLİR (typing broadcast + attach + canned) =====
+(function(){
+  const boot2 = ()=>{
+    const input = document.getElementById("supInput");
+    const attachBtn = document.getElementById("supAttachBtn");
+    const fileInput = document.getElementById("supFileInput");
+    const cannedBtn = document.getElementById("supCannedBtn");
+    const cannedMenu = document.getElementById("supCannedMenu");
+
+    if(input && !input._supTypingBound){
+      input._supTypingBound = true;
+      input.addEventListener("input", ()=>_supBroadcastTyping());
+    }
+    if(attachBtn && fileInput && !attachBtn._supBound2){
+      attachBtn._supBound2 = true;
+      attachBtn.addEventListener("click", ()=>fileInput.click());
+      fileInput.addEventListener("change", async(e)=>{
+        const f = e.target.files?.[0];
+        if(f) await _supHandleFileUpload(f);
+        fileInput.value = ""; // sıfırla
+      });
+    }
+    if(cannedBtn && cannedMenu && !cannedBtn._supBound){
+      cannedBtn._supBound = true;
+      cannedBtn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        cannedMenu.classList.toggle("open");
+      });
+      document.addEventListener("click", (e)=>{
+        if(!cannedMenu.contains(e.target) && e.target !== cannedBtn){
+          cannedMenu.classList.remove("open");
+        }
+      });
+    }
+  };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot2);
+  else setTimeout(boot2, 100);
+})();
 
 async function logoutUser(){
   await signOut(auth);
@@ -6707,32 +8118,12 @@ window.submitAd = async function(){
     const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
-    // Satış üsulu: platform (sayt vasitəsilə) və ya direct_contact (özüm satıram)
-    const contactMode  = document.getElementById("adContactMode")?.value || "platform";
+    // Çatdırılma üsulu və hesab məlumatları
     const deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
     const chatMode     = document.getElementById("adChatMode")?.value || "chat_only";
 
-    let directPhone = "", directWhatsapp = "";
-    if(contactMode === "direct_contact"){
-      directPhone    = (document.getElementById("adDirectPhone")?.value    || "").trim();
-      directWhatsapp = (document.getElementById("adDirectWhatsapp")?.value || "").trim();
-      if(!directPhone && !directWhatsapp){
-        authStatus("Özüm satıram üçün ən azı bir əlaqə nömrəsi lazımdır.");
-        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
-        return;
-      }
-    } else {
-      // Platform üsulunda şərtlər qəbul edilməlidir
-      const termsChk = document.getElementById("adPlatformTerms");
-      if(termsChk && !termsChk.checked){
-        authStatus("Sayt vasitəsilə satmaq üçün qaydaları qəbul etməlisən.");
-        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
-        return;
-      }
-    }
-
     let accountCredentials = null;
-    if(contactMode === "platform" && deliveryMode === "direct"){
+    if(deliveryMode === "direct"){
       const mailEmail    = (document.getElementById("adMailEmail")?.value    || "").trim();
       const mailPassword = (document.getElementById("adMailPassword")?.value || "").trim();
       const accLogin     = (document.getElementById("adAccountLogin")?.value || "").trim();
@@ -6761,11 +8152,8 @@ window.submitAd = async function(){
       sellerUserId,
       sellerVerified,
       hasCredentials: !!accountCredentials,
-      contactMode,
-      directPhone,
-      directWhatsapp,
-      deliveryMode: contactMode === "platform" ? deliveryMode : null,
-      chatMode: (contactMode === "platform" && deliveryMode==="chat") ? chatMode : null,
+      deliveryMode,
+      chatMode: deliveryMode==="chat" ? chatMode : null,
       updatedAt: serverTimestamp()
     };
 
@@ -6838,8 +8226,8 @@ window.submitAd = async function(){
     }
 
   }catch(e){
-    console.error("submitAd error:", e, e && e.stack);
-    toast("⚠️ Elan göndərilmədi: " + (e.message || String(e)) + " [detallar konsolda]");
+    console.error("submitAd error:", e);
+    toast("⚠️ Elan göndərilmədi: " + (e.message || String(e)));
   }finally{
     if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; delete submitBtn.dataset.editingId; }
   }
@@ -6860,7 +8248,6 @@ window.createOrdersFromCart = async function(items){
 
     await ensureWallet(currentUser.uid, currentUser.email);
 
-    let _balanceDeducted = false; // Sifariş yaratmaq alınmasa geri qaytarmaq üçün
 
     // Transaction: yalnız alıcının öz wallet-indən çıx
 
@@ -6878,8 +8265,6 @@ window.createOrdersFromCart = async function(items){
         updatedAt: serverTimestamp()
       },{merge:true});
     });
-    _balanceDeducted = true;
-    window.__lastDeductedAmount = total; // catch üçün
 
     // Qeyd: admin-in qazancı orders kolleksiyasından hesablanır,
     // ayrıca admin wallet-inə yazmağa ehtiyac yoxdur.
@@ -7006,7 +8391,6 @@ window.createOrdersFromCart = async function(items){
     }
 
     cart=[]; localStorage.setItem("gs_cart",JSON.stringify(cart)); updateCart();
-    window.__lastDeductedAmount = 0;
     toast("✅ Sifariş yaradıldı! Sifarişlərim bölməsini yoxla.");
     // Telegram bildirişi — hər yeni sifariş
     const orderSummary = items.map(i=>`• ${i.name} — ${i.price} ₼`).join("\n");
@@ -7015,29 +8399,8 @@ window.createOrdersFromCart = async function(items){
     window.showTab("purchases");
   }catch(e){
     console.error("[createOrdersFromCart] XƏTA:", e.code, e.message, e);
-    if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
-    // Balans çıxıbsa amma sifariş yaradılmayıbsa — geri qaytar
-    const refundAmount = Number(window.__lastDeductedAmount || 0);
-    if(refundAmount > 0){
-      try{
-        await runTransaction(db, async (tx)=>{
-          const wSnap = await tx.get(buyerRef);
-          const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
-          tx.set(buyerRef,{
-            balance: Number(w.balance||0) + refundAmount,
-            totalSpent: Math.max(0, Number(w.totalSpent||0) - refundAmount),
-            updatedAt: serverTimestamp()
-          },{merge:true});
-        });
-        window.__lastDeductedAmount = 0;
-        toast("Sifariş yaradılmadı: " + (e.code||e.message||"") + ". Pulun geri qaytarıldı.");
-      }catch(refundErr){
-        console.error("Refund xətası:", refundErr);
-        toast("KRİTİK: Sifariş yaradılmadı və pul geri qaytarılmadı! Adminə yaz: " + refundAmount.toFixed(2) + " ₼");
-      }
-    } else {
-      toast("Sifariş yaradılmadı: " + (e.code||e.message||""));
-    }
+    if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); }
+    else toast("Sifariş yaradılmadı: " + (e.code||e.message||""));
   }
 }
 
@@ -7750,6 +9113,7 @@ function adminShell(){
     <div id="adminReports" class="admin-section"></div>
   </div>
   <div id="adminCatSupportcat" class="admin-cat" style="display:none">
+    <div id="adminSupport" class="admin-section"></div>
     <div id="adminChats" class="admin-section"></div>
     <div id="adminTickets" class="admin-section"></div>
   </div>`;
@@ -7762,6 +9126,10 @@ window.showAdminCat = function(cat){
     if(el) el.style.display = key===cat ? "" : "none";
   });
   document.querySelectorAll(".admin-cat-tabs button").forEach(b=>b.classList.toggle("active", b.dataset.admincat===cat));
+  // Dəstək tab-ı açılanda söhbətlər siyahısını yüklə
+  if(cat === "supportcat" && typeof renderAdminSupport === "function"){
+    try{ renderAdminSupport(); }catch(e){ console.error(e); }
+  }
 }
 async function _fetchBalanceAdmin(){
   const el=document.getElementById("adminBalanceRequests"); if(!el||!isAdmin()) return;
@@ -8437,44 +9805,260 @@ async function disputeOrder(id){
   }catch(e){ console.error(e); toast("Mübahisə açılmadı."); }
 }
 
+// ===== SATIŞLARIM — GENİŞLƏNDİRİLMİŞ (statistika, filtr, top məhsullar, CSV) =====
+let unsubSales = null;
+window._salesData = { orders: [], filter: {status:'all', dateRange:'all', search:''} };
+
+function computeSalesStats(orders){
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()/1000;
+  const last30Start = (Date.now() - 30*24*3600*1000)/1000;
+  const stats = {
+    totalCount: orders.length,
+    totalRevenue: 0, thisMonthRevenue: 0, last30Revenue: 0,
+    activeCount: 0, completedCount: 0, disputedCount: 0,
+    pendingPayout: 0, paidOut: 0, avgOrder: 0,
+    topProducts: [], uniqueBuyers: 0
+  };
+  const productCount = {};
+  const buyerSet = new Set();
+  let revenueCount = 0;
+  orders.forEach(o=>{
+    const price = Number(o.price||0);
+    const net = price * 0.95; // 5% komissiya sonra
+    const ts = o.createdAt?.seconds || 0;
+    const cancelled = o.status === "Ləğv edildi" || o.status === "Rədd edildi";
+    if(!cancelled){
+      stats.totalRevenue += net;
+      revenueCount++;
+      if(ts*1000 >= thisMonthStart*1000) stats.thisMonthRevenue += net;
+      if(ts >= last30Start) stats.last30Revenue += net;
+    }
+    if(o.status === "Aktiv") stats.activeCount++;
+    else if(o.status === "Tamamlandı") stats.completedCount++;
+    else if(o.status === "Mübahisə") stats.disputedCount++;
+    if(o.payoutRequested && !o.payoutDone) stats.pendingPayout += net;
+    if(o.payoutDone) stats.paidOut += net;
+    if(o.productTitle) productCount[o.productTitle] = (productCount[o.productTitle]||0) + 1;
+    if(o.buyerUid) buyerSet.add(o.buyerUid);
+  });
+  stats.avgOrder = revenueCount > 0 ? stats.totalRevenue / revenueCount : 0;
+  stats.uniqueBuyers = buyerSet.size;
+  stats.topProducts = Object.entries(productCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  return stats;
+}
+
+function applySalesFilter(orders, f){
+  let arr = orders;
+  if(f.status && f.status !== 'all') arr = arr.filter(o => (o.status||'') === f.status);
+  if(f.dateRange && f.dateRange !== 'all'){
+    let cutoff = 0;
+    const nowSec = Date.now()/1000;
+    if(f.dateRange === 'week') cutoff = nowSec - 7*24*3600;
+    else if(f.dateRange === 'month') cutoff = nowSec - 30*24*3600;
+    else if(f.dateRange === '3months') cutoff = nowSec - 90*24*3600;
+    arr = arr.filter(o => (o.createdAt?.seconds||0) >= cutoff);
+  }
+  if(f.search && f.search.trim()){
+    const s = f.search.trim().toLowerCase();
+    arr = arr.filter(o =>
+      (o.productTitle||"").toLowerCase().includes(s) ||
+      (o.buyerEmail||"").toLowerCase().includes(s) ||
+      (o.category||"").toLowerCase().includes(s)
+    );
+  }
+  return arr;
+}
+
+window.exportSalesCSV = function(){
+  const orders = (window._salesData?.orders) || [];
+  if(!orders.length){ toast("İxrac üçün satış yoxdur."); return; }
+  const headers = ["Tarix","Məhsul","Kateqoriya","Alıcı email","Qiymət (₼)","Komissiya (₼)","Xalis (₼)","Status","Ödəniş"];
+  const rows = orders.map(o=>{
+    const date = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('az-AZ') : "";
+    const price = Number(o.price||0);
+    const commission = (price*0.05).toFixed(2);
+    const net = (price*0.95).toFixed(2);
+    const payout = o.payoutDone ? "Ödənilib" : (o.payoutRequested ? "Tələb edilib" : "-");
+    return [date, o.productTitle||"", o.category||"", o.buyerEmail||"", price.toFixed(2), commission, net, o.status||"", payout];
+  });
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  // BOM əlavə edirik ki, Excel Azərbaycan hərflərini düzgün oxusun
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `satislarim_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 100);
+  toast("CSV yükləndi");
+}
+
+window.renderSales = function(){
+  const el = document.getElementById("cabSales");
+  if(!el) return;
+  const {orders, filter} = window._salesData;
+  const stats = computeSalesStats(orders);
+  const filtered = applySalesFilter(orders, filter);
+  const fmt = n => `${Number(n||0).toFixed(2)} ₼`;
+
+  const statsHtml = `
+    <div class="sales-stats-grid">
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Ümumi satış</span>
+        <b class="sales-stat-value">${stats.totalCount}</b>
+        <small class="sales-stat-sub">${stats.completedCount} tamamlanmış</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Ümumi qazanc</span>
+        <b class="sales-stat-value">${fmt(stats.totalRevenue)}</b>
+        <small class="sales-stat-sub">5% komissiyadan sonra</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Bu ay</span>
+        <b class="sales-stat-value" style="color:#22c55e">${fmt(stats.thisMonthRevenue)}</b>
+        <small class="sales-stat-sub">Son 30 gün: ${fmt(stats.last30Revenue)}</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Aktiv sifariş</span>
+        <b class="sales-stat-value" style="color:#fb923c">${stats.activeCount}</b>
+        <small class="sales-stat-sub">${stats.disputedCount>0?stats.disputedCount+' mübahisə':'Mübahisə yox'}</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Gözləyən ödəniş</span>
+        <b class="sales-stat-value" style="color:#38bdf8">${fmt(stats.pendingPayout)}</b>
+        <small class="sales-stat-sub">Ödənilib: ${fmt(stats.paidOut)}</small>
+      </div>
+      <div class="sales-stat-card">
+        <span class="sales-stat-label">Orta satış</span>
+        <b class="sales-stat-value">${fmt(stats.avgOrder)}</b>
+        <small class="sales-stat-sub">${stats.uniqueBuyers} unikal alıcı</small>
+      </div>
+    </div>`;
+
+  const topHtml = stats.topProducts.length ? `
+    <div class="sales-top-products">
+      <div class="sales-top-title-row">🏆 Ən çox satılan məhsullar</div>
+      <div class="sales-top-list">
+        ${stats.topProducts.map((p,i)=>`
+          <div class="sales-top-item">
+            <span class="sales-top-rank">${i+1}</span>
+            <span class="sales-top-name">${esc(p[0])}</span>
+            <span class="sales-top-count">${p[1]} satış</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const actionsHtml = `
+    <div class="sales-actions-row">
+      <button type="button" class="primary" onclick="showTab('withdraw')">💰 Çıxarış müraciəti</button>
+      <button type="button" onclick="exportSalesCSV()">📥 CSV ixrac</button>
+      <button type="button" onclick="renderSales()">🔄 Yenilə</button>
+    </div>`;
+
+  const filterHtml = `
+    <div class="sales-filter-row">
+      <select id="salesFilterStatus" class="sales-filter-input">
+        <option value="all">Bütün statuslar</option>
+        <option value="Aktiv">Aktiv</option>
+        <option value="Tamamlandı">Tamamlandı</option>
+        <option value="Mübahisə">Mübahisə</option>
+        <option value="Ləğv edildi">Ləğv edildi</option>
+      </select>
+      <select id="salesFilterDate" class="sales-filter-input">
+        <option value="all">Bütün vaxt</option>
+        <option value="week">Son 7 gün</option>
+        <option value="month">Son 30 gün</option>
+        <option value="3months">Son 3 ay</option>
+      </select>
+      <input id="salesFilterSearch" class="sales-filter-input" placeholder="🔍 Məhsul, alıcı və ya kateqoriya üzrə axtar" value="${esc(filter.search||'')}">
+    </div>`;
+
+  const tableHtml = filtered.length ? `
+    <table class="cabinet-table">
+      <thead>
+        <tr><th>Tarix</th><th>Məhsul</th><th>Alıcı</th><th>Qiymət / Xalis</th><th>Status</th><th>Əməliyyat</th></tr>
+      </thead>
+      <tbody>
+        ${filtered.map(o=>{
+          const both = o.buyerConfirmed && o.sellerConfirmed;
+          const price = Number(o.price||0);
+          const net = (price*0.95).toFixed(2);
+          const commission = (price*0.05).toFixed(2);
+          const date = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'short',year:'2-digit'}) : '-';
+          let btns = '';
+          if(o.deliveryType==="trade" && o.status==="Aktiv"){
+            if(o.tradeInfo) btns += `<small style="color:#38bdf8;display:block;margin-bottom:4px">🔗 Alıcı trade: ${esc(String(o.tradeInfo).slice(0,44))}</small>`;
+            else btns += `<small style="color:#64748b;display:block;margin-bottom:4px">⏳ Alıcının trade linki gözlənilir</small>`;
+          }
+          if(o.status==="Aktiv"){
+            if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
+            else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
+            if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+            if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+            if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+            if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
+              btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
+            }
+          } else if(o.status==="Tamamlandı"){
+            if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+            else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
+            else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
+          }
+          const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
+          return `<tr>
+            <td><small style="color:#94a3b8">${date}</small></td>
+            <td><b>${esc(o.productTitle||'-')}</b><br>${confirmedInfo}</td>
+            <td><small>${esc(o.buyerEmail||'-')}</small></td>
+            <td><b>${price.toFixed(2)} ₼</b><br><small style="color:#22c55e">Xalis: ${net} ₼</small><br><small style="color:#64748b">Komissiya: ${commission} ₼</small></td>
+            <td>${statusHtml(o.status)}</td>
+            <td><div class="order-actions">${btns}</div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>` : `<div class="cabinet-empty">${orders.length ? '🔍 Filtrə uyğun satış tapılmadı. Filtri dəyişin.' : '📦 Hələ satış yoxdur. Elan yerləşdirin və ilk satışınızı gözləyin!'}</div>`;
+
+  el.innerHTML = `
+    <div class="sales-header">
+      <h3>Satışlarım</h3>
+      <small style="color:#64748b">Ümumi ${orders.length} sifariş • Göstərilir: ${filtered.length}</small>
+    </div>
+    ${statsHtml}
+    ${topHtml}
+    ${actionsHtml}
+    ${filterHtml}
+    ${tableHtml}`;
+
+  // Sifariş əməliyyat düymələri
+  el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
+  el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
+
+  // Filtr handler-ləri
+  const statusSel = document.getElementById("salesFilterStatus");
+  const dateSel = document.getElementById("salesFilterDate");
+  const searchIn = document.getElementById("salesFilterSearch");
+  if(statusSel){ statusSel.value = filter.status||'all'; statusSel.onchange = ()=>{ window._salesData.filter.status = statusSel.value; renderSales(); }; }
+  if(dateSel){ dateSel.value = filter.dateRange||'all'; dateSel.onchange = ()=>{ window._salesData.filter.dateRange = dateSel.value; renderSales(); }; }
+  if(searchIn){
+    searchIn.oninput = ()=>{
+      clearTimeout(window._salesSearchTimer);
+      window._salesSearchTimer = setTimeout(()=>{
+        window._salesData.filter.search = searchIn.value;
+        renderSales();
+      }, 250);
+    };
+  }
+}
+
 function listenSales(){
   const el=document.getElementById("cabSales"); if(!el || !currentUser) return;
+  if(unsubSales){ try{ unsubSales(); }catch(_){} unsubSales=null; }
   const q=query(collection(db,"orders"),where("sellerUid","==",currentUser.uid));
-  onSnapshot(q,snap=>{
+  unsubSales = onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    if(!arr.length){ el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Hələ satış yoxdur.</div>'; return; }
-    el.innerHTML='<h3>Satışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
-      const both = o.buyerConfirmed && o.sellerConfirmed;
-      let btns = '';
-      // SKIN (trade) — satıcıya alıcının trade linkini göstər
-      if(o.deliveryType==="trade" && o.status==="Aktiv"){
-        if(o.tradeInfo){
-          btns += `<small style="color:#38bdf8;display:block;margin-bottom:4px">🔗 Alıcı trade: ${esc(String(o.tradeInfo).slice(0,44))}</small>`;
-        } else {
-          btns += `<small style="color:#64748b;display:block;margin-bottom:4px">⏳ Alıcının trade linki gözlənilir</small>`;
-        }
-      }
-      if(o.status==="Aktiv"){
-        if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
-        else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
-        if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
-        if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
-        if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
-        // Sosial media hold məlumatı
-        if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
-          btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
-        }
-      } else if(o.status==="Tamamlandı"){
-        if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
-        else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
-        else btns += `<span style="color:#fb923c;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
-      }
-      const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Alıcı':'○ Alıcı'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
-      return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.buyerEmail||'-')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
-    }).join('')+'</tbody></table>';
-    el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
-    el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
-  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
+    window._salesData.orders = arr;
+    renderSales();
+  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi. Firestore Rules yoxla.</div>'; });
 }
 
 function listenPurchases(){
@@ -8880,6 +10464,8 @@ function wire(){
   document.getElementById("emailLoginTabBtn")?.addEventListener("click",showEmailLogin);
   document.getElementById("sendPhoneCodeBtn")?.addEventListener("click",sendPhoneCode);
   document.getElementById("verifyPhoneCodeBtn")?.addEventListener("click",verifyPhoneCode);
+  document.getElementById("confirmRegPhoneBtn")?.addEventListener("click",confirmRegPhoneCode);
+  document.getElementById("resendRegPhoneCodeBtn")?.addEventListener("click",resendRegPhoneCode);
   document.getElementById("adGame")?.addEventListener("change", updateAdGameCustomVisibility);
   document.getElementById("adCategory")?.addEventListener("change", syncAdFormToCategory);
   updateAdGameCustomVisibility();
