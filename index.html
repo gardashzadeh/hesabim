@@ -6936,6 +6936,49 @@ window.createOrdersFromCart = async function(items){
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
 
+  // ═══════════════════════════════════════════════════════════════
+  // ÖNCƏDƏN YOXLAMA — Balans çıxılmazdan əvvəl bütün elanları yoxla.
+  // Bu vacibdir: əgər sifariş yaradıla bilməzsə, pul bloklana bilər
+  // (wallet qaydaları balansı artırmağa icazə vermir).
+  // ═══════════════════════════════════════════════════════════════
+  const preCheckAds = [];
+  for(const item of items){
+    if(!item.adId) continue;
+    try{
+      const preSnap = await getDoc(doc(db,"ads",item.adId));
+      if(!preSnap.exists()){
+        toast("❌ Elan artıq mövcud deyil: " + (item.name||item.adId));
+        return;
+      }
+      const preAd = preSnap.data() || {};
+      if(preAd.sold){
+        toast("❌ Bu elan artıq satılıb: " + (item.name||""));
+        cart = cart.filter(x=>x.adId !== item.adId);
+        localStorage.setItem("gs_cart", JSON.stringify(cart));
+        updateCart();
+        return;
+      }
+      // Öz-özünə alış qaydası ilə blokdur — əvvəlcədən dayandır
+      if(preAd.sellerUid === currentUser.uid){
+        toast("❌ Öz elanını ala bilməzsən: " + (item.name||""));
+        return;
+      }
+      // Qiymət uyğunluğu (qaydalar tələb edir)
+      if(Number(preAd.price||0) !== moneyToNumber(item.price)){
+        toast("❌ Elan qiyməti dəyişib. Səbəti təzələ: " + (item.name||""));
+        cart = cart.filter(x=>x.adId !== item.adId);
+        localStorage.setItem("gs_cart", JSON.stringify(cart));
+        updateCart();
+        return;
+      }
+      preCheckAds.push({item, adData: preAd});
+    }catch(preErr){
+      console.error("[preCheck]", preErr);
+      toast("❌ Elan yoxlanıla bilmədi: " + (preErr.code||preErr.message||""));
+      return;
+    }
+  }
+
   const total = items.reduce((s,item)=>s+moneyToNumber(item.price),0);
   const buyerRef = doc(db,"wallets",currentUser.uid);
 
@@ -7088,14 +7131,15 @@ window.createOrdersFromCart = async function(items){
           const p2pChatRef = doc(db,"chats",p2pChatId);
           const existingChat = await getDoc(p2pChatRef).catch(()=>null);
           if(!existingChat || !existingChat.exists()){
+            // Firestore Rules-a uyğun: yalnız icazə verilən sahələr
             await setDoc(p2pChatRef,{
               buyerUid: currentUser.uid,
               buyerEmail: currentUser.email||"",
               sellerUid: _sellerUid,
               sellerEmail: _sellerEmail,
+              productId: item.adId || "",
               productTitle: item.name || "Sifariş",
-              adId: item.adId || "",
-              orderId: orderRef.id,
+              productPrice: moneyToNumber(item.price) || 0,
               participants: [currentUser.uid, _sellerUid],
               lastMessage: "",
               unreadBuyer: 0,
@@ -7133,11 +7177,12 @@ window.createOrdersFromCart = async function(items){
               credText = "⚠️ Hesab məlumatları oxunmadı. Satıcıya chat-də yaz: məlumatları yenidən göndərsin.";
             }
 
+            // sendChatMessage ilə eyni sahə strukturu
             await addDoc(collection(db,"chats",p2pChatId,"messages"),{
-              senderId: _sellerUid,
-              senderEmail: _sellerEmail,
+              senderId: currentUser.uid,
+              senderEmail: currentUser.email||"",
               text: credText,
-              type: "credentials",
+              seen: false,
               participants: [currentUser.uid, _sellerUid],
               createdAt: serverTimestamp()
             });
@@ -7148,27 +7193,23 @@ window.createOrdersFromCart = async function(items){
             }).catch(()=>{});
             await updateDoc(orderRef,{
               credentialsStatus: "Alıcıya göndərildi",
-              credentialsSentToBuyerAt: serverTimestamp(),
-              chatId: p2pChatId,
               updatedAt: serverTimestamp()
             }).catch(()=>{});
 
           } else {
             // 2) CHAT MODEL — satıcıya avtomatik sorğu göndər
-            // QEYD: senderId olaraq buyer.uid istifadə edirik ki, Firestore
-            // qaydaları keçsin (yalnız iştirakçı yaza bilər).
             const requestText = "🔔 YENİ SİFARİŞ — Hesab məlumatları tələb olunur\n\n"
               + `📦 Məhsul: ${item.name || "Sifariş"}\n`
               + `💰 Məbləğ: ${item.price || ""}\n`
               + `👤 Alıcı: ${currentUser.email || ""}\n\n`
               + "Zəhmət olmasa Satışlarım bölməsindən sifarişi tap və hesab məlumatlarını doldurub təsdiqlə. Təsdiqlədikdən sonra məlumatlar birbaşa alıcıya bu chat-də göndəriləcək.\n\n"
               + "⚠️ Gecikmə şikayətə səbəb ola bilər — mümkün qədər tez cavab ver.";
+            // sendChatMessage ilə eyni sahə strukturu
             await addDoc(collection(db,"chats",p2pChatId,"messages"),{
               senderId: currentUser.uid,
-              senderEmail: "sistem — avtomatik sorğu",
+              senderEmail: currentUser.email||"",
               text: requestText,
-              type: "credentials_request",
-              orderId: orderRef.id,
+              seen: false,
               participants: [currentUser.uid, _sellerUid],
               createdAt: serverTimestamp()
             });
@@ -7179,17 +7220,15 @@ window.createOrdersFromCart = async function(items){
             }).catch(()=>{});
             await updateDoc(orderRef,{
               credentialsStatus: "Satıcıdan gözlənilir",
-              credentialsRequestedAt: serverTimestamp(),
-              chatId: p2pChatId,
               updatedAt: serverTimestamp()
             }).catch(()=>{});
           }
 
-          // Telegram bildirişi (sadə xəbər — kredensial yazılmır)
+          // Telegram bildirişi
           tgNotify(`🛒 <b>Yeni sifariş!</b>\n📦 ${item.name||"Məhsul"}\n👤 Alıcı: ${currentUser.email}\n💰 ${item.price} ₼\n🚚 ${_adDeliveryMode === "direct" ? "Birbaşa çatdırılma" : "Chat vasitəsilə"}`);
         }catch(chatErr){
           console.error("[order] Chat açılmadı:", chatErr);
-          toast("⚠️ Chat açılmadı: " + (chatErr.message || chatErr.code || "naməlum xəta") + ". Satıcı 'Satışlarım' bölməsindən sifarişi görəcək və məlumatları göndərə bilər.");
+          toast("⚠️ Chat açılmadı (" + (chatErr.code || chatErr.message || "xəta") + "). Satıcı Satışlarım bölməsindən sifarişi görəcək.");
         }
       } else {
         console.warn("[order] Satıcı UID tapılmadı — chat açılmadı. adId:", item.adId);
@@ -8723,22 +8762,21 @@ async function sellerSendCredentials(orderId){
     if(o.sellerUid !== currentUser.uid){ toast("Bu sifariş sənə aid deyil."); return; }
 
     // chatId — createOrdersFromCart-də yaradılan alıcı↔satıcı chat-i
-    let chatId = o.chatId;
-    if(!chatId){
-      chatId = [o.buyerUid, o.sellerUid, orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
-      const chatRef = doc(db,"chats",chatId);
-      const chatSnap = await getDoc(chatRef).catch(()=>null);
-      if(!chatSnap || !chatSnap.exists()){
-        await setDoc(chatRef,{
-          buyerUid: o.buyerUid, buyerEmail: o.buyerEmail||"",
-          sellerUid: o.sellerUid, sellerEmail: o.sellerEmail||"",
-          productTitle: o.productTitle||"Sifariş",
-          adId: o.adId||"", orderId,
-          participants: [o.buyerUid, o.sellerUid],
-          lastMessage: "", unreadBuyer: 0, unreadSeller: 0,
-          updatedAt: serverTimestamp(), createdAt: serverTimestamp()
-        });
-      }
+    const chatId = [o.buyerUid, o.sellerUid, orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+    const chatRef = doc(db,"chats",chatId);
+    const chatSnap = await getDoc(chatRef).catch(()=>null);
+    if(!chatSnap || !chatSnap.exists()){
+      // Firestore Rules-a uyğun sahə strukturu
+      await setDoc(chatRef,{
+        buyerUid: o.buyerUid, buyerEmail: o.buyerEmail||"",
+        sellerUid: o.sellerUid, sellerEmail: o.sellerEmail||"",
+        productId: o.adId || "",
+        productTitle: o.productTitle||"Sifariş",
+        productPrice: Number(o.price||0),
+        participants: [o.buyerUid, o.sellerUid],
+        lastMessage: "", unreadBuyer: 0, unreadSeller: 0,
+        updatedAt: serverTimestamp(), createdAt: serverTimestamp()
+      });
     }
 
     const lines = ["🔑 Hesab məlumatlarınız:", ""];
@@ -8750,16 +8788,15 @@ async function sellerSendCredentials(orderId){
     lines.push("", "Xoş oyunlar! Problem olarsa satıcı ilə bu chat-də əlaqə saxla.");
     const credText = lines.join("\n");
 
+    // sendChatMessage ilə eyni sahə strukturu
     await addDoc(collection(db,"chats",chatId,"messages"),{
       senderId: currentUser.uid,
       senderEmail: currentUser.email || "",
       text: credText,
-      type: "credentials",
-      orderId,
+      seen: false,
       participants: [o.buyerUid, o.sellerUid],
       createdAt: serverTimestamp()
     });
-    const chatRef = doc(db,"chats",chatId);
     const chatSnapCur = await getDoc(chatRef).catch(()=>null);
     const curUnread = Number(chatSnapCur?.data()?.unreadBuyer || 0);
     await updateDoc(chatRef,{
@@ -8769,8 +8806,6 @@ async function sellerSendCredentials(orderId){
     }).catch(()=>{});
     await updateDoc(oRef,{
       credentialsStatus: "Alıcıya göndərildi",
-      credentialsSentToBuyerAt: serverTimestamp(),
-      chatId,
       updatedAt: serverTimestamp()
     });
     toast("✅ Alıcıya göndərildi! Alıcı 'Mesajlar' bölməsindən məlumatları görəcək.");
