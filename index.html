@@ -6584,6 +6584,10 @@ async function renderProfile(){
     const snap=await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
     profile = snap && snap.exists() ? snap.data() : {};
   }
+  // İstifadəçinin Telegram chat_id-sini qlobal cache-ə yaz — bildirişlər üçün
+  window._userTelegramChatId = profile.telegramChatId || "";
+  window.currentUserProfile = profile;
+
   el.innerHTML=`<h3>Profil ${isAdmin()?'<span class="admin-badge">ADMIN</span>':''}</h3>
     <table class="cabinet-table">
       <tr><th>İstifadəçi ID</th><td>${esc(profile.userId || '-')}</td></tr>
@@ -6610,10 +6614,63 @@ async function renderProfile(){
     </div>
     <h3>Bildirişlər</h3>
     <div class="profile-form">
-      <p style="font-size:13px;color:#64748b;margin:0 0 12px">${"Notification" in window ? (Notification.permission==="granted" ? "✅ Push bildirişlər aktivdir." : "Push bildirişlər deaktivdir. Yeni sifariş və mesajlar üçün aktiv edin.") : "Bu brauzer bildirişləri dəstəkləmir."}</p>
-      ${"Notification" in window && Notification.permission!=="granted" ? '<button class="fullbtn" type="button" onclick="requestNotificationPermission();renderProfile()">🔔 Push bildirişləri aktiv et</button>' : ""}
+      <p style="font-size:13px;color:#64748b;margin:0 0 12px;grid-column:1/-1">
+        Yeni sifariş və mesajlar üçün bildiriş kanalları:
+      </p>
+
+      <div style="grid-column:1/-1;background:#0a0e14;border:1px solid #1c2330;border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:6px">💻 Brauzer / OS bildirişləri</div>
+        <p style="font-size:12px;color:#64748b;margin:0 0 10px">${"Notification" in window ? (Notification.permission==="granted" ? "✅ Aktivdir. Sayt açıq olanda ekranda toast, bağlı olanda OS bildirişi gəlir." : "Deaktivdir. Aktiv etsən Android telefonunda da OS-səviyyəli bildiriş alacaqsan.") : "❌ Bu brauzer bildirişləri dəstəkləmir."}</p>
+        ${"Notification" in window && Notification.permission!=="granted" ? '<button class="fullbtn" type="button" onclick="requestNotifPermission().then(()=>renderProfile())" style="width:auto">🔔 Aktiv et</button>' : ""}
+      </div>
+
+      <div style="grid-column:1/-1;background:#0a0e14;border:1px solid #38bdf833;border-radius:10px;padding:12px">
+        <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:6px">📱 Telegram bildirişləri (telefona anında)</div>
+        <p style="font-size:12px;color:#94a3b8;margin:0 0 10px;line-height:1.6">
+          Sayt kapalı olsa belə telefonunda anında bildiriş almaq üçün:<br>
+          <b>1.</b> Telegramda <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:#38bdf8">@userinfobot</a>-a "start" yaz — sənə <code style="background:#060810;padding:2px 6px;border-radius:4px">Id</code> nömrəsi verəcək (misal: 123456789).<br>
+          <b>2.</b> Telegramda <a href="https://t.me/hesablar_bot" target="_blank" rel="noopener" style="color:#38bdf8">@hesablar_bot</a>-a "start" yaz.<br>
+          <b>3.</b> ID-ni aşağı qoy və yadda saxla.
+        </p>
+        <input id="profileTelegramId" value="${esc(profile.telegramChatId || '')}" placeholder="Telegram Chat ID (məs: 123456789)" style="margin-bottom:8px" inputmode="numeric">
+        <button class="fullbtn" type="button" onclick="saveTelegramId()" style="width:auto">💾 Telegram ID-ni yadda saxla</button>
+        ${profile.telegramChatId ? '<div style="margin-top:8px"><button class="hbtn" type="button" onclick="testTelegramNotif()" style="width:auto;background:#1c2330;border:1px solid #38bdf866;color:#38bdf8">🧪 Test bildirişi göndər</button></div>' : ''}
+      </div>
     </div>`;
 }
+
+window.saveTelegramId = async function(){
+  if(!currentUser){ openModal("loginModal"); return; }
+  const tgId = (document.getElementById("profileTelegramId")?.value || "").trim();
+  if(tgId && !/^-?\d{5,15}$/.test(tgId)){ toast("Chat ID yalnız rəqəmlərdən ibarət olmalıdır (5-15 simvol)."); return; }
+  try{
+    await updateDoc(doc(db,"users",currentUser.uid),{
+      telegramChatId: tgId,
+      updatedAt: serverTimestamp()
+    });
+    window._userTelegramChatId = tgId;
+    toast(tgId ? "✅ Telegram ID yadda saxlandı" : "Telegram bildirişləri söndürüldü");
+    renderProfile();
+  }catch(e){
+    console.error("[saveTelegramId]", e);
+    toast("Xəta: " + (e.code||e.message||""));
+  }
+};
+
+window.testTelegramNotif = async function(){
+  const tgId = window._userTelegramChatId || "";
+  if(!tgId){ toast("Əvvəlcə Telegram ID-ni saxla."); return; }
+  try{
+    await fetch(TG_WORKER, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ text: "🧪 <b>Test bildirişi</b>\nhesablar.net ilə əlaqə uğurlu quruldu. Bundan sonra yeni sifariş və mesajları bura alacaqsan.", chat_id: tgId })
+    });
+    toast("✅ Test göndərildi. Telegramını yoxla.");
+  }catch(e){
+    toast("Test göndərilmədi: " + (e.message||""));
+  }
+};
 
 
 window.updateProfileInfo = async function(){
@@ -7729,6 +7786,130 @@ function listenMyChats(){
     draw();
   },e=>console.error(e)));
 }
+
+// ═══════════════════════════════════════════════════════════════
+// QLOBAL YAZIŞMA BİLDİRİŞLƏRİ — istifadəçi harada olursa olsun,
+// yeni mesaj gələndə: toast + səs + brauzer/OS bildirişi + telegram
+// ═══════════════════════════════════════════════════════════════
+window._globalNotifUnsubs = window._globalNotifUnsubs || [];
+window._chatLastUnread = window._chatLastUnread || {};
+window._notifBooted = false;
+
+function playNotifSound(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine";
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    o.start(); o.stop(ctx.currentTime + 0.3);
+    setTimeout(()=>ctx.close().catch(()=>{}), 500);
+  }catch(e){/* səs açıq deyil */}
+}
+
+async function requestNotifPermission(){
+  if(!("Notification" in window)) return false;
+  if(Notification.permission === "granted") return true;
+  if(Notification.permission === "denied") return false;
+  try{
+    const result = await Notification.requestPermission();
+    return result === "granted";
+  }catch(e){ return false; }
+}
+
+function showBrowserNotif(title, body, tag){
+  if(!("Notification" in window) || Notification.permission !== "granted") return;
+  try{
+    const n = new Notification(title, {
+      body: body||"",
+      icon: "https://hesablar.net/favicon.ico",
+      tag: tag||"gs-chat",
+      requireInteraction: false,
+      silent: false
+    });
+    n.onclick = ()=>{
+      window.focus();
+      try{ openCabinet && openCabinet(); window.showTab && window.showTab("messages"); }catch(e){}
+      n.close();
+    };
+    setTimeout(()=>{ try{n.close();}catch(e){} }, 8000);
+  }catch(e){/* bəzi brauzerlərdə Notification constructor sərhədlidir */}
+}
+
+function stopGlobalChatNotifications(){
+  (window._globalNotifUnsubs||[]).forEach(u=>{ try{u();}catch(e){} });
+  window._globalNotifUnsubs = [];
+  window._chatLastUnread = {};
+  window._notifBooted = false;
+}
+
+function startGlobalChatNotifications(){
+  stopGlobalChatNotifications();
+  if(!currentUser) return;
+
+  // İcazə istə (istifadəçi bir dəfə tıklayana qədər sistem tələb edir)
+  const askPerm = ()=>{
+    if("Notification" in window && Notification.permission === "default"){
+      requestNotifPermission();
+    }
+    document.removeEventListener("click", askPerm);
+  };
+  document.addEventListener("click", askPerm, { once: true });
+
+  const uid = currentUser.uid;
+  const qb = query(collection(db,"chats"), where("buyerUid","==",uid));
+  const qs = query(collection(db,"chats"), where("sellerUid","==",uid));
+
+  const handleSnap = (snap, isBuyer)=>{
+    snap.docChanges().forEach(ch=>{
+      const c = { id: ch.doc.id, ...ch.doc.data() };
+      const unread = isBuyer ? Number(c.unreadBuyer||0) : Number(c.unreadSeller||0);
+      const prev = Number(window._chatLastUnread[c.id] || 0);
+      window._chatLastUnread[c.id] = unread;
+
+      // Yalnız artım olanda bildir + boot zamanı köhnə mesajları göstərmə
+      if(!window._notifBooted) return;
+      if(unread <= prev) return;
+
+      // Aktiv olan yazışmaya olan mesajı bildirmə (istifadəçi onsuz da baxır)
+      if(activeChatId === c.id) return;
+
+      const otherName = isBuyer ? (c.sellerEmail || "Satıcı") : (c.buyerEmail || "Alıcı");
+      const preview = (c.lastMessage||"Yeni mesaj").slice(0,80);
+      const title = "🔔 " + otherName;
+
+      // 1) Sayt içi toast
+      if(typeof toast === "function") toast("🔔 " + otherName + ": " + preview);
+      // 2) Səs
+      playNotifSound();
+      // 3) Brauzer/OS bildirişi (Android-də sistemdən, iOS-də PWA lazımdır)
+      showBrowserNotif(title, preview, "gs-chat-"+c.id);
+      // 4) Telegram bildirişi (əgər istifadəçi profilində chat_id qoyubsa)
+      const tgId = window._userTelegramChatId || (window.currentUserProfile||{}).telegramChatId || "";
+      if(tgId && typeof tgNotify === "function"){
+        try{
+          fetch(TG_WORKER, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ text: `🔔 <b>${otherName}</b>\n${preview}\n\nhesablar.net → Mesajlar`, chat_id: tgId })
+          }).catch(()=>{});
+        }catch(e){}
+      }
+    });
+  };
+
+  window._globalNotifUnsubs.push(onSnapshot(qb, s=>handleSnap(s, true), e=>console.warn("[globalNotif buyer]", e)));
+  window._globalNotifUnsubs.push(onSnapshot(qs, s=>handleSnap(s, false), e=>console.warn("[globalNotif seller]", e)));
+
+  // İlk snapshot-lardan sonra bildirişləri aktiv et — köhnə mesajlar üçün spam olmasın
+  setTimeout(()=>{ window._notifBooted = true; }, 2500);
+}
+window.startGlobalChatNotifications = startGlobalChatNotifications;
+window.stopGlobalChatNotifications = stopGlobalChatNotifications;
 function drawChatList(arr){
   arr = arr.filter(c => {
     if(!currentUser) return false;
@@ -9283,8 +9464,10 @@ onAuthStateChanged(auth, async user=>{
   listenSellerOnlineStatuses();
   if(currentUser){
     startOwnPresence();
+    if(typeof startGlobalChatNotifications === "function") startGlobalChatNotifications();
   }else{
     stopOwnPresence();
+    if(typeof stopGlobalChatNotifications === "function") stopGlobalChatNotifications();
   }
 });
 
