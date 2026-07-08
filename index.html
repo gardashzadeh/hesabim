@@ -3391,15 +3391,12 @@ button,input,select,textarea{max-width:100%}
                 <option>FIFA / EA FC</option><option>Digər</option>
               </select>
               <input id="adGameCustom" placeholder="Oyun adını yaz" style="display:none;margin-top:6px;">
-              <div class="ad-pro-grid">
-                <select id="adRank">
-                  <option value="">Rank seç</option><option>Rank yoxdur</option>
-                  <option>Iron / Bronze</option><option>Silver</option><option>Gold</option>
-                  <option>Platinum</option><option>Diamond</option><option>Master / Grandmaster</option>
-                  <option>Challenger / Radiant</option><option>Digər</option>
-                </select>
-                <input id="adLevel" type="hidden" value="">
-              </div>
+              <select id="adRank">
+                <option value="">Rank seç</option><option>Rank yoxdur</option>
+                <option>Iron / Bronze</option><option>Silver</option><option>Gold</option>
+                <option>Platinum</option><option>Diamond</option><option>Master / Grandmaster</option>
+                <option>Challenger / Radiant</option><option>Digər</option>
+              </select>
 
               <!-- Çatdırılma / satış üsulu seçimi -->
               <div style="margin-top:14px">
@@ -3612,9 +3609,6 @@ button,input,select,textarea{max-width:100%}
             <div style="margin-top:6px">
               <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
               <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
-              <input id="adOriginalPrice" type="hidden" value="">
-              <input id="adTags" type="hidden" value="">
-              <input id="adVideo" type="hidden" value="">
             </div>
             <input id="adContact" placeholder="WhatsApp nömrəsi: +994551234567 (istəyə görə)" style="margin-top:8px">
             <div>
@@ -3686,10 +3680,6 @@ button,input,select,textarea{max-width:100%}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a1 1 0 00-1 1v3a2 2 0 010 4v3a1 1 0 001 1h16a1 1 0 001-1v-3a2 2 0 010-4V8a1 1 0 00-1-1z"/></svg>
             <span id="pdStockText">Stokda var</span>
           </span>
-          <a id="pdVideoBadge" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;" class="badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Video bax
-          </a>
           <span class="badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
             Dərhal çatdırılma
@@ -3698,7 +3688,6 @@ button,input,select,textarea{max-width:100%}
 
         <div class="pd-price">
           <span id="pdPrice">0.00 ₼</span>
-          <span class="pd-price-old" id="pdOldPrice" style="display:none;"></span>
         </div>
 
         <p id="pdDesc">Məhsul haqqında məlumat.</p>
@@ -4886,10 +4875,15 @@ window.moneyToNumber = moneyToNumber;
 window.quickAddToCart = function(el){
   const btn = el.closest(".ad");
   if(!btn) return;
-  // Özüm satıram elanı — səbətə əlavə oluna bilməz, alıcıya izah göstər
+  // Özüm satıram elanı — səbətə əlavə oluna bilməz, alıcıya ətraflı izah göstər
   if(btn.dataset.contactmode === "direct_contact"){
     const phone = btn.dataset.directphone || btn.dataset.directwhatsapp || "";
-    showToast("Bu elan sayt üzərindən satılmır. Satıcı özü satır — " + (phone ? "zəng et: " + phone : "əlaqə nömrəsi elandadır."));
+    const msg = "Bu elan səbətə əlavə oluna bilməz.\n\n"
+      + "Səbəb: Satıcı bu elanı 'Özüm satıram' üsulu ilə yerləşdirib. Yəni məhsul sayt vasitəsilə deyil, birbaşa satıcı tərəfindən satılır.\n\n"
+      + "Sayt ödəniş qəbul etmir və zəmanət vermir. Alıcı ilə satıcı arasındakı razılaşma öz aralarındadır.\n\n"
+      + (phone ? "📞 Satıcının nömrəsi: " + phone + "\n\nZəng edib razılaşa bilərsən." : "Elanın içində satıcının əlaqə nömrəsi var — onunla birbaşa əlaqə saxla.");
+    if(window.showConfirm) window.showConfirm(msg, "ℹ️");
+    else showToast(msg);
     return;
   }
   addToCart(btn.dataset.title||"Məhsul", btn.dataset.price||"0.00 ₼", btn.dataset.adid||"", btn.dataset.selleruid||"", btn.dataset.selleremail||"");
@@ -5104,7 +5098,12 @@ function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
   // Özüm satıram elanı — səbətə əlavə oluna bilməz
   const p = currentDetailProduct || {};
   if(p.contactMode === "direct_contact" || window._pendingContactMode === "direct_contact"){
-    showToast("Bu elan sayt vasitəsilə satılmır. Satıcı ilə birbaşa əlaqə saxla (telefon/WhatsApp).");
+    const phone = p.directPhone || p.directWhatsapp || "";
+    const msg = "Bu elan səbətə əlavə oluna bilməz.\n\n"
+      + "Səbəb: Satıcı 'Özüm satıram' üsulunu seçib. Məhsul sayt üzərindən deyil, birbaşa satıcı tərəfindən satılır — sayt ödənişi qəbul etmir və zəmanət vermir.\n\n"
+      + (phone ? "📞 Satıcının nömrəsi: " + phone + "\n\nZəng edib razılaşa bilərsən." : "Elanın içində satıcının əlaqə nömrəsi var — onunla birbaşa əlaqə saxla.");
+    if(window.showConfirm) window.showConfirm(msg, "ℹ️");
+    else showToast(msg);
     return;
   }
   if(adId && cart.some(x=>x.adId===adId)){
@@ -5153,6 +5152,11 @@ function removeCart(i){
 
 async function checkoutCart(){
   if(cart.length===0){showToast("Səbət boşdur");return}
+
+  // Alıcı üçün alış şərtləri — sayt vasitəsilə alışda oxunub qəbul edilməlidir
+  const termsAccepted = await showBuyerTermsModal();
+  if(!termsAccepted){ toast("Alış üçün şərtləri qəbul etməlisən."); return; }
+
   const itemList = cart.map(x=>`• ${x.name} — ${x.price}`).join("\n");
   const confirmed = await (window.showConfirm||window.confirm)(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul balansınızdan çıxılacaq.`, "🛒");
   if(!confirmed) return;
@@ -5161,6 +5165,55 @@ async function checkoutCart(){
     return;
   }
   toast("Sifariş sistemi yüklənməyib, yenidən cəhd edin.");
+}
+
+// Alıcı üçün sayt vasitəsilə alış şərtləri modalı
+function showBuyerTermsModal(){
+  return new Promise(resolve=>{
+    let modal = document.getElementById("buyerTermsModal");
+    if(!modal){
+      modal = document.createElement("div");
+      modal.className = "modal";
+      modal.id = "buyerTermsModal";
+      modal.innerHTML = `
+        <div class="modal-box" style="max-width:520px;padding:24px">
+          <h3 style="margin:0 0 14px;color:#fb923c;font-size:17px;display:flex;align-items:center;gap:8px">
+            📋 Alış qaydaları
+          </h3>
+          <div style="background:#0a0e14;border:1px solid #22c55e33;border-radius:10px;padding:14px;margin-bottom:14px">
+            <div style="font-size:12.5px;color:#cbd5e1;line-height:1.75">
+              • Ödənişi sayt vasitəsilə edirəm; pul balansımdan çıxılacaq.<br>
+              • Məhsulun məlumatları (hesab / kod / trade) satıcı tərəfindən göndəriləcək, admin təsdiqindən keçəcək.<br>
+              • Məhsul çatandan sonra <b style="color:#e2e8f0">özüm yoxlayacağam</b> və düzgün olmadığı halda şikayət edə bilərəm.<br>
+              • Satıcı ilə <b style="color:#e2e8f0">sayt xaricində</b> ödəniş etməyəcəyəm (WhatsApp köçürməsi, birbaşa kart və s.).<br>
+              • Alış tamamlandıqdan sonra hesabın şifrəsini dəyişməyi unutmayacağam (əgər hesab alışıdırsa).<br>
+              • Yalan şikayət etsəm, hesabım bloklana bilər.<br>
+              • Şikayət üçün 24 saatdan gec olmayaraq admin ilə əlaqə saxlayacağam.
+            </div>
+          </div>
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#e2e8f0;margin-bottom:16px">
+            <input type="checkbox" id="buyerTermsCheck" style="margin-top:2px;flex-shrink:0;width:18px;height:18px;accent-color:#22c55e">
+            <span>Yuxarıdakı qaydaları oxudum və qəbul edirəm.</span>
+          </label>
+          <div style="display:flex;gap:8px">
+            <button type="button" id="buyerTermsCancel" style="flex:1;background:#1c2330;border:1px solid #2a3648;color:#94a3b8;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:13px">Ləğv et</button>
+            <button type="button" id="buyerTermsOk" style="flex:1;background:linear-gradient(135deg,#fb923c,#f97316);border:none;color:#fff;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:13px">Qəbul edirəm</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+    }
+    const chk = modal.querySelector("#buyerTermsCheck");
+    const ok = modal.querySelector("#buyerTermsOk");
+    const cancel = modal.querySelector("#buyerTermsCancel");
+    chk.checked = false;
+    modal.classList.add("show");
+    const close = (val)=>{ modal.classList.remove("show"); resolve(val); };
+    ok.onclick = ()=>{
+      if(!chk.checked){ toast("Əvvəlcə qaydalara razılıq işarəsini qoy."); return; }
+      close(true);
+    };
+    cancel.onclick = ()=>close(false);
+  });
 }
 
 function goHome(e){
