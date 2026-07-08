@@ -384,7 +384,8 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .sup-body::-webkit-scrollbar{width:6px}
 .sup-body::-webkit-scrollbar-thumb{background:#1c2330;border-radius:3px}
 .sup-welcome{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px;font-size:12.5px;color:#94a3b8;line-height:1.5;text-align:center;margin-bottom:4px}
-.sup-msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-wrap:break-word;position:relative;animation:supMsgIn .2s ease}
+.sup-msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-wrap:break-word;position:relative}
+.sup-msg.new{animation:supMsgIn .2s ease}
 @keyframes supMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .sup-msg.user{align-self:flex-end;background:linear-gradient(135deg,#ff7a18,#ff5a00);color:#fff;border-bottom-right-radius:4px}
 .sup-msg.admin{align-self:flex-start;background:#1a1f2e;color:#e2e8f0;border-bottom-left-radius:4px;border:1px solid #262d3d}
@@ -6850,6 +6851,9 @@ window.openSupport = async function(){
   SUP.chatId = chatId;
   SUP.isViewingAsAdmin = null;
   _supLastMsgCount = 0;
+  // Yenidən açanda render state-i sıfırla
+  const body = document.getElementById("supBody");
+  if(body){ body._supLastSig = null; body._supPrevIds = null; body.innerHTML = ""; }
   const cannedWrap = document.getElementById("supCannedWrap");
   if(cannedWrap) cannedWrap.style.display = "none";
   const profileBtn = document.getElementById("supUserProfile");
@@ -7061,6 +7065,13 @@ function _supPlaySound(){
 function _supRenderMessagesV2(msgs){
   const body = document.getElementById("supBody");
   if(!body) return;
+
+  // Signature check: eyni məzmun yenidən render edilməsin (yanıb-sönmə problemi)
+  const sig = msgs.map(m => m.id + "|" + (m.readByAdmin?.seconds||0) + "|" + (m.readByUser?.seconds||0)).join("~") + "::" + (SUP.isViewingAsAdmin ? "a" : "u");
+  if(body._supLastSig === sig) return;
+  const prevIds = body._supPrevIds || new Set();
+  body._supLastSig = sig;
+
   let lastDay = "";
   const parts = [];
   const isAdminView = !!SUP.isViewingAsAdmin;
@@ -7090,13 +7101,18 @@ function _supRenderMessagesV2(msgs){
       const read = !!m.readByUser;
       checks = `<span class="sup-msg-checks ${read?'read':''}">${read?'✓✓':'✓'}</span>`;
     }
+    // Yalnız yeni gələn mesajlara animasiya (əvvəlkilər olduğu kimi qalır)
+    const isNew = prevIds.size > 0 && !prevIds.has(m.id);
     parts.push(`
-      <div class="sup-msg ${cls}">
+      <div class="sup-msg ${cls}${isNew?' new':''}">
         ${_supEsc(m.text)}
         <div class="sup-msg-time">${_supTime(m.createdAt)}${checks}</div>
       </div>`);
   });
+
   body.innerHTML = parts.join("");
+  // Növbəti render üçün mövcud id-ləri saxla
+  body._supPrevIds = new Set(msgs.map(m => m.id));
   body.scrollTop = body.scrollHeight;
 }
 
@@ -7311,6 +7327,8 @@ window.openSupportAsAdmin = function(chatId){
   SUP.chatId = chatId;
   SUP.isViewingAsAdmin = chatId;
   _supLastMsgCount = 0;
+  const body = document.getElementById("supBody");
+  if(body){ body._supLastSig = null; body._supPrevIds = null; body.innerHTML = ""; }
   const panel = document.getElementById("supportPanel");
   const btn = document.getElementById("supportBtn");
   if(panel) panel.classList.add("open");
