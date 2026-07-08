@@ -7044,8 +7044,6 @@ window.createOrdersFromCart = async function(items){
         payoutRequested: false,
         payoutDone: false,
         credentialsStatus: _credentialsStatus,
-        deliveryMode: _adDeliveryMode,
-        contactMode: _adContactMode,
         ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -7209,6 +7207,7 @@ window.createOrdersFromCart = async function(items){
   }catch(e){
     console.error("[createOrdersFromCart] XƏTA:", e.code, e.message, e);
     if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
+    const errDetail = (e.code || "") + " — " + (e.message || "naməlum xəta");
     // Balans çıxıbsa amma sifariş yaradılmayıbsa — geri qaytar
     const refundAmount = Number(window.__lastDeductedAmount || 0);
     if(refundAmount > 0){
@@ -7223,13 +7222,26 @@ window.createOrdersFromCart = async function(items){
           },{merge:true});
         });
         window.__lastDeductedAmount = 0;
-        toast("Sifariş yaradılmadı: " + (e.code||e.message||"") + ". Pulun geri qaytarıldı.");
+        toast("Sifariş yaradılmadı: " + errDetail + ". Pulun geri qaytarıldı.");
       }catch(refundErr){
         console.error("Refund xətası:", refundErr);
-        toast("KRİTİK: Sifariş yaradılmadı və pul geri qaytarılmadı! Adminə yaz: " + refundAmount.toFixed(2) + " ₼");
+        // Detallı xəta göstər ki, problem tapıla bilsin
+        if(window.showConfirm){
+          window.showConfirm(
+            "KRİTİK XƏTA\n\n" +
+            "Sifariş yaradılmadı və pul avtomatik geri qaytarılmadı.\n\n" +
+            "Sifariş xətası: " + errDetail + "\n" +
+            "Refund xətası: " + (refundErr.code||"") + " — " + (refundErr.message||"") + "\n\n" +
+            "Məbləğ: " + refundAmount.toFixed(2) + " ₼\n\n" +
+            "Bu mesajı screenshot çəkib adminə göndər.",
+            "🚨"
+          );
+        } else {
+          toast("KRİTİK: " + errDetail + " | Refund: " + (refundErr.code||refundErr.message) + " | " + refundAmount.toFixed(2) + " ₼");
+        }
       }
     } else {
-      toast("Sifariş yaradılmadı: " + (e.code||e.message||""));
+      toast("Sifariş yaradılmadı: " + errDetail);
     }
   }
 }
@@ -8649,7 +8661,7 @@ function listenSales(){
       }
       if(o.status==="Aktiv"){
         // CHAT MODEL — hesab məlumatları hələ göndərilməyibsə forma göstər
-        if(o.deliveryMode === "chat" && o.credentialsStatus === "Satıcıdan gözlənilir"){
+        if(o.credentialsStatus === "Satıcıdan gözlənilir"){
           btns += `
             <div style="background:#0a1420;border:1px solid #38bdf8;border-radius:10px;padding:12px;margin-bottom:8px;max-width:360px">
               <div style="font-size:11.5px;font-weight:700;color:#38bdf8;margin-bottom:8px">🔔 HESAB MƏLUMATLARINI DOLDUR</div>
@@ -8663,10 +8675,8 @@ function listenSales(){
               <textarea id="credExtra-${o.id}" placeholder="Əlavə qeyd (istəyə görə)" rows="2" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:8px;box-sizing:border-box;resize:vertical"></textarea>
               <button class="approve-btn" data-cred-send="${o.id}" style="width:100%">✓ Təsdiqlə və alıcıya göndər</button>
             </div>`;
-        } else if(o.deliveryMode === "chat" && o.credentialsStatus === "Alıcıya göndərildi"){
-          btns += `<small style="color:#22c55e;display:block;margin-bottom:4px">✓ Hesab məlumatları göndərildi</small>`;
         } else if(o.credentialsStatus === "Alıcıya göndərildi"){
-          btns += `<small style="color:#22c55e;display:block;margin-bottom:4px">✓ Hesab məlumatları avtomatik göndərildi</small>`;
+          btns += `<small style="color:#22c55e;display:block;margin-bottom:4px">✓ Hesab məlumatları göndərildi</small>`;
         }
         if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
         else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
@@ -8796,14 +8806,10 @@ function listenPurchases(){
           btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
         }
       } else if(o.status==="Aktiv"){
-        // Chat modelində alıcıya məlumat statusu göstər
-        if(o.deliveryMode === "chat"){
-          if(o.credentialsStatus === "Satıcıdan gözlənilir"){
-            btns += `<small style="color:#fb923c;display:block;margin-bottom:6px">⏳ Satıcıdan hesab məlumatları gözlənilir. <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsində satıcıya yaza bilərsən.</small>`;
-          } else if(o.credentialsStatus === "Alıcıya göndərildi"){
-            btns += `<small style="color:#22c55e;display:block;margin-bottom:6px">✅ Hesab məlumatları göndərildi — <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsinə bax.</small>`;
-          }
-        } else if(o.deliveryMode === "direct" && o.credentialsStatus === "Alıcıya göndərildi"){
+        // Hesab məlumatları statusu
+        if(o.credentialsStatus === "Satıcıdan gözlənilir"){
+          btns += `<small style="color:#fb923c;display:block;margin-bottom:6px">⏳ Satıcıdan hesab məlumatları gözlənilir. <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsində satıcıya yaza bilərsən.</small>`;
+        } else if(o.credentialsStatus === "Alıcıya göndərildi"){
           btns += `<small style="color:#22c55e;display:block;margin-bottom:6px">✅ Hesab məlumatları göndərildi — <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsinə bax.</small>`;
         }
         if(!o.buyerConfirmed) btns += `<button class="complete-btn" data-buyer-confirm="${o.id}">✓ Aldım, problem yox</button>`;
