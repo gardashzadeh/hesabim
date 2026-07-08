@@ -6740,8 +6740,8 @@ window.submitAd = async function(){
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); return; }
 
   // Rate limiter — xəbərdarlıq göstər
-  if(!rateLimiter("submitAd", 30_000, "")) {
-    toast("⏳ 30 saniyə gözləyin, sonra yenidən cəhd edin.");
+  if(!rateLimiter("submitAd", 5_000, "")) {
+    toast("⏳ 5 saniyə gözləyin, sonra yenidən cəhd edin.");
     return;
   }
 
@@ -7030,7 +7030,9 @@ window.createOrdersFromCart = async function(items){
         sellerConfirmed: false,
         payoutRequested: false,
         payoutDone: false,
-        credentialsStatus: adHasCreds ? "Admin yoxlamasında" : "Yoxdur",
+        credentialsStatus: adHasCreds ? "Alıcıya göndəriləcək" : ((adData?.contactMode === "platform" && adData?.deliveryMode === "chat") ? "Satıcıdan gözlənilir" : "Yoxdur"),
+        deliveryMode: adData?.deliveryMode || (adHasCreds ? "direct" : null),
+        contactMode: adData?.contactMode || "platform",
         ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -7143,17 +7145,20 @@ window.createOrdersFromCart = async function(items){
 
           } else {
             // 2) CHAT MODEL — satıcıya avtomatik sorğu göndər
+            // QEYD: senderId olaraq buyer.uid istifadə edirik ki, Firestore
+            // qaydaları keçsin (yalnız iştirakçı yaza bilər).
             const requestText = "🔔 YENİ SİFARİŞ — Hesab məlumatları tələb olunur\n\n"
               + `📦 Məhsul: ${item.name || "Sifariş"}\n`
               + `💰 Məbləğ: ${item.price || ""}\n`
               + `👤 Alıcı: ${currentUser.email || ""}\n\n`
-              + "Alıcı ödənişi tamamladı. Zəhmət olmasa hesab məlumatlarını (login, şifrə, mail, əlavə qeyd) bu chat-ə cavab olaraq yaz. Mesajın birbaşa alıcıya gedəcək.\n\n"
+              + "Zəhmət olmasa Satışlarım bölməsindən sifarişi tap və hesab məlumatlarını doldurub təsdiqlə. Təsdiqlədikdən sonra məlumatlar birbaşa alıcıya bu chat-də göndəriləcək.\n\n"
               + "⚠️ Gecikmə şikayətə səbəb ola bilər — mümkün qədər tez cavab ver.";
             await addDoc(collection(db,"chats",p2pChatId,"messages"),{
-              senderId: "system",
-              senderEmail: "system@hesablar.net",
+              senderId: currentUser.uid,
+              senderEmail: "sistem — avtomatik sorğu",
               text: requestText,
               type: "credentials_request",
+              orderId: orderRef.id,
               participants: [currentUser.uid, _sellerUid],
               createdAt: serverTimestamp()
             });
@@ -8628,6 +8633,26 @@ function listenSales(){
         }
       }
       if(o.status==="Aktiv"){
+        // CHAT MODEL — hesab məlumatları hələ göndərilməyibsə forma göstər
+        if(o.deliveryMode === "chat" && o.credentialsStatus === "Satıcıdan gözlənilir"){
+          btns += `
+            <div style="background:#0a1420;border:1px solid #38bdf8;border-radius:10px;padding:12px;margin-bottom:8px;max-width:360px">
+              <div style="font-size:11.5px;font-weight:700;color:#38bdf8;margin-bottom:8px">🔔 HESAB MƏLUMATLARINI DOLDUR</div>
+              <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;line-height:1.5">
+                Alıcı ödənişi tamamladı. Aşağıdakı sahələri doldurub təsdiqlə — məlumatlar birbaşa alıcıya göndəriləcək.
+              </div>
+              <input id="credLogin-${o.id}" placeholder="Login / İstifadəçi adı" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <input id="credPassword-${o.id}" placeholder="Şifrə" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <input id="credMail-${o.id}" placeholder="Mail (istəyə görə)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <input id="credMailPass-${o.id}" placeholder="Mail şifrəsi (istəyə görə)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <textarea id="credExtra-${o.id}" placeholder="Əlavə qeyd (istəyə görə)" rows="2" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:8px;box-sizing:border-box;resize:vertical"></textarea>
+              <button class="approve-btn" data-cred-send="${o.id}" style="width:100%">✓ Təsdiqlə və alıcıya göndər</button>
+            </div>`;
+        } else if(o.deliveryMode === "chat" && o.credentialsStatus === "Alıcıya göndərildi"){
+          btns += `<small style="color:#22c55e;display:block;margin-bottom:4px">✓ Hesab məlumatları göndərildi</small>`;
+        } else if(o.credentialsStatus === "Alıcıya göndərildi"){
+          btns += `<small style="color:#22c55e;display:block;margin-bottom:4px">✓ Hesab məlumatları avtomatik göndərildi</small>`;
+        }
         if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
         else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
         if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
@@ -8647,8 +8672,91 @@ function listenSales(){
     }).join('')+'</tbody></table>';
     el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
     el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
+    el.querySelectorAll("[data-cred-send]").forEach(b=>b.onclick=()=>sellerSendCredentials(b.dataset.credSend));
   },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
 }
+
+// Satıcı: chat modelində hesab məlumatlarını doldurub alıcıya göndərir
+async function sellerSendCredentials(orderId){
+  if(!currentUser) return;
+  const login    = (document.getElementById("credLogin-"+orderId)?.value    || "").trim();
+  const password = (document.getElementById("credPassword-"+orderId)?.value || "").trim();
+  const mail     = (document.getElementById("credMail-"+orderId)?.value     || "").trim();
+  const mailPass = (document.getElementById("credMailPass-"+orderId)?.value || "").trim();
+  const extra    = (document.getElementById("credExtra-"+orderId)?.value    || "").trim();
+  if(!login && !password && !mail){
+    toast("Ən azı login və ya şifrə və ya mail yaz.");
+    return;
+  }
+  if(!await showConfirm("Hesab məlumatlarını təsdiqləyib alıcıya göndərirsən? Göndərdikdən sonra bu məlumatlar alıcıya çatacaq.", "✅")) return;
+
+  try{
+    const oRef = doc(db,"orders",orderId);
+    const oSnap = await getDoc(oRef);
+    if(!oSnap.exists()){ toast("Sifariş tapılmadı."); return; }
+    const o = oSnap.data();
+    if(o.sellerUid !== currentUser.uid){ toast("Bu sifariş sənə aid deyil."); return; }
+
+    // chatId — createOrdersFromCart-də yaradılan alıcı↔satıcı chat-i
+    let chatId = o.chatId;
+    if(!chatId){
+      chatId = [o.buyerUid, o.sellerUid, orderId].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+      const chatRef = doc(db,"chats",chatId);
+      const chatSnap = await getDoc(chatRef).catch(()=>null);
+      if(!chatSnap || !chatSnap.exists()){
+        await setDoc(chatRef,{
+          buyerUid: o.buyerUid, buyerEmail: o.buyerEmail||"",
+          sellerUid: o.sellerUid, sellerEmail: o.sellerEmail||"",
+          productTitle: o.productTitle||"Sifariş",
+          adId: o.adId||"", orderId,
+          participants: [o.buyerUid, o.sellerUid],
+          lastMessage: "", unreadBuyer: 0, unreadSeller: 0,
+          updatedAt: serverTimestamp(), createdAt: serverTimestamp()
+        });
+      }
+    }
+
+    const lines = ["🔑 Hesab məlumatlarınız:", ""];
+    if(mail)     lines.push("📧 Mail: " + mail);
+    if(mailPass) lines.push("🔒 Mail şifrəsi: " + mailPass);
+    if(login)    lines.push("👤 Login: " + login);
+    if(password) lines.push("🔐 Şifrə: " + password);
+    if(extra)    lines.push("", "📝 Əlavə: " + extra);
+    lines.push("", "Xoş oyunlar! Problem olarsa satıcı ilə bu chat-də əlaqə saxla.");
+    const credText = lines.join("\n");
+
+    await addDoc(collection(db,"chats",chatId,"messages"),{
+      senderId: currentUser.uid,
+      senderEmail: currentUser.email || "",
+      text: credText,
+      type: "credentials",
+      orderId,
+      participants: [o.buyerUid, o.sellerUid],
+      createdAt: serverTimestamp()
+    });
+    const chatRef = doc(db,"chats",chatId);
+    const chatSnapCur = await getDoc(chatRef).catch(()=>null);
+    const curUnread = Number(chatSnapCur?.data()?.unreadBuyer || 0);
+    await updateDoc(chatRef,{
+      lastMessage: "Hesab məlumatları göndərildi",
+      unreadBuyer: curUnread + 1,
+      updatedAt: serverTimestamp()
+    }).catch(()=>{});
+    await updateDoc(oRef,{
+      credentialsStatus: "Alıcıya göndərildi",
+      credentialsSentToBuyerAt: serverTimestamp(),
+      chatId,
+      updatedAt: serverTimestamp()
+    });
+    toast("✅ Alıcıya göndərildi! Alıcı 'Mesajlar' bölməsindən məlumatları görəcək.");
+    // Telegram xəbər (kredensial olmadan)
+    if(typeof tgNotify === "function") tgNotify(`✅ Satıcı hesab məlumatlarını göndərdi.\n📦 ${o.productTitle||""}\n👤 Alıcı: ${o.buyerEmail||""}`);
+  }catch(e){
+    console.error("[sellerSendCredentials]", e);
+    toast("Xəta: " + (e.message || e.code || "göndərilmədi"));
+  }
+}
+window.sellerSendCredentials = sellerSendCredentials;
 
 function listenPurchases(){
   const el=document.getElementById("cabPurchases"); if(!el || !currentUser) return;
@@ -8673,6 +8781,16 @@ function listenPurchases(){
           btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
         }
       } else if(o.status==="Aktiv"){
+        // Chat modelində alıcıya məlumat statusu göstər
+        if(o.deliveryMode === "chat"){
+          if(o.credentialsStatus === "Satıcıdan gözlənilir"){
+            btns += `<small style="color:#fb923c;display:block;margin-bottom:6px">⏳ Satıcıdan hesab məlumatları gözlənilir. <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsində satıcıya yaza bilərsən.</small>`;
+          } else if(o.credentialsStatus === "Alıcıya göndərildi"){
+            btns += `<small style="color:#22c55e;display:block;margin-bottom:6px">✅ Hesab məlumatları göndərildi — <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsinə bax.</small>`;
+          }
+        } else if(o.deliveryMode === "direct" && o.credentialsStatus === "Alıcıya göndərildi"){
+          btns += `<small style="color:#22c55e;display:block;margin-bottom:6px">✅ Hesab məlumatları göndərildi — <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsinə bax.</small>`;
+        }
         if(!o.buyerConfirmed) btns += `<button class="complete-btn" data-buyer-confirm="${o.id}">✓ Aldım, problem yox</button>`;
         else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın</span>`;
         btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
