@@ -7010,6 +7010,19 @@ window.createOrdersFromCart = async function(items){
         _holdDays = 2;                      // sosial media: 1-2 gün uzun saxlama
       }
 
+      // Çatdırılma üsulunu ƏVVƏLCƏDƏN müəyyən et — orderPayload və sonrakı
+      // chat/məlumat axını üçün eyni məntiqdən istifadə edilsin.
+      // Prioritet: adData.deliveryMode → əgər creds var: "direct" → yoxdursa "chat"
+      let _adDeliveryMode = adData?.deliveryMode || (adHasCreds ? "direct" : "chat");
+      // Uyğunluq: əgər "direct" deyilir amma creds yoxdursa, faktiki "chat" işləyir
+      if(_adDeliveryMode === "direct" && !adHasCreds) _adDeliveryMode = "chat";
+      const _adContactMode = adData?.contactMode || "platform";
+
+      let _credentialsStatus;
+      if(_adContactMode !== "platform") _credentialsStatus = "Yoxdur";
+      else if(_adDeliveryMode === "direct") _credentialsStatus = "Alıcıya göndəriləcək";
+      else _credentialsStatus = "Satıcıdan gözlənilir";
+
       const orderPayload = {
         productTitle: item.name||"Məhsul",
         price: moneyToNumber(item.price),
@@ -7030,9 +7043,9 @@ window.createOrdersFromCart = async function(items){
         sellerConfirmed: false,
         payoutRequested: false,
         payoutDone: false,
-        credentialsStatus: adHasCreds ? "Alıcıya göndəriləcək" : ((adData?.contactMode === "platform" && adData?.deliveryMode === "chat") ? "Satıcıdan gözlənilir" : "Yoxdur"),
-        deliveryMode: adData?.deliveryMode || (adHasCreds ? "direct" : null),
-        contactMode: adData?.contactMode || "platform",
+        credentialsStatus: _credentialsStatus,
+        deliveryMode: _adDeliveryMode,
+        contactMode: _adContactMode,
         ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -7067,11 +7080,10 @@ window.createOrdersFromCart = async function(items){
       //      sorğu chat-i açılır, satıcı hesab məlumatlarını orada yazır,
       //      mesaj birbaşa alıcıya gedir.
       // ═══════════════════════════════════════════════════════════════
-      const _adDeliveryMode = adData?.deliveryMode || (adHasCreds ? "direct" : "chat");
       const _sellerUid   = item.sellerUid || adData?.sellerUid || "";
       const _sellerEmail = item.sellerEmail || adData?.sellerEmail || "";
 
-      if(_sellerUid && currentUser.uid !== _sellerUid){
+      if(_sellerUid){
         try{
           // Alıcı ↔ satıcı chat ID-si
           const p2pChatId = [currentUser.uid, _sellerUid, orderRef.id].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
@@ -7178,8 +7190,11 @@ window.createOrdersFromCart = async function(items){
           // Telegram bildirişi (sadə xəbər — kredensial yazılmır)
           tgNotify(`🛒 <b>Yeni sifariş!</b>\n📦 ${item.name||"Məhsul"}\n👤 Alıcı: ${currentUser.email}\n💰 ${item.price} ₼\n🚚 ${_adDeliveryMode === "direct" ? "Birbaşa çatdırılma" : "Chat vasitəsilə"}`);
         }catch(chatErr){
-          console.warn("[order] Chat açılmadı:", chatErr);
+          console.error("[order] Chat açılmadı:", chatErr);
+          toast("⚠️ Chat açılmadı: " + (chatErr.message || chatErr.code || "naməlum xəta") + ". Satıcı 'Satışlarım' bölməsindən sifarişi görəcək və məlumatları göndərə bilər.");
         }
+      } else {
+        console.warn("[order] Satıcı UID tapılmadı — chat açılmadı. adId:", item.adId);
       }
     }
 
