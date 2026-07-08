@@ -3418,36 +3418,70 @@ button,input,select,textarea{max-width:100%}
                 <input type="hidden" id="adDeliveryMode" value="direct">
                 <input type="hidden" id="adChatMode" value="chat_only">
 
-                <!-- Sayt vasitəsilə: hesab məlumatları + şərtlər -->
+                <!-- Sayt vasitəsilə: 2 çatdırılma üsulu → Birbaşa / Chat vasitəsilə -->
                 <div id="contactPlatformSection">
-                  <div style="background:#0a0e14;border:1px solid #fb923c33;border-radius:10px;padding:14px;margin-bottom:10px">
-                    <div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px;display:flex;align-items:center;gap:6px">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                      HESAB MƏLUMATLARI
-                    </div>
-                    <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
-                      Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşandan sonra <b style="color:#94a3b8">əvvəlcə admin təsdiqləyir</b>, sonra alıcıya çatdırılır.
-                    </p>
-
-                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları</div>
-                    <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com)" autocomplete="off" style="margin-bottom:8px">
-                    <input id="adMailPassword" type="text" placeholder="Mail şifrəsi" autocomplete="off" style="margin-bottom:12px">
-
-                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları</div>
-                    <input id="adAccountLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
-                    <input id="adAccountPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off" style="margin-bottom:12px">
-
-                    <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər)</span></div>
-                    <textarea id="adExtraInfo" placeholder="Məs: Wallet balansı: 50$, Bağlı kart: yoxdur, İkili təsdiqləmə: söndürülüb..." rows="3" style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+                  <!-- Alt seçim düymələri -->
+                  <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px">Çatdırılma üsulu</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+                    <button type="button" id="deliveryBtnDirect" onclick="setDeliveryMode('direct')"
+                      style="padding:12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                      ⚡ Birbaşa
+                      <div style="font-weight:400;font-size:10.5px;color:#94a3b8;margin-top:4px">Hesab məlumatlarını indi yaz. Satış olsa, dərhal alıcıya gedir.</div>
+                    </button>
+                    <button type="button" id="deliveryBtnChat" onclick="setDeliveryMode('chat')"
+                      style="padding:12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                      💬 Chat vasitəsilə
+                      <div style="font-weight:400;font-size:10.5px;color:#475569;margin-top:4px">Alıcı ödəyəndə sənə avtomatik sorğu gəlir, məlumatı chat-də yazırsan.</div>
+                    </button>
                   </div>
 
-                  <!-- Şərtlər checkbox -->
+                  <!-- Birbaşa: hesab məlumatları -->
+                  <div id="deliveryDirectSection">
+                    <div style="background:#0a0e14;border:1px solid #fb923c33;border-radius:10px;padding:14px;margin-bottom:10px">
+                      <div style="font-size:11px;font-weight:700;color:#fb923c;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        HESAB MƏLUMATLARI
+                      </div>
+                      <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
+                        Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşan kimi <b style="color:#94a3b8">avtomatik alıcıya çatdırılır</b>.
+                      </p>
+
+                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları</div>
+                      <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com)" autocomplete="off" style="margin-bottom:8px">
+                      <input id="adMailPassword" type="text" placeholder="Mail şifrəsi" autocomplete="off" style="margin-bottom:12px">
+
+                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları</div>
+                      <input id="adAccountLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
+                      <input id="adAccountPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off" style="margin-bottom:12px">
+
+                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər)</span></div>
+                      <textarea id="adExtraInfo" placeholder="Məs: Wallet balansı: 50$, Bağlı kart: yoxdur, İkili təsdiqləmə: söndürülüb..." rows="3" style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Chat vasitəsilə: izahat -->
+                  <div id="deliveryChatSection" style="display:none">
+                    <div style="background:#0a0e14;border:1px solid #38bdf833;border-radius:10px;padding:14px;margin-bottom:10px">
+                      <div style="font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        CHAT VASİTƏSİLƏ ÇATDIRILMA
+                      </div>
+                      <p style="font-size:11.5px;color:#94a3b8;margin:0;line-height:1.7">
+                        • İndi hesab məlumatlarını yazmağa ehtiyac yoxdur.<br>
+                        • Alıcı məhsulu alan kimi sənə <b style="color:#e2e8f0">avtomatik sorğu</b> gəlir (chat açılır).<br>
+                        • O chat-də hesab məlumatlarını yazırsan, mesaj birbaşa alıcıya gedir.<br>
+                        • Sən aktiv olmalısan — cavab gecikməsi alıcı şikayətinə səbəb ola bilər.<br>
+                        • Yanlış/yalan məlumat üçün balansın bloklanır.
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Şərtlər checkbox (hər iki üsul üçün) -->
                   <div style="background:#0a0e14;border:1px solid #22c55e33;border-radius:10px;padding:12px;margin-bottom:10px">
                     <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:8px">📋 QAYDALARI OXU VƏ QƏBUL ET</div>
                     <div style="font-size:11.5px;color:#94a3b8;line-height:1.7;margin-bottom:10px">
                       • Verdiyin məlumat düzgün olmalıdır. Yalan/köhnə şifrə üçün balansın dondurulur.<br>
                       • Satışdan sonra hesabın şifrəsini dəyişməyəcəksən. Dəyişsən — balansın bloklanır.<br>
-                      • Admin təsdiq edənə qədər hesabı başqasına satmayacaqsan.<br>
                       • Şikayət olsa, məhsul qaytarılırsa, pul geri alıcıya köçürülür.<br>
                       • Alıcıdan xaric ödəniş üsulu (WhatsApp, birbaşa köçürmə) tələb edə bilməzsən.<br>
                       • Qaydaları pozmaq → hesab müvəqqəti/tam bloklanır.
@@ -6791,16 +6825,13 @@ window.submitAd = async function(){
       const accLogin     = (document.getElementById("adAccountLogin")?.value || "").trim();
       const accPassword  = (document.getElementById("adAccountPassword")?.value || "").trim();
       const extraInfo    = (document.getElementById("adExtraInfo")?.value    || "").trim();
-      if(mailEmail || mailPassword || accLogin || accPassword || extraInfo){
-        // AES-256 ilə şifrələ — Firestore-da açıq saxlanılmasın
-        accountCredentials = await encryptCreds({mailEmail, mailPassword, login:accLogin, password:accPassword, extraInfo});
+      if(!accLogin && !accPassword && !mailEmail && !mailPassword && !extraInfo){
+        authStatus("Birbaşa çatdırılma üçün ən azı hesab login/şifrə məlumatlarını yaz.");
+        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
+        return;
       }
-    } else if(deliveryMode === "chat" && chatMode === "chat_and_auto"){
-      const accLogin    = (document.getElementById("adChatAutoLogin")?.value    || "").trim();
-      const accPassword = (document.getElementById("adChatAutoPassword")?.value || "").trim();
-      if(accLogin || accPassword){
-        accountCredentials = await encryptCreds({login:accLogin, password:accPassword});
-      }
+      // AES-256 ilə şifrələ — Firestore-da açıq saxlanılmasın
+      accountCredentials = await encryptCreds({mailEmail, mailPassword, login:accLogin, password:accPassword, extraInfo});
     }
 
     const adPayload = {
@@ -7025,35 +7056,124 @@ window.createOrdersFromCart = async function(items){
         }
       }
 
-      // Admin panelinin yuxarı bildiriş bölməsi üçün bildiriş yarat.
-      // TƏHLÜKƏSİZLİK: kredensiallar ALICININ brauzerində deşifrə EDİLMİR və
-      // bildirişə açıq mətn YAZILMIR — admin onları birbaşa
-      // ads/{adId}/secure/creds (və ya köhnə sifarişlərdə orders.pendingCredentials)
-      // mənbəyindən oxuyub deşifrə edir.
-      if(adHasCreds){
-        try{
-          await addDoc(collection(db,"adminNotifications"),{
-            type: "credentials",
-            orderId: orderRef.id,
-            adId: item.adId||"",
-            productTitle: item.name||"Məhsul",
-            price: moneyToNumber(item.price),
-            buyerUid: currentUser.uid,
-            buyerEmail: currentUser.email||"",
-            buyerName: currentUser.displayName || currentUser.email || "Alıcı",
-            sellerUid: item.sellerUid || adData?.sellerUid || "",
-            sellerEmail: item.sellerEmail || adData?.sellerEmail || "",
-            sellerName: adData?.sellerName || adData?.sellerUsername || adData?.sellerUserId || item.seller || item.sellerEmail || adData?.sellerEmail || "Satıcı",
-            credentials: "",
-            status: "Admin təsdiqi gözləyir",
-            credentialsSellerSentAt: serverTimestamp(),
-            createdAt: serverTimestamp()
-          });
-          // Telegram bildirişi
-          tgNotify(`🔑 <b>Yeni hesab sifarişi!</b>\n📦 Məhsul: ${item.name||"Məhsul"}\n👤 Alıcı: ${currentUser.email}\n💰 Məbləğ: ${item.price} ₼\n\nAdmin panelini yoxla → hesablar.net`);
+      // ═══════════════════════════════════════════════════════════════
+      // YENİ MODEL: Admin təsdiqi ləğv edildi — məlumatlar birbaşa
+      // alıcı ↔ satıcı chat-inə düşür. İki üsul var:
+      //   1) Birbaşa (deliveryMode="direct"): satıcı elanda yazdığı şifrəli
+      //      məlumatlar avtomatik deşifrələnib alıcıya chat mesajı kimi göndərilir.
+      //   2) Chat vasitəsilə (deliveryMode="chat"): satıcıya avtomatik
+      //      sorğu chat-i açılır, satıcı hesab məlumatlarını orada yazır,
+      //      mesaj birbaşa alıcıya gedir.
+      // ═══════════════════════════════════════════════════════════════
+      const _adDeliveryMode = adData?.deliveryMode || (adHasCreds ? "direct" : "chat");
+      const _sellerUid   = item.sellerUid || adData?.sellerUid || "";
+      const _sellerEmail = item.sellerEmail || adData?.sellerEmail || "";
 
-        }catch(credErr){
-          console.warn("[creds] Bildiriş yaradılmadı:", credErr);
+      if(_sellerUid && currentUser.uid !== _sellerUid){
+        try{
+          // Alıcı ↔ satıcı chat ID-si
+          const p2pChatId = [currentUser.uid, _sellerUid, orderRef.id].join("__").replace(/[^a-zA-Z0-9_\-]/g,"_");
+          const p2pChatRef = doc(db,"chats",p2pChatId);
+          const existingChat = await getDoc(p2pChatRef).catch(()=>null);
+          if(!existingChat || !existingChat.exists()){
+            await setDoc(p2pChatRef,{
+              buyerUid: currentUser.uid,
+              buyerEmail: currentUser.email||"",
+              sellerUid: _sellerUid,
+              sellerEmail: _sellerEmail,
+              productTitle: item.name || "Sifariş",
+              adId: item.adId || "",
+              orderId: orderRef.id,
+              participants: [currentUser.uid, _sellerUid],
+              lastMessage: "",
+              unreadBuyer: 0,
+              unreadSeller: 1,
+              updatedAt: serverTimestamp(),
+              createdAt: serverTimestamp()
+            });
+          }
+
+          if(_adDeliveryMode === "direct" && adHasCreds){
+            // 1) BİRBAŞA MODEL — kredensialları oxu, deşifrələ, birbaşa alıcıya göndər
+            let credsBlob = null;
+            try{
+              const secSnap = await getDoc(doc(db,"ads",item.adId,"secure","creds"));
+              if(secSnap.exists()) credsBlob = (secSnap.data()||{}).creds;
+            }catch(e){ console.warn("[creds] secure oxunmadı:", e); }
+            if(!credsBlob && pendingCredentials) credsBlob = pendingCredentials;
+
+            let credsObj = null;
+            if(credsBlob){
+              try{ credsObj = await decryptCreds(credsBlob); }catch(e){ console.warn("Deşifrə xətası:", e); }
+            }
+
+            let credText = "";
+            if(credsObj){
+              const lines = ["🔑 Hesab məlumatlarınız:", ""];
+              if(credsObj.mailEmail)    lines.push("📧 Mail: " + credsObj.mailEmail);
+              if(credsObj.mailPassword) lines.push("🔒 Mail şifrəsi: " + credsObj.mailPassword);
+              if(credsObj.login)        lines.push("👤 Login: " + credsObj.login);
+              if(credsObj.password)     lines.push("🔐 Şifrə: " + credsObj.password);
+              if(credsObj.extraInfo)    lines.push("", "📝 Əlavə: " + credsObj.extraInfo);
+              lines.push("", "Xoş oyunlar! Problem olarsa satıcı ilə chat-də əlaqə saxla.");
+              credText = lines.join("\n");
+            } else {
+              credText = "⚠️ Hesab məlumatları oxunmadı. Satıcıya chat-də yaz: məlumatları yenidən göndərsin.";
+            }
+
+            await addDoc(collection(db,"chats",p2pChatId,"messages"),{
+              senderId: _sellerUid,
+              senderEmail: _sellerEmail,
+              text: credText,
+              type: "credentials",
+              participants: [currentUser.uid, _sellerUid],
+              createdAt: serverTimestamp()
+            });
+            await updateDoc(p2pChatRef,{
+              lastMessage: "Hesab məlumatları göndərildi",
+              unreadBuyer: 1,
+              updatedAt: serverTimestamp()
+            }).catch(()=>{});
+            await updateDoc(orderRef,{
+              credentialsStatus: "Alıcıya göndərildi",
+              credentialsSentToBuyerAt: serverTimestamp(),
+              chatId: p2pChatId,
+              updatedAt: serverTimestamp()
+            }).catch(()=>{});
+
+          } else {
+            // 2) CHAT MODEL — satıcıya avtomatik sorğu göndər
+            const requestText = "🔔 YENİ SİFARİŞ — Hesab məlumatları tələb olunur\n\n"
+              + `📦 Məhsul: ${item.name || "Sifariş"}\n`
+              + `💰 Məbləğ: ${item.price || ""}\n`
+              + `👤 Alıcı: ${currentUser.email || ""}\n\n`
+              + "Alıcı ödənişi tamamladı. Zəhmət olmasa hesab məlumatlarını (login, şifrə, mail, əlavə qeyd) bu chat-ə cavab olaraq yaz. Mesajın birbaşa alıcıya gedəcək.\n\n"
+              + "⚠️ Gecikmə şikayətə səbəb ola bilər — mümkün qədər tez cavab ver.";
+            await addDoc(collection(db,"chats",p2pChatId,"messages"),{
+              senderId: "system",
+              senderEmail: "system@hesablar.net",
+              text: requestText,
+              type: "credentials_request",
+              participants: [currentUser.uid, _sellerUid],
+              createdAt: serverTimestamp()
+            });
+            await updateDoc(p2pChatRef,{
+              lastMessage: "Yeni sifariş — məlumat tələb olunur",
+              unreadSeller: 1,
+              updatedAt: serverTimestamp()
+            }).catch(()=>{});
+            await updateDoc(orderRef,{
+              credentialsStatus: "Satıcıdan gözlənilir",
+              credentialsRequestedAt: serverTimestamp(),
+              chatId: p2pChatId,
+              updatedAt: serverTimestamp()
+            }).catch(()=>{});
+          }
+
+          // Telegram bildirişi (sadə xəbər — kredensial yazılmır)
+          tgNotify(`🛒 <b>Yeni sifariş!</b>\n📦 ${item.name||"Məhsul"}\n👤 Alıcı: ${currentUser.email}\n💰 ${item.price} ₼\n🚚 ${_adDeliveryMode === "direct" ? "Birbaşa çatdırılma" : "Chat vasitəsilə"}`);
+        }catch(chatErr){
+          console.warn("[order] Chat açılmadı:", chatErr);
         }
       }
     }
