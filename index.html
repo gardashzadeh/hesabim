@@ -17,10 +17,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#050607">
 <meta name="google-site-verification" content="CwGPVwg9UIEmTCgYJUozyCwaRJrhLuTn_40naXAws5E" />
 <title>Hesablar.net — Oyun Hesabı, Skin, Gift Card və Balans Alışı Azərbaycan</title>
 
@@ -5532,7 +5528,15 @@ document.addEventListener("DOMContentLoaded",()=>{
             return;
           }
         }
-        if(_adTries > 20) clearInterval(_tryOpenAd); // 10 san sonra imtina
+        if(_adTries === 12){
+          // Kart hələ görünmür — filtri sıfırla və elan nömrəsi ilə axtar
+          try{
+            if(typeof filterCategory === "function") filterCategory("Hamısı");
+            const qi = document.getElementById("q");
+            if(qi){ qi.value = adParam; if(typeof filterCards === "function") filterCards(); }
+          }catch(_){}
+        }
+        if(_adTries > 30) clearInterval(_tryOpenAd); // 15 san sonra imtina
       }, 500);
     }
   }catch(e){}
@@ -7996,73 +8000,72 @@ window.submitAd = async function(){
 }
 
 
+// ── Firestore gündəlik kvota (Spark: 50k oxu/gün) xətasını tanı
+window.isQuotaErr = function(e){
+  const c = (e && (e.code||"")) + " " + (e && (e.message||""));
+  return /resource-exhausted|quota/i.test(c);
+};
+const isQuotaErr = window.isQuotaErr;
+// Tutulmamış Firestore kvota xətaları üçün istifadəçiyə anlaşılan mesaj
+window.addEventListener("unhandledrejection", (ev)=>{
+  try{
+    if(window.isQuotaErr(ev.reason)){
+      ev.preventDefault();
+      if(!window.__quotaToastShown){
+        window.__quotaToastShown = true;
+        toast("⏳ Sistem gündəlik limitə çatıb — bəzi məlumatlar müvəqqəti yüklənməyə bilər. Limit hər gün Bakı vaxtı ilə 04:00-da yenilənir.");
+        setTimeout(()=>{ window.__quotaToastShown = false; }, 60000);
+      }
+    }
+  }catch(_){}
+});
+
 window.createOrdersFromCart = async function(items){
   await refreshUser();
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); toast("Alış üçün əvvəlcə giriş et"); return; }
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
 
-  // ═══════════════════════════════════════════════════════════════
-  // ÖNCƏDƏN YOXLAMA — Balans çıxılmazdan əvvəl bütün elanları yoxla.
-  // Bu vacibdir: əgər sifariş yaradıla bilməzsə, pul bloklana bilər
-  // (wallet qaydaları balansı artırmağa icazə vermir).
-  // ═══════════════════════════════════════════════════════════════
-  const preCheckAds = [];
-  for(const item of items){
-    if(!item.adId) continue;
-    try{
-      const preSnap = await getDoc(doc(db,"ads",item.adId));
-      if(!preSnap.exists()){
-        toast("❌ Elan artıq mövcud deyil: " + (item.name||item.adId));
-        return;
-      }
-      const preAd = preSnap.data() || {};
-      if(preAd.sold){
-        toast("❌ Bu elan artıq satılıb: " + (item.name||""));
-        cart = cart.filter(x=>x.adId !== item.adId);
-        localStorage.setItem("gs_cart", JSON.stringify(cart));
-        updateCart();
-        return;
-      }
-      // Öz-özünə alış qaydası ilə blokdur — əvvəlcədən dayandır
-      if(preAd.sellerUid === currentUser.uid){
-        toast("❌ Öz elanını ala bilməzsən: " + (item.name||""));
-        return;
-      }
-      // Qiymət uyğunluğu (qaydalar tələb edir)
-      if(Number(preAd.price||0) !== moneyToNumber(item.price)){
-        toast("❌ Elan qiyməti dəyişib. Səbəti təzələ: " + (item.name||""));
-        cart = cart.filter(x=>x.adId !== item.adId);
-        localStorage.setItem("gs_cart", JSON.stringify(cart));
-        updateCart();
-        return;
-      }
-      preCheckAds.push({item, adData: preAd});
-    }catch(preErr){
-      console.error("[preCheck]", preErr);
-      toast("❌ Elan yoxlanıla bilmədi: " + (preErr.code||preErr.message||""));
-      return;
-    }
-  }
-
   const total = items.reduce((s,item)=>s+moneyToNumber(item.price),0);
   const buyerRef = doc(db,"wallets",currentUser.uid);
 
   try{
-    // Wallet-ləri əvvəlcədən təmin et (transaction xaricində)
-
+    // Wallet-i əvvəlcədən təmin et (transaction xaricində)
     await ensureWallet(currentUser.uid, currentUser.email);
 
-    let _balanceDeducted = false; // Sifariş yaratmaq alınmasa geri qaytarmaq üçün
-
-    // Transaction: yalnız alıcının öz wallet-indən çıx
+    // ═══════════════════════════════════════════════════════════════
+    // ATOMİK TRANSACTION — balans çıxılması + elanların "sold" olması
+    // + sifariş sənədlərinin yaradılması HAMISI bir transaction-dadır.
+    // Ya hamısı uğurlu olur, ya heç biri (pul itkisi / race condition yox).
+    // ═══════════════════════════════════════════════════════════════
+    const _createdOrders = []; // {item, orderRef, adData, pendingCredentials, adHasCreds, _adDeliveryMode}
 
     await runTransaction(db, async (tx)=>{
+      _createdOrders.length = 0;
+
+      // ── 1) BÜTÜN OXUMALAR (Firestore qaydası: reads əvvəl, writes sonra)
       const wSnap = await tx.get(buyerRef);
+      const adEntries = [];
+      for(const item of items){
+        const snap = item.adId ? await tx.get(doc(db,"ads",item.adId)) : null;
+        adEntries.push({item, snap});
+      }
+
+      // ── 2) YOXLAMALAR
       const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
       const bal = Number(w.balance||0);
-
       if(bal < total) throw new Error("INSUFFICIENT_BALANCE");
+
+      for(const {item, snap} of adEntries){
+        if(!snap) continue;
+        if(!snap.exists())                                      throw new Error("AD_GONE::"+(item.name||item.adId));
+        const a = snap.data()||{};
+        if(a.sold)                                              throw new Error("AD_SOLD::"+(item.name||""));
+        if(a.sellerUid === currentUser.uid)                     throw new Error("SELF_BUY::"+(item.name||""));
+        if(Number(a.price||0) !== moneyToNumber(item.price))    throw new Error("PRICE_CHANGED::"+(item.name||""));
+      }
+
+      // ── 3) YAZMALAR
       tx.set(buyerRef,{
         uid: currentUser.uid,
         email: currentUser.email||"",
@@ -8070,113 +8073,96 @@ window.createOrdersFromCart = async function(items){
         totalSpent: Number(w.totalSpent||0)+total,
         updatedAt: serverTimestamp()
       },{merge:true});
-    });
-    _balanceDeducted = true;
-    window.__lastDeductedAmount = total; // catch üçün
 
-    // Qeyd: admin-in qazancı orders kolleksiyasından hesablanır,
-    // ayrıca admin wallet-inə yazmağa ehtiyac yoxdur.
+      for(const {item, snap} of adEntries){
+        const adData = (snap && snap.exists()) ? (snap.data()||{}) : null;
 
-    // 2. Hər item üçün sifariş yarat
-    for(const item of items){
-      let adData = null;
-      let pendingCredentials = null;
-
-      // Satıcının elanda yerləşdirdiyi hesab məlumatlarını sifarişə kopyala.
-      // Vacib: bunu order yaradılan anda edirik ki, admin panelində itmə olmasın.
-      if(item.adId){
-        try{
-          const adSnap = await getDoc(doc(db,"ads",item.adId));
-          if(adSnap.exists()){
-            adData = adSnap.data() || {};
-            if(adData.accountCredentials && adData.accountCredentials.data){
-              pendingCredentials = adData.accountCredentials;
-            }
-          }
-        }catch(credReadErr){
-          console.warn("[creds] Elan hesab məlumatı oxunmadı:", credReadErr);
+        // Köhnə elanlar üçün inline accountCredentials dəstəyi
+        let pendingCredentials = null;
+        if(adData && adData.accountCredentials && adData.accountCredentials.data){
+          pendingCredentials = adData.accountCredentials;
         }
-      }
+        // Yeni model: kredensiallar ads/{id}/secure-dadır — hasCredentials bayrağı
+        const adHasCreds = !!(pendingCredentials || (adData && adData.hasCredentials));
 
-      // Yeni model: kredensiallar ads/{id}/secure-dadır (alıcı satışdan əvvəl
-      // oxuya bilmir və oxumamalıdır). hasCredentials bayrağı ilə bilirik.
-      // Köhnə elanlar üçün inline accountCredentials hələ dəstəklənir.
-      const adHasCreds = !!(pendingCredentials || (adData && adData.hasCredentials));
+        // Kateqoriyaya görə çatdırılma tipi və escrow saxlama müddəti
+        const _cat = (adData?.category || item.category || "").toLowerCase();
+        const _game = (adData?.game || adData?.platform || "").toLowerCase();
+        let _deliveryType = "account";      // default: hesab modeli
+        let _holdDays = 1;                    // default saxlama (gün)
+        if(_cat.indexOf("skin") > -1){
+          const steamGames = ["cs2","counter","csgo","cs:go","dota","rust","tf2","team fortress"];
+          const isSteam = steamGames.some(g => _game.indexOf(g) > -1 || (adData?.title||"").toLowerCase().indexOf(g) > -1);
+          _deliveryType = isSteam ? "trade" : "account";
+          _holdDays = 1;
+        } else if(_cat.indexOf("sosial") > -1 || _cat.indexOf("social") > -1){
+          _deliveryType = "account";
+          _holdDays = 2;                      // sosial media: 1-2 gün uzun saxlama
+        }
 
-      // Kateqoriyaya görə çatdırılma tipi və escrow saxlama müddəti
-      const _cat = (adData?.category || item.category || "").toLowerCase();
-      const _game = (adData?.game || adData?.platform || "").toLowerCase();
-      let _deliveryType = "account";      // default: hesab modeli
-      let _holdDays = 1;                    // default saxlama (gün)
-      if(_cat.indexOf("skin") > -1){
-        // Steam əsaslı oyunlar → trade link modeli; Riot/Valorant → hesab modeli
-        const steamGames = ["cs2","counter","csgo","cs:go","dota","rust","tf2","team fortress"];
-        const isSteam = steamGames.some(g => _game.indexOf(g) > -1 || (adData?.title||"").toLowerCase().indexOf(g) > -1);
-        _deliveryType = isSteam ? "trade" : "account";
-        _holdDays = 1;
-      } else if(_cat.indexOf("sosial") > -1 || _cat.indexOf("social") > -1){
-        _deliveryType = "account";
-        _holdDays = 2;                      // sosial media: 1-2 gün uzun saxlama
-      }
+        // Çatdırılma üsulu — orderPayload və sonrakı chat axını üçün eyni məntiq
+        let _adDeliveryMode = adData?.deliveryMode || (adHasCreds ? "direct" : "chat");
+        if(_adDeliveryMode === "direct" && !adHasCreds) _adDeliveryMode = "chat";
+        const _adContactMode = adData?.contactMode || "platform";
 
-      // Çatdırılma üsulunu ƏVVƏLCƏDƏN müəyyən et — orderPayload və sonrakı
-      // chat/məlumat axını üçün eyni məntiqdən istifadə edilsin.
-      // Prioritet: adData.deliveryMode → əgər creds var: "direct" → yoxdursa "chat"
-      let _adDeliveryMode = adData?.deliveryMode || (adHasCreds ? "direct" : "chat");
-      // Uyğunluq: əgər "direct" deyilir amma creds yoxdursa, faktiki "chat" işləyir
-      if(_adDeliveryMode === "direct" && !adHasCreds) _adDeliveryMode = "chat";
-      const _adContactMode = adData?.contactMode || "platform";
+        let _credentialsStatus;
+        if(_adContactMode !== "platform") _credentialsStatus = "Yoxdur";
+        else if(_adDeliveryMode === "direct") _credentialsStatus = "Alıcıya göndəriləcək";
+        else _credentialsStatus = "Satıcıdan gözlənilir";
 
-      let _credentialsStatus;
-      if(_adContactMode !== "platform") _credentialsStatus = "Yoxdur";
-      else if(_adDeliveryMode === "direct") _credentialsStatus = "Alıcıya göndəriləcək";
-      else _credentialsStatus = "Satıcıdan gözlənilir";
+        const orderPayload = {
+          productTitle: item.name||"Məhsul",
+          price: moneyToNumber(item.price),
+          priceText: item.price||"",
+          adId: item.adId||"",
+          category: adData?.category || item.category || "",
+          deliveryType: _deliveryType,
+          holdDays: _holdDays,
+          ...(_deliveryType === "trade" ? { tradeInfo: null, tradeStatus: "Alıcı trade linki gözlənilir" } : {}),
+          sellerUid: item.sellerUid || adData?.sellerUid || "",
+          sellerEmail: item.sellerEmail || adData?.sellerEmail || "Hesablar.net",
+          sellerName: adData?.sellerName || adData?.sellerUsername || adData?.sellerUserId || item.seller || item.sellerEmail || adData?.sellerEmail || "Satıcı",
+          buyerUid: currentUser.uid,
+          buyerEmail: currentUser.email,
+          buyerName: currentUser.displayName || currentUser.email || "Alıcı",
+          status: "Aktiv",
+          buyerConfirmed: false,
+          sellerConfirmed: false,
+          payoutRequested: false,
+          payoutDone: false,
+          credentialsStatus: _credentialsStatus,
+          ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
 
-      const orderPayload = {
-        productTitle: item.name||"Məhsul",
-        price: moneyToNumber(item.price),
-        priceText: item.price||"",
-        adId: item.adId||"",
-        category: adData?.category || item.category || "",
-        deliveryType: _deliveryType,
-        holdDays: _holdDays,
-        ...(_deliveryType === "trade" ? { tradeInfo: null, tradeStatus: "Alıcı trade linki gözlənilir" } : {}),
-        sellerUid: item.sellerUid || adData?.sellerUid || "",
-        sellerEmail: item.sellerEmail || adData?.sellerEmail || "Hesablar.net",
-        sellerName: adData?.sellerName || adData?.sellerUsername || adData?.sellerUserId || item.seller || item.sellerEmail || adData?.sellerEmail || "Satıcı",
-        buyerUid: currentUser.uid,
-        buyerEmail: currentUser.email,
-        buyerName: currentUser.displayName || currentUser.email || "Alıcı",
-        status: "Aktiv",
-        buyerConfirmed: false,
-        sellerConfirmed: false,
-        payoutRequested: false,
-        payoutDone: false,
-        credentialsStatus: _credentialsStatus,
-        ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
+        const orderRef = doc(collection(db,"orders")); // yeni sənəd ref-i (id dərhal hazırdır)
+        tx.set(orderRef, orderPayload);
 
-      const orderRef = await addDoc(collection(db,"orders"), orderPayload);
-
-      // Elanı satılmış kimi işarələ ki, ana səhifədən HƏMİŞƏLİK (bütün istifadəçilər üçün) itsin.
-      // Əvvəlki həll (window._reservedAdIds) yalnız cari brauzer sessiyasında işləyirdi;
-      // səhifə yenilənəndə və ya başqa istifadəçidə elan yenidən görünürdü.
-      if(item.adId){
-        try{
-          await updateDoc(doc(db,"ads",item.adId),{
+        // Elanı satılmış kimi işarələ — eyni transaction daxilində.
+        // Beləliklə iki alıcı eyni anda ala bilməz: ikinci transaction
+        // sold=true görüb "AD_SOLD" ilə dayanacaq.
+        if(item.adId){
+          tx.update(doc(db,"ads",item.adId),{
             sold: true,
             soldAt: serverTimestamp(),
             buyerUid: currentUser.uid,
             orderId: orderRef.id,
             updatedAt: serverTimestamp()
           });
-        }catch(soldErr){
-          console.warn("[ads] Elan 'sold' kimi işarələnmədi:", soldErr);
-          toast("Diqqət: elan ana səhifədən avtomatik silinmədi (" + (soldErr.code||soldErr.message||"xəta") + "). Admin panelindən əl ilə silin.");
         }
+
+        _createdOrders.push({item, orderRef, adData, pendingCredentials, adHasCreds, _adDeliveryMode});
       }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Pul və sifarişlər artıq təhlükəsizdir. Aşağıdakı addımlar
+    // (chat, kredensial göndərilməsi, bildiriş) qeyri-kritikdir —
+    // fail olsalar sifariş yenə mövcuddur, sadəcə xəbərdarlıq veririk.
+    // ═══════════════════════════════════════════════════════════════
+    for(const entry of _createdOrders){
+      const {item, orderRef, adData, pendingCredentials, adHasCreds, _adDeliveryMode} = entry;
 
       // ═══════════════════════════════════════════════════════════════
       // YENİ MODEL: Admin təsdiqi ləğv edildi — məlumatlar birbaşa
@@ -8302,7 +8288,6 @@ window.createOrdersFromCart = async function(items){
     }
 
     cart=[]; localStorage.setItem("gs_cart",JSON.stringify(cart)); updateCart();
-    window.__lastDeductedAmount = 0;
     toast("✅ Sifariş yaradıldı! Sifarişlərim bölməsini yoxla.");
     // Telegram bildirişi — hər yeni sifariş
     const orderSummary = items.map(i=>`• ${i.name} — ${i.price} ₼`).join("\n");
@@ -8311,46 +8296,25 @@ window.createOrdersFromCart = async function(items){
     window.showTab("purchases");
   }catch(e){
     console.error("[createOrdersFromCart] XƏTA:", e.code, e.message, e);
-    if(e.message==="INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
-    const errDetail = (e.code || "") + " — " + (e.message || "naməlum xəta");
-    // Balans çıxıbsa amma sifariş yaradılmayıbsa — geri qaytar
-    const refundAmount = Number(window.__lastDeductedAmount || 0);
-    if(refundAmount > 0){
-      try{
-        await runTransaction(db, async (tx)=>{
-          const wSnap = await tx.get(buyerRef);
-          const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
-          tx.set(buyerRef,{
-            balance: Number(w.balance||0) + refundAmount,
-            totalSpent: Math.max(0, Number(w.totalSpent||0) - refundAmount),
-            updatedAt: serverTimestamp()
-          },{merge:true});
-        });
-        window.__lastDeductedAmount = 0;
-        toast("Sifariş yaradılmadı: " + errDetail + ". Pulun geri qaytarıldı.");
-      }catch(refundErr){
-        console.error("Refund xətası:", refundErr);
-        // Detallı xəta göstər ki, problem tapıla bilsin
-        if(window.showConfirm){
-          window.showConfirm(
-            "KRİTİK XƏTA\n\n" +
-            "Sifariş yaradılmadı və pul avtomatik geri qaytarılmadı.\n\n" +
-            "Sifariş xətası: " + errDetail + "\n" +
-            "Refund xətası: " + (refundErr.code||"") + " — " + (refundErr.message||"") + "\n\n" +
-            "Məbləğ: " + refundAmount.toFixed(2) + " ₼\n\n" +
-            "Bu mesajı screenshot çəkib adminə göndər.",
-            "🚨"
-          );
-        } else {
-          toast("KRİTİK: " + errDetail + " | Refund: " + (refundErr.code||refundErr.message) + " | " + refundAmount.toFixed(2) + " ₼");
-        }
-      }
-    } else {
-      toast("Sifariş yaradılmadı: " + errDetail);
+    const msg = String(e.message||"");
+    // Transaction atomikdir: xəta olubsa NƏ pul çıxıb, NƏ sifariş yaranıb.
+    if(msg === "INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
+    if(msg.startsWith("AD_GONE::")){ toast("❌ Elan artıq mövcud deyil: " + msg.split("::")[1]); return; }
+    if(msg.startsWith("AD_SOLD::")){
+      toast("❌ Bu elan artıq satılıb: " + msg.split("::")[1]);
+      cart = cart.filter(x=>x.name !== msg.split("::")[1]);
+      localStorage.setItem("gs_cart", JSON.stringify(cart)); updateCart();
+      return;
     }
+    if(msg.startsWith("SELF_BUY::")){ toast("❌ Öz elanını ala bilməzsən: " + msg.split("::")[1]); return; }
+    if(msg.startsWith("PRICE_CHANGED::")){
+      toast("❌ Elan qiyməti dəyişib. Səbəti təzələ: " + msg.split("::")[1]);
+      return;
+    }
+    if(isQuotaErr(e)){ toast("⏳ Sistem gündəlik limitə çatıb. Bir neçə saatdan sonra yenidən yoxla — pulun çıxılmayıb."); return; }
+    toast("Sifariş yaradılmadı: " + (e.code || "") + " — " + (e.message || "naməlum xəta") + ". Pulun çıxılmayıb.");
   }
 }
-
 
 async function ensureWallet(uid,email){
   const ref=doc(db,"wallets",uid);
@@ -8405,15 +8369,20 @@ window.submitDepositRequest = async function(){
   if(!(amount>0)){ toast("Məbləği düzgün yaz."); return; }
   try{
     await ensureWallet(currentUser.uid,currentUser.email);
-    await addDoc(collection(db,"balanceRequests"),{
-      type:"deposit",amount,method,receipt,
-      status:"Gözləmədə",
-      userUid:currentUser.uid,userEmail:currentUser.email,
-      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    // Atomik: müraciət sənədi + pendingIn artımı bir transaction-da
+    const reqRef = doc(collection(db,"balanceRequests"));
+    const wRef = doc(db,"wallets",currentUser.uid);
+    await runTransaction(db, async (tx)=>{
+      const wSnap = await tx.get(wRef);
+      const w = wSnap.exists() ? (wSnap.data()||{}) : {};
+      tx.set(reqRef,{
+        type:"deposit",amount,method,receipt,
+        status:"Gözləmədə",
+        userUid:currentUser.uid,userEmail:currentUser.email,
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
+      tx.set(wRef,{pendingIn:Number(w.pendingIn||0)+amount,updatedAt:serverTimestamp()},{merge:true});
     });
-    const ref=doc(db,"wallets",currentUser.uid);
-    const snap=await getDoc(ref); const w=snap.data()||{};
-    await updateDoc(ref,{pendingIn:Number(w.pendingIn||0)+amount,updatedAt:serverTimestamp()});
     toast("Balans artırma müraciəti göndərildi");
     tgNotify(`💰 <b>Balans müraciəti!</b>\n👤 ${currentUser.email}\n💵 Məbləğ: ${amount} ₼\n📋 Üsul: ${method}\n\nhesablar.net → Admin panel`);
     renderWallet();
@@ -8451,10 +8420,14 @@ window.submitWithdrawRequest = async function(){
   const walletRef=doc(db,"wallets",currentUser.uid);
   try{
     // Transaction: balans yetərliliyi yoxlanışı və çıxılması atomik icra edilir
+    await ensureWallet(currentUser.uid,currentUser.email);
+    // Atomik: balans çıxılması + müraciət sənədi BİR transaction-da.
+    // Əvvəlki versiyada addDoc transaction-dan sonra idi — fail olsa pul
+    // pendingOut-da ilişirdi, admin müraciəti görmürdü.
+    const wReqRef = doc(collection(db,"balanceRequests"));
     await runTransaction(db, async (tx)=>{
-      await ensureWallet(currentUser.uid,currentUser.email);
       const wSnap=await tx.get(walletRef);
-      const w=wSnap.data()||{};
+      const w=wSnap.exists() ? (wSnap.data()||{}) : {};
       const bal=Number(w.balance||0);
       if(bal<amount) throw new Error("INSUFFICIENT_BALANCE");
       tx.update(walletRef,{
@@ -8462,12 +8435,12 @@ window.submitWithdrawRequest = async function(){
         pendingOut:Number(w.pendingOut||0)+amount,
         updatedAt:serverTimestamp()
       });
-    });
-    await addDoc(collection(db,"balanceRequests"),{
-      type:"withdraw",amount,method,details,
-      status:"Gözləmədə",
-      userUid:currentUser.uid,userEmail:currentUser.email,
-      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      tx.set(wReqRef,{
+        type:"withdraw",amount,method,details,
+        status:"Gözləmədə",
+        userUid:currentUser.uid,userEmail:currentUser.email,
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
     });
     toast("Çıxarış müraciəti göndərildi");
     renderWithdraw();
@@ -9132,8 +9105,6 @@ async function _fetchChatsAdmin(){
 }
 function listenChatsAdmin(){
   _fetchChatsAdmin();
-  
-  adminUnsubs.push(()=>clearInterval(t));
 }
 
 function renderAdminStats(){
@@ -9215,8 +9186,6 @@ async function _fetchBalanceAdmin(){
 }
 function listenBalanceRequestsAdmin(){
   _fetchBalanceAdmin();
-  
-  adminUnsubs.push(()=>clearInterval(t));
 }
 
 async function processBalanceRequest(id,approve,arr){
@@ -9441,14 +9410,9 @@ async function prepareCredsForAdminApproval(orderId){
 }
 
 // Köhnə ad saxlanılır ki, hardasa çağırılsa belə alıcıya birbaşa göndərməsin.
-async function sendCredsToByuer(orderId){
-  return prepareCredsForAdminApproval(orderId);
-}
 
 function listenOrdersAdmin(){
   _fetchOrdersAdmin();
-  
-  adminUnsubs.push(()=>clearInterval(t));
 }
 
 async function _fetchTicketsAdmin(){
@@ -9466,8 +9430,6 @@ async function _fetchTicketsAdmin(){
 }
 function listenTicketsAdmin(){
   _fetchTicketsAdmin();
-  
-  adminUnsubs.push(()=>clearInterval(t));
 }
 
 async function replyTicket(id){
@@ -9496,8 +9458,6 @@ async function _fetchUsersAdmin(){
 }
 function listenUsersAdmin(){
   _fetchUsersAdmin();
-  
-  adminUnsubs.push(()=>clearInterval(t));
 }
 
 function listenUsersAdminRenderOnly(users){
@@ -9559,8 +9519,6 @@ async function _fetchPendingAds(){
 }
 function listenPendingAdsAdmin(){
   _fetchPendingAds();
-  
-  adminUnsubs.push(()=>clearInterval(t));
 }
 
 
@@ -9842,26 +9800,47 @@ async function cancelOrder(id){
     const snap=await getDoc(orderRef); if(!snap.exists()) return; const o=snap.data();
     if(o.buyerUid!==currentUser.uid && !isAdmin()){ toast("İcazə yoxdur."); return; }
     if(o.status==="Ləğv edildi"){ toast("Sifariş artıq ləğv edilib."); return; }
-    // Transaction: sifariş statusu + alıcı wallet atomik dəyişdirilir
-    await runTransaction(db, async (tx)=>{
-      const oSnap=await tx.get(orderRef);
-      if(!oSnap.exists() || oSnap.data().status==="Ləğv edildi") throw new Error("ALREADY_CANCELLED");
-      const o2=oSnap.data();
-      const buyerRef=doc(db,"wallets",o2.buyerUid);
-      const bSnap=await tx.get(buyerRef);
-      const b=bSnap.data()||{};
-      tx.update(orderRef,{status:"Ləğv edildi",escrowStatus:"Alıcıya qaytarıldı",updatedAt:serverTimestamp()});
-      tx.update(buyerRef,{
-        balance:Number(b.balance||0)+Number(o2.price||0),
-        escrowOut:Math.max(0,Number(b.escrowOut||0)-Number(o2.price||0)),
-        updatedAt:serverTimestamp()
+    if(isAdmin()){
+      // Admin: sifariş statusu + alıcıya refund atomik (Rules admin-ə icazə verir)
+      await runTransaction(db, async (tx)=>{
+        const oSnap=await tx.get(orderRef);
+        if(!oSnap.exists() || oSnap.data().status==="Ləğv edildi") throw new Error("ALREADY_CANCELLED");
+        const o2=oSnap.data();
+        const buyerRef=doc(db,"wallets",o2.buyerUid);
+        const bSnap=await tx.get(buyerRef);
+        const b=bSnap.data()||{};
+        tx.update(orderRef,{status:"Ləğv edildi",escrowStatus:"Alıcıya qaytarıldı",updatedAt:serverTimestamp()});
+        tx.update(buyerRef,{
+          balance:Number(b.balance||0)+Number(o2.price||0),
+          escrowOut:Math.max(0,Number(b.escrowOut||0)-Number(o2.price||0)),
+          updatedAt:serverTimestamp()
+        });
       });
+    } else {
+      // İstifadəçi: Rules alıcının öz balansını artırmasına icazə vermir —
+      // yalnız status dəyişir, refund-u admin edir.
+      await runTransaction(db, async (tx)=>{
+        const oSnap=await tx.get(orderRef);
+        if(!oSnap.exists() || oSnap.data().status==="Ləğv edildi") throw new Error("ALREADY_CANCELLED");
+        if(oSnap.data().status!=="Aktiv") throw new Error("NOT_ACTIVE");
+        tx.update(orderRef,{status:"Ləğv edildi",escrowStatus:"Geri ödəniş gözlənilir (admin)",updatedAt:serverTimestamp()});
+      });
+      tgNotify(`↩️ <b>Sifariş ləğv edildi — refund lazımdır!</b>\n🆔 ${id}\n👤 ${currentUser.email||""}\n\nhesablar.net → Admin panel`);
+    }
+    if(o.adId) await updateDoc(doc(db,"ads",o.adId),{
+      status:"Təsdiqləndi",
+      sold:false, soldAt:null, orderId:"",
+      buyerUid:"", buyerEmail:"",
+      updatedAt:serverTimestamp()
+    }).catch(err=>{
+      console.warn("[cancelOrder] Elan bazara qaytarılmadı:", err);
+      toast("⚠️ Sifariş ləğv edildi, amma elan bazara avtomatik qaytarılmadı — admin panelindən düzəlt.");
     });
-    if(o.adId) await updateDoc(doc(db,"ads",o.adId),{status:"Təsdiqləndi",buyerUid:"",buyerEmail:"",updatedAt:serverTimestamp()}).catch(()=>{});
-    toast("Sifariş ləğv edildi");
+    toast(isAdmin() ? "Sifariş ləğv edildi, pul alıcıya qaytarıldı." : "Sifariş ləğv edildi. Pul admin təsdiqindən sonra balansına qaytarılacaq.");
   }catch(e){
     console.error(e);
     if(e.message==="ALREADY_CANCELLED") toast("Sifariş artıq ləğv edilib.");
+    else if(e.message==="NOT_ACTIVE") toast("Yalnız Aktiv sifariş ləğv edilə bilər.");
     else toast("Ləğv edilmədi.");
   }
 }
@@ -9870,6 +9849,9 @@ async function disputeOrder(id){
   try{
     const ref=doc(db,"orders",id), snap=await getDoc(ref); if(!snap.exists()) return; const o=snap.data();
     if(o.buyerUid!==currentUser.uid && o.sellerUid!==currentUser.uid && !isAdmin()){ toast("İcazə yoxdur."); return; }
+    if(o.status==="Ləğv edildi"){ toast("Ləğv edilmiş sifarişə mübahisə açıla bilməz."); return; }
+    if(o.status==="Tamamlandı" && !isAdmin()){ toast("Tamamlanmış sifarişə mübahisə açıla bilməz — dəstəyə ticket yaz."); return; }
+    if(o.status==="Mübahisə"){ toast("Bu sifariş üzrə mübahisə artıq açılıb."); return; }
     await updateDoc(ref,{status:"Mübahisə",escrowStatus:"Admin araşdırır",updatedAt:serverTimestamp()});
     await addDoc(collection(db,"tickets"),{type:"Sifariş mübahisəsi",subject:"Sifariş: "+(o.productTitle||id),text:"Sifariş üzrə mübahisə açıldı.",status:"Açıq",orderId:id,userUid:currentUser.uid,userEmail:currentUser.email,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}).catch(()=>{});
     toast("Mübahisə açıldı");
@@ -10099,9 +10081,11 @@ async function buyerConfirmOrder(id){
     const o = oSnap.data();
     if(o.buyerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
     const newData = {buyerConfirmed:true, buyerConfirmedAt:serverTimestamp(), credentialsViewedAt:serverTimestamp(), updatedAt:serverTimestamp()};
-    // Hər ikisi təsdiqləyibsə — sifariş tamamlandı
-    if(o.sellerConfirmed){ newData.status = "Tamamlandı"; newData.completedAt = serverTimestamp(); }
     await updateDoc(oRef, newData);
+    // Hər iki tərəf təsdiqləyibsə — rəsmi tamamlama axını (escrow Worker ilə
+    // pul köçürməsi) işə düşsün. Status birbaşa "Tamamlandı" YAZILMIR ki,
+    // pulsuz "tamamlanma" yaranmasın.
+    if(o.sellerConfirmed){ toast("Hər iki tərəf təsdiqlədi — sifariş tamamlanır..."); return completeOrder(id); }
     toast("Təsdiq edildi.");
   }catch(e){ console.error(e); toast("Xəta baş verdi."); }
 }
@@ -10116,8 +10100,9 @@ async function sellerConfirmOrder(id){
     const o = oSnap.data();
     if(o.sellerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
     const newData = {sellerConfirmed:true, sellerConfirmedAt:serverTimestamp(), updatedAt:serverTimestamp()};
-    if(o.buyerConfirmed){ newData.status = "Tamamlandı"; newData.completedAt = serverTimestamp(); }
     await updateDoc(oRef, newData);
+    // Qeyd: pul köçürməsi/tamamlama alıcının təsdiqinə bağlıdır — satıcı
+    // tərəfdən status "Tamamlandı" yazılmır (pulsuz tamamlanmanın qarşısı).
     // Satıcı öz elanını "Satıldı" olaraq işarələyir
     if(o.adId){
       await updateDoc(doc(db,"ads",o.adId),{
@@ -10135,27 +10120,40 @@ async function requestPayout(id){
   if(!await showConfirm("Ödəniş tələb etmək istəyirsiniz? Admin 5% komissiya tutub qalan məbləği göndərəcək.", "💰")) return;
   try{
     const oRef = doc(db,"orders",id);
-    const oSnap = await getDoc(oRef);
-    if(!oSnap.exists()) return;
-    const o = oSnap.data();
-    if(o.sellerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
-    if(o.payoutRequested){ toast("Artıq tələb edilib."); return; }
-    await updateDoc(oRef,{payoutRequested:true, payoutRequestedAt:serverTimestamp(), updatedAt:serverTimestamp()});
-    // Admin üçün ayrıca payout request yarat
-    await addDoc(collection(db,"payoutRequests"),{
-      orderId: id,
-      productTitle: o.productTitle||"",
-      price: o.price||0,
-      commission: Math.round(o.price*5)/100,
-      payout: Math.round(o.price*95)/100,
-      sellerUid: currentUser.uid,
-      userUid: currentUser.uid,
-      sellerEmail: currentUser.email||"",
-      status: "Gözləmədə",
-      createdAt: serverTimestamp()
+    // Atomik: yoxlama + payoutRequested + payoutRequests sənədi bir transaction-da.
+    // İki tab paralel bassa, ikincisi ALREADY_REQUESTED ilə dayanır.
+    const payoutRef = doc(collection(db,"payoutRequests"));
+    let _o = null;
+    await runTransaction(db, async (tx)=>{
+      const oSnap = await tx.get(oRef);
+      if(!oSnap.exists()) throw new Error("ORDER_GONE");
+      const o = oSnap.data();
+      if(o.sellerUid !== currentUser.uid) throw new Error("NO_PERMISSION");
+      if(o.payoutRequested) throw new Error("ALREADY_REQUESTED");
+      _o = o;
+      tx.update(oRef,{payoutRequested:true, payoutRequestedAt:serverTimestamp(), updatedAt:serverTimestamp()});
+      tx.set(payoutRef,{
+        orderId: id,
+        productTitle: _o.productTitle||"",
+        price: _o.price||0,
+        commission: Math.round((_o.price||0)*5)/100,
+        payout: Math.round((_o.price||0)*95)/100,
+        sellerUid: currentUser.uid,
+        userUid: currentUser.uid,
+        sellerEmail: currentUser.email||"",
+        status: "Gözləmədə",
+        createdAt: serverTimestamp()
+      });
     });
     toast("Ödəniş tələbi göndərildi. Admin yaxın zamanda ödəyəcək.");
-  }catch(e){ console.error(e); toast("Xəta baş verdi."); }
+  }catch(e){
+    console.error(e);
+    if(e.message==="ALREADY_REQUESTED") toast("Artıq tələb edilib.");
+    else if(e.message==="NO_PERMISSION") toast("İcazə yoxdur.");
+    else if(e.message==="ORDER_GONE") toast("Sifariş tapılmadı.");
+    else if(isQuotaErr(e)) toast("⏳ Sistem limitə çatıb — bir azdan yenidən cəhd et.");
+    else toast("Xəta baş verdi.");
+  }
 }
 
 function listenMyAds(){
@@ -10384,7 +10382,10 @@ function listenSellerStats(){
 
 function listenPublicAds(){
   if(unsubPublicAds) unsubPublicAds();
-  const q=query(collection(db,"ads"),where("status","==","Təsdiqləndi"));
+  // Kvota qənaəti: yalnız satılmamış elanlar, maksimum 150.
+  // Qeyd: köhnə elanlarda "sold" sahəsi yoxdursa where("sold","==",false)
+  // onları gizlədər — ona görə yalnız limit qoyuruq, sold filtri klientdə qalır.
+  const q=query(collection(db,"ads"),where("status","==","Təsdiqləndi"),limit(150));
   unsubPublicAds=onSnapshot(q,snap=>{
     const arr=[];
     snap.forEach(d=>{
