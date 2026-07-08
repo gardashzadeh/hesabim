@@ -356,6 +356,148 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .ficon svg{width:100%;height:100%;fill:#fff}
 .follow small{color:#aaa}.follow button{height:32px;border:1px solid #555;background:#151616;border-radius:6px;color:#fff;font-weight:800;width:100%}
 .whats{position:fixed;right:22px;bottom:22px;background:#111212;border:1px solid #303232;border-radius:999px;padding:11px 24px 11px 12px;display:flex;align-items:center;gap:13px;z-index:999}
+/* ===== CANLI DƏSTƏK WIDGET ===== */
+.whats{display:none!important} /* Köhnə WhatsApp düyməsini gizlədirik — dəstək widget-i onu əvəz edir */
+#supportBtn{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;border-radius:999px;padding:13px 20px 13px 16px;color:#fff;font-family:inherit;font-weight:700;font-size:13.5px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 12px 30px rgba(255,90,0,.35),0 4px 12px rgba(0,0,0,.4);transition:.22s ease;z-index:99998}
+#supportBtn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(255,90,0,.5),0 6px 18px rgba(0,0,0,.5)}
+#supportBtn svg{width:22px;height:22px;fill:#fff}
+#supportBtn .sup-status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(255,255,255,.25);animation:supPulse 2s infinite}
+#supportBtn.offline .sup-status-dot{background:#94a3b8;animation:none}
+#supportBtn .sup-badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 6px;font-size:11.5px;font-weight:800;display:grid;place-items:center;border:2px solid #0e1219;box-shadow:0 4px 12px rgba(239,68,68,.5)}
+@keyframes supPulse{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.4)}50%{box-shadow:0 0 0 7px rgba(34,197,94,.05)}}
+
+#supportPanel{position:fixed;right:22px;bottom:22px;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 40px);background:#0e1219;border:1px solid #1c2330;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.7);z-index:99999;display:none;flex-direction:column;overflow:hidden;font-family:inherit;animation:supSlideUp .28s cubic-bezier(.4,0,.2,1)}
+#supportPanel.open{display:flex}
+@keyframes supSlideUp{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.sup-header{background:linear-gradient(135deg,#ff7a18,#c94800);padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sup-header-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sup-header-title{font-weight:800;font-size:15px;letter-spacing:.2px}
+.sup-header-status{font-size:11.5px;opacity:.95;display:flex;align-items:center;gap:6px}
+.sup-header-status .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.3)}
+.sup-header-status .dot.offline{background:#cbd5e1;box-shadow:none}
+.sup-header-actions{display:flex;gap:6px;align-items:center}
+.sup-header-btn{background:rgba(255,255,255,.15);border:0;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.15s ease}
+.sup-header-btn:hover{background:rgba(255,255,255,.28)}
+.sup-profile-link{background:rgba(255,255,255,.15);border:0;color:#fff;padding:5px 12px;border-radius:14px;font-size:11.5px;cursor:pointer;font-weight:600;font-family:inherit;transition:.15s}
+.sup-profile-link:hover{background:rgba(255,255,255,.28)}
+.sup-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#0a0c10}
+.sup-body::-webkit-scrollbar{width:6px}
+.sup-body::-webkit-scrollbar-thumb{background:#1c2330;border-radius:3px}
+.sup-welcome{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px;font-size:12.5px;color:#94a3b8;line-height:1.5;text-align:center;margin-bottom:4px}
+.sup-msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-wrap:break-word;position:relative;animation:supMsgIn .2s ease}
+@keyframes supMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.sup-msg.user{align-self:flex-end;background:linear-gradient(135deg,#ff7a18,#ff5a00);color:#fff;border-bottom-right-radius:4px}
+.sup-msg.admin{align-self:flex-start;background:#1a1f2e;color:#e2e8f0;border-bottom-left-radius:4px;border:1px solid #262d3d}
+.sup-msg-time{font-size:10px;opacity:.7;margin-top:3px}
+.sup-msg.user .sup-msg-time{text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:2px}
+.sup-msg-checks{display:inline-flex;gap:1px;margin-left:4px;font-size:11px;letter-spacing:-2px}
+.sup-msg-checks.read{color:#38bdf8}
+.sup-day-separator{align-self:center;font-size:10.5px;color:#64748b;background:#11151d;padding:3px 10px;border-radius:10px;margin:6px 0;letter-spacing:.3px}
+
+.sup-typing{align-self:flex-start;background:#1a1f2e;border:1px solid #262d3d;padding:11px 14px;border-radius:14px;border-bottom-left-radius:4px;display:none;gap:4px;align-items:center;animation:supMsgIn .2s ease}
+.sup-typing.show{display:flex}
+.sup-typing span{width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:supTypeDot 1.4s infinite}
+.sup-typing span:nth-child(2){animation-delay:.2s}
+.sup-typing span:nth-child(3){animation-delay:.4s}
+@keyframes supTypeDot{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+
+.sup-prechat{padding:18px;display:flex;flex-direction:column;gap:10px;background:#0a0c10;flex:1;overflow-y:auto}
+.sup-prechat-title{color:#f1f5f9;font-size:15px;font-weight:800;margin:0}
+.sup-prechat-desc{color:#94a3b8;font-size:12.5px;line-height:1.5;margin:0 0 6px}
+.sup-prechat input,.sup-prechat select,.sup-prechat textarea{background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-family:inherit;font-size:13.5px;outline:0;transition:.15s}
+.sup-prechat input:focus,.sup-prechat select:focus,.sup-prechat textarea:focus{border-color:#fb923c}
+.sup-prechat textarea{min-height:70px;resize:vertical}
+.sup-prechat-btn{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;padding:12px;border-radius:8px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;transition:.15s}
+.sup-prechat-btn:hover{filter:brightness(1.12)}
+
+.sup-input-row{display:flex;gap:8px;padding:10px 12px;background:#11151d;border-top:1px solid #1c2330;align-items:flex-end}
+.sup-input{flex:1;background:#0a0c10;border:1px solid #1c2330;border-radius:20px;color:#e2e8f0;padding:10px 14px;font-family:inherit;font-size:13.5px;outline:0;resize:none;max-height:100px;line-height:1.4;transition:.15s}
+.sup-input:focus{border-color:#fb923c}
+.sup-send-btn{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;border-radius:50%;width:38px;height:38px;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-send-btn:hover{transform:scale(1.06)}
+.sup-send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.sup-send-btn svg{width:16px;height:16px;fill:#fff}
+
+.sup-canned-wrap{position:relative}
+.sup-canned-btn{background:transparent;border:0;color:#94a3b8;width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-canned-btn:hover{background:#1c2330;color:#fb923c}
+.sup-canned-btn svg{width:19px;height:19px;fill:currentColor}
+.sup-canned-menu{position:absolute;bottom:44px;left:0;background:#11151d;border:1px solid #1c2330;border-radius:10px;min-width:260px;max-width:320px;max-height:280px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:100000;display:none;padding:6px}
+.sup-canned-menu.open{display:block}
+.sup-canned-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12.5px;color:#e2e8f0;line-height:1.4;transition:.12s;display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.sup-canned-item:hover{background:#1a1f2e}
+.sup-canned-item-title{font-weight:700;color:#fb923c;font-size:11px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;display:block}
+.sup-canned-item-text{color:#94a3b8;font-size:12px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sup-canned-menu-header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid #1c2330;margin-bottom:4px;font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.sup-canned-add-btn{background:#fb923c;color:#fff;border:0;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;font-weight:700}
+.sup-canned-add-btn:hover{filter:brightness(1.1)}
+.sup-canned-item-remove{color:#64748b;background:transparent;border:0;cursor:pointer;font-size:12px;padding:2px 4px;line-height:1}
+.sup-canned-item-remove:hover{color:#ef4444}
+
+.sup-rating-panel{padding:20px;text-align:center;background:#0a0c10;border-top:1px solid #1c2330}
+.sup-rating-panel h4{color:#f1f5f9;margin:0 0 4px;font-size:15px}
+.sup-rating-panel p{color:#94a3b8;font-size:12.5px;margin:0 0 12px;line-height:1.4}
+.sup-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
+.sup-star{font-size:32px;cursor:pointer;color:#334155;transition:.15s;user-select:none;line-height:1}
+.sup-star:hover,.sup-star.active{color:#ffae00;transform:scale(1.15)}
+.sup-rating-textarea{width:100%;background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-family:inherit;font-size:12.5px;outline:0;resize:vertical;min-height:60px;margin-bottom:8px}
+.sup-rating-textarea:focus{border-color:#fb923c}
+.sup-rating-submit{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;padding:9px 24px;border-radius:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.sup-rating-submit:hover{filter:brightness(1.1)}
+.sup-rating-submitted{color:#22c55e;font-size:13px;padding:14px;text-align:center}
+
+.sup-faq{padding:12px 14px 4px;background:#0a0c10}
+.sup-faq-title{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:8px}
+.sup-faq-list{display:flex;flex-wrap:wrap;gap:6px}
+.sup-faq-chip{background:#11151d;border:1px solid #1c2330;color:#cbd5e1;padding:6px 12px;border-radius:14px;font-size:12px;cursor:pointer;transition:.15s;font-family:inherit}
+.sup-faq-chip:hover{border-color:#fb923c;color:#fb923c;background:#1a1105}
+
+.sup-fallback-links{padding:10px 14px;background:#0a0c10;border-top:1px solid #1c2330;display:flex;gap:10px;justify-content:center;font-size:11.5px;color:#64748b}
+.sup-fallback-links a{color:#94a3b8;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:.15s}
+.sup-fallback-links a:hover{color:#fb923c}
+
+.admin-support-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.admin-support-item{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px 14px;cursor:pointer;transition:.15s;display:grid;grid-template-columns:1fr auto;gap:6px}
+.admin-support-item:hover{border-color:#fb923c66;transform:translateY(-1px)}
+.admin-support-item.unread{background:linear-gradient(to right,rgba(251,146,60,.1),transparent);border-color:#fb923c55}
+.admin-support-item.closed{opacity:.6}
+.admin-support-name{font-weight:700;color:#e2e8f0;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.admin-support-badge{background:#ef4444;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;min-width:22px;text-align:center}
+.admin-support-meta{font-size:11.5px;color:#64748b}
+.admin-support-preview{font-size:12.5px;color:#94a3b8;grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+.admin-support-time{font-size:11px;color:#64748b;text-align:right}
+.admin-support-status-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.3px}
+.admin-support-status-tag.open{background:#052e1a;color:#4ade80}
+.admin-support-status-tag.closed{background:#1a1a1a;color:#94a3b8}
+
+@media(max-width:500px){
+  #supportPanel{right:10px;bottom:10px;left:10px;width:auto;height:calc(100vh - 20px);max-height:100%;border-radius:14px}
+  #supportBtn{right:14px;bottom:14px;padding:11px 16px 11px 12px;font-size:12.5px}
+  #supportBtn svg{width:18px;height:18px}
+}
+
+body.light-mode #supportPanel{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-body{background:#f8fafc}
+body.light-mode .sup-msg.admin{background:#fff;color:#1a1d23;border-color:#e2e8f0}
+body.light-mode .sup-input-row{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-input{background:#f8fafc;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .sup-prechat{background:#f8fafc}
+body.light-mode .sup-prechat-title{color:#1a1d23}
+body.light-mode .sup-prechat input,body.light-mode .sup-prechat select,body.light-mode .sup-prechat textarea{background:#fff;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .sup-welcome{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-fallback-links{background:#f8fafc;border-color:#e2e8f0}
+body.light-mode .sup-day-separator{background:#fff;color:#64748b}
+body.light-mode .sup-typing{background:#f8fafc;border-color:#e2e8f0}
+body.light-mode .sup-canned-menu{background:#fff;border-color:#e2e8f0}
+body.light-mode .sup-canned-item{color:#1a1d23}
+body.light-mode .sup-canned-item:hover{background:#f5f7fa}
+body.light-mode .sup-rating-panel{background:#f8fafc;border-color:#e2e8f0}
+body.light-mode .sup-rating-panel h4{color:#1a1d23}
+body.light-mode .sup-rating-textarea{background:#fff;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .sup-faq{background:#f8fafc}
+body.light-mode .sup-faq-chip{background:#fff;border-color:#e2e8f0;color:#1a1d23}
+body.light-mode .admin-support-item{background:#fff;border-color:#e2e8f0}
+body.light-mode .admin-support-name{color:#1a1d23}
 .whats i{width:54px;height:54px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;padding:12px}
 .whats i svg{width:100%;height:100%;fill:#fff}
 .whats span{display:block;font-size:12px;color:#ccc}
@@ -3269,6 +3411,94 @@ button,input,select,textarea{max-width:100%}
   <div><b>Canlı dəstək</b><span>WhatsApp</span></div>
 </a>
 
+<!-- ===== CANLI DƏSTƏK WIDGET ===== -->
+<button id="supportBtn" type="button" aria-label="Canlı dəstək aç">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+  <span>Dəstək</span>
+  <span class="sup-status-dot" title="Admin onlayn"></span>
+  <span class="sup-badge" id="supBadge" style="display:none">0</span>
+</button>
+
+<div id="supportPanel" role="dialog" aria-label="Canlı dəstək">
+  <div class="sup-header">
+    <div class="sup-header-info">
+      <div class="sup-header-title">Hesablar Dəstək</div>
+      <div class="sup-header-status">
+        <span class="dot" id="supAdminDot"></span>
+        <span id="supAdminStatus">Onlayn — dərhal cavab</span>
+      </div>
+    </div>
+    <div class="sup-header-actions">
+      <button class="sup-profile-link" id="supUserProfile" title="İstifadəçi profili" style="display:none">👤 Profil</button>
+      <button class="sup-header-btn" id="supCloseChat" title="Söhbəti bağla" style="display:none" aria-label="Bağla">✕</button>
+      <button class="sup-header-btn" id="supMinimize" title="Kiçilt" aria-label="Kiçilt">−</button>
+    </div>
+  </div>
+
+  <!-- Pre-chat form (guest üçün) -->
+  <div class="sup-prechat" id="supPrechat" style="display:none">
+    <h4 class="sup-prechat-title">Sizə necə köməklik edə bilərik?</h4>
+    <p class="sup-prechat-desc">Aşağıdakı məlumatları doldurun — komandamız qısa müddətdə cavab verəcək.</p>
+    <input id="supPreName" type="text" placeholder="Adınız" maxlength="60">
+    <input id="supPreEmail" type="email" placeholder="Email" autocomplete="email">
+    <select id="supPreCategory">
+      <option value="">Kateqoriya seçin...</option>
+      <option value="Sifariş">Sifariş problemi</option>
+      <option value="Elan">Elan yerləşdirmə</option>
+      <option value="Ödəniş">Ödəniş / Balans</option>
+      <option value="Hesab">Hesab / Qeydiyyat</option>
+      <option value="Digər">Digər</option>
+    </select>
+    <textarea id="supPreMessage" placeholder="Probleminizi qısaca yazın..." maxlength="500"></textarea>
+    <button class="sup-prechat-btn" id="supPreSubmit" type="button">Söhbətə başla</button>
+  </div>
+
+  <!-- FAQ tez suallar -->
+  <div class="sup-faq" id="supFaq" style="display:none">
+    <div class="sup-faq-title">💡 Tez-tez verilən suallar</div>
+    <div class="sup-faq-list" id="supFaqList"></div>
+  </div>
+
+  <!-- Chat body -->
+  <div class="sup-body" id="supBody" style="display:none"></div>
+
+  <!-- Rating panel (söhbət bağlananda göstərilir) -->
+  <div class="sup-rating-panel" id="supRating" style="display:none">
+    <h4>Söhbət bitdi 👋</h4>
+    <p>Xidmətimizi qiymətləndirin — irəliyə doğru inkişaf etməyimizə kömək edin.</p>
+    <div class="sup-stars" id="supStars">
+      <span class="sup-star" data-star="1">★</span>
+      <span class="sup-star" data-star="2">★</span>
+      <span class="sup-star" data-star="3">★</span>
+      <span class="sup-star" data-star="4">★</span>
+      <span class="sup-star" data-star="5">★</span>
+    </div>
+    <textarea class="sup-rating-textarea" id="supRatingComment" placeholder="Rəyiniz (istəyə bağlı)..." maxlength="300"></textarea>
+    <button class="sup-rating-submit" id="supRatingSubmit" type="button">Göndər</button>
+  </div>
+
+  <!-- Input row -->
+  <div class="sup-input-row" id="supInputRow" style="display:none">
+    <div class="sup-canned-wrap" id="supCannedWrap" style="display:none">
+      <button class="sup-canned-btn" id="supCannedBtn" type="button" title="Hazır cavablar" aria-label="Hazır cavab">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      </button>
+      <div class="sup-canned-menu" id="supCannedMenu"></div>
+    </div>
+    <textarea class="sup-input" id="supInput" placeholder="Mesajınızı yazın..." rows="1" maxlength="1000"></textarea>
+    <button class="sup-send-btn" id="supSendBtn" type="button" aria-label="Göndər">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+
+  <!-- Fallback links -->
+  <div class="sup-fallback-links" id="supFallback" style="display:none">
+    <span>Digər əlaqə:</span>
+    <a href="https://wa.me/994555707071" target="_blank" rel="noopener">WhatsApp</a>
+    <a href="mailto:info@hesablar.net">Email</a>
+  </div>
+</div>
+
 <div class="modal" id="loginModal">
   <div class="modal-box" style="max-height:88vh;overflow-y:auto">
     <h3>Giriş / qeydiyyat</h3>
@@ -5646,7 +5876,16 @@ async function loadCurrentUserRole(){
 // İnline style manipulyasiyasından etibarlıdır — hansısa JS budağı unudulsa belə,
 // adi istifadəçi üçün admin tab CSS !important ilə gizli qalır.
 function syncAdminBodyClass(){
-  try{ document.body.classList.toggle("is-admin", currentUser && currentUserRole === "admin"); }catch(e){}
+  try{
+    const isAdm = currentUser && currentUserRole === "admin";
+    document.body.classList.toggle("is-admin", isAdm);
+    // Dəstək widget-i üçün admin online statusu
+    if(isAdm){
+      if(typeof startAdminPresence === "function") startAdminPresence();
+    } else {
+      if(typeof stopAdminPresence === "function") stopAdminPresence();
+    }
+  }catch(e){}
 }
 window.syncAdminBodyClass = syncAdminBodyClass;
 
@@ -6518,6 +6757,759 @@ async function verifyPhoneCode(){
     authStatus("SMS kod yanlışdır.");
   }
 }
+
+// ================================================================
+// ===== CANLI DƏSTƏK WIDGET — real-time chat (Firestore) =====
+// ================================================================
+const SUP = {
+  chatId: null,
+  unsubChat: null,
+  unsubMsgs: null,
+  unsubAdminList: null,
+  adminOnline: false,
+  isViewingAsAdmin: null,
+  _sentMsgIds: new Set()
+};
+
+function _supEsc(s){ return String(s||"").replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _supTime(ts){
+  if(!ts) return "";
+  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  if(sameDay) return d.toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'});
+  const diffDays = Math.floor((now - d) / (24*3600*1000));
+  if(diffDays === 1) return "Dünən " + d.toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'});
+  if(diffDays < 7) return d.toLocaleDateString('az-AZ',{weekday:'short'}) + " " + d.toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('az-AZ',{day:'numeric',month:'short'});
+}
+
+// ===== Admin online presence =====
+async function updateAdminPresence(){
+  if(!isAdmin()) return;
+  try{
+    await setDoc(doc(db,"presence","admin"), {
+      lastSeen: serverTimestamp(),
+      email: currentUser.email || ""
+    }, {merge:true});
+  }catch(e){}
+}
+let _adminPresenceInterval = null;
+function startAdminPresence(){
+  if(_adminPresenceInterval) clearInterval(_adminPresenceInterval);
+  updateAdminPresence();
+  _adminPresenceInterval = setInterval(updateAdminPresence, 30000);
+}
+function stopAdminPresence(){
+  if(_adminPresenceInterval){ clearInterval(_adminPresenceInterval); _adminPresenceInterval = null; }
+}
+function listenAdminPresence(){
+  try{
+    onSnapshot(doc(db,"presence","admin"), snap=>{
+      const d = snap.data();
+      const lastSeen = d?.lastSeen?.seconds || 0;
+      const ageSec = (Date.now()/1000) - lastSeen;
+      SUP.adminOnline = ageSec < 90 && lastSeen > 0;
+      _supUpdateOnlineUI();
+    });
+  }catch(e){ console.warn("presence listen failed", e); }
+}
+function _supUpdateOnlineUI(){
+  const btn = document.getElementById("supportBtn");
+  const dot = document.getElementById("supAdminDot");
+  const status = document.getElementById("supAdminStatus");
+  if(btn) btn.classList.toggle("offline", !SUP.adminOnline);
+  if(dot) dot.classList.toggle("offline", !SUP.adminOnline);
+  if(status) status.textContent = SUP.adminOnline
+    ? "Onlayn — adətən dərhal cavab"
+    : "Hazırda oflayn — 30 dəq. ərzində cavab veririk";
+}
+
+// ===== Chat ID hazırla =====
+function _supGetOrCreateGuestId(){
+  let id = localStorage.getItem("sup_chatId");
+  if(!id){
+    id = "g_" + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    localStorage.setItem("sup_chatId", id);
+  }
+  return id;
+}
+function _supGetChatId(){
+  if(currentUser) return "u_" + currentUser.uid;
+  return _supGetOrCreateGuestId();
+}
+
+// ===== Widget aç/bağla =====
+window.openSupport = async function(){
+  const panel = document.getElementById("supportPanel");
+  const btn = document.getElementById("supportBtn");
+  if(!panel) return;
+  panel.classList.add("open");
+  if(btn) btn.style.display = "none";
+  const chatId = _supGetChatId();
+  SUP.chatId = chatId;
+  SUP.isViewingAsAdmin = null;
+  _supLastMsgCount = 0;
+  const cannedWrap = document.getElementById("supCannedWrap");
+  if(cannedWrap) cannedWrap.style.display = "none";
+  const profileBtn = document.getElementById("supUserProfile");
+  if(profileBtn) profileBtn.style.display = "none";
+  const closeBtn = document.getElementById("supCloseChat");
+  if(closeBtn) closeBtn.style.display = "none";
+
+  try{
+    const chatSnap = await getDoc(doc(db,"support_chats",chatId));
+    if(chatSnap.exists()){
+      _supShowChatUI();
+      _supListenChatExtended(chatId);
+      _supListenMessagesV2(chatId);
+      _supMarkReadByUser(chatId);
+      const showFaq = !(chatSnap.data()?.lastMessage);
+      document.getElementById("supFaq").style.display = showFaq ? "block" : "none";
+    } else {
+      if(currentUser){
+        await _supCreateChat({
+          userUid: currentUser.uid,
+          userName: currentUser.email?.split("@")[0] || "İstifadəçi",
+          userEmail: currentUser.email || "",
+          category: "Ümumi",
+          firstMessage: null
+        });
+        _supShowChatUI();
+        _supListenChatExtended(chatId);
+        _supListenMessagesV2(chatId);
+        document.getElementById("supFaq").style.display = "block";
+      } else {
+        _supShowPrechat();
+      }
+    }
+  }catch(e){
+    console.error("openSupport error:", e);
+    _supShowPrechat();
+  }
+  _supAttachRatingHandlers();
+}
+
+window.closeSupport = function(){
+  const panel = document.getElementById("supportPanel");
+  const btn = document.getElementById("supportBtn");
+  if(panel) panel.classList.remove("open");
+  if(btn) btn.style.display = "";
+  if(SUP.unsubMsgs){ try{SUP.unsubMsgs()}catch(_){}; SUP.unsubMsgs=null; }
+  if(SUP.unsubChat){ try{SUP.unsubChat()}catch(_){}; SUP.unsubChat=null; }
+  SUP.isViewingAsAdmin = null;
+}
+
+function _supShowPrechat(){
+  document.getElementById("supPrechat").style.display = "flex";
+  document.getElementById("supBody").style.display = "none";
+  document.getElementById("supFaq").style.display = "none";
+  document.getElementById("supInputRow").style.display = "none";
+  document.getElementById("supFallback").style.display = "flex";
+  if(currentUser){
+    const nameEl = document.getElementById("supPreName");
+    const emailEl = document.getElementById("supPreEmail");
+    if(nameEl && !nameEl.value) nameEl.value = currentUser.email?.split("@")[0] || "";
+    if(emailEl && !emailEl.value) emailEl.value = currentUser.email || "";
+  }
+}
+
+function _supShowChatUI(){
+  document.getElementById("supPrechat").style.display = "none";
+  document.getElementById("supBody").style.display = "flex";
+  document.getElementById("supInputRow").style.display = "flex";
+  document.getElementById("supFallback").style.display = "flex";
+  const closeBtn = document.getElementById("supCloseChat");
+  if(closeBtn) closeBtn.style.display = SUP.isViewingAsAdmin ? "grid" : "none";
+}
+
+async function _supCreateChat({userUid, userName, userEmail, category, firstMessage}){
+  const chatId = SUP.chatId;
+  const data = {
+    userUid: userUid || null,
+    userName: userName || "Qonaq",
+    userEmail: userEmail || "",
+    category: category || "Ümumi",
+    status: "open",
+    lastMessage: firstMessage || "",
+    lastMessageBy: firstMessage ? "user" : null,
+    lastMessageAt: serverTimestamp(),
+    unreadByAdmin: firstMessage ? 1 : 0,
+    unreadByUser: 0,
+    createdAt: serverTimestamp()
+  };
+  await setDoc(doc(db,"support_chats",chatId), data);
+  if(firstMessage){
+    await addDoc(collection(db,"support_chats",chatId,"messages"), {
+      text: firstMessage,
+      by: "user",
+      senderName: userName,
+      createdAt: serverTimestamp()
+    });
+    try{
+      tgNotify(`💬 <b>Yeni dəstək sorğusu!</b>\n👤 ${userName} (${userEmail||"guest"})\n📋 Kateqoriya: ${category}\n💭 ${firstMessage.slice(0,150)}\n\nhesablar.net → Admin panel → Dəstək`);
+    }catch(_){}
+  }
+}
+
+// ===== Chat listener (status + typing + profile) =====
+function _supListenChatExtended(chatId){
+  if(SUP.unsubChat){ try{SUP.unsubChat()}catch(_){}; }
+  SUP.unsubChat = onSnapshot(doc(db,"support_chats",chatId), snap=>{
+    if(!snap.exists()) return;
+    const d = snap.data();
+    const input = document.getElementById("supInput");
+    const sendBtn = document.getElementById("supSendBtn");
+    const ratingPanel = document.getElementById("supRating");
+    if(d.status === "closed"){
+      if(input){ input.disabled = true; input.placeholder = "Bu söhbət bağlıdır."; }
+      if(sendBtn) sendBtn.disabled = true;
+      if(!SUP.isViewingAsAdmin && !d.rating && ratingPanel){
+        ratingPanel.style.display = "block";
+      }
+    } else {
+      if(input){ input.disabled = false; input.placeholder = SUP.isViewingAsAdmin ? "Cavab yazın..." : "Mesajınızı yazın..."; }
+      if(sendBtn) sendBtn.disabled = false;
+      if(ratingPanel) ratingPanel.style.display = "none";
+    }
+    // Typing indicator
+    const otherField = SUP.isViewingAsAdmin ? "typingUserAt" : "typingAdminAt";
+    const lastTyping = d[otherField]?.seconds || 0;
+    const ageSec = (Date.now()/1000) - lastTyping;
+    _supShowTyping(ageSec < 5 && lastTyping > 0 && d.status !== "closed");
+    // Admin profile button
+    if(SUP.isViewingAsAdmin){
+      const profileBtn = document.getElementById("supUserProfile");
+      if(profileBtn && d.userUid){
+        profileBtn.style.display = "inline-block";
+        profileBtn.onclick = ()=>{
+          window.location.hash = "#user/" + d.userUid;
+          closeSupport();
+          if(typeof openCabinet === "function") openCabinet();
+          if(typeof showTab === "function") showTab("admin");
+          setTimeout(()=>{ if(typeof showAdminCat === "function") showAdminCat("users"); }, 200);
+        };
+      }
+    }
+  });
+}
+
+// ===== Typing indicator =====
+let _supTypingLastUpdate = 0;
+async function _supBroadcastTyping(){
+  if(!SUP.chatId) return;
+  const now = Date.now();
+  if(now - _supTypingLastUpdate < 3000) return;
+  _supTypingLastUpdate = now;
+  const field = SUP.isViewingAsAdmin ? "typingAdminAt" : "typingUserAt";
+  try{ await updateDoc(doc(db,"support_chats",SUP.chatId), { [field]: serverTimestamp() }); }catch(_){}
+}
+function _supShowTyping(show){
+  const body = document.getElementById("supBody");
+  if(!body) return;
+  let el = body.querySelector(".sup-typing");
+  if(show && !el){
+    el = document.createElement("div");
+    el.className = "sup-typing show";
+    el.innerHTML = "<span></span><span></span><span></span>";
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+  } else if(!show && el){
+    el.remove();
+  }
+}
+
+// ===== Səs bildirişi =====
+let _supAudioCtx = null;
+function _supInitSound(){
+  document.addEventListener("click", ()=>{
+    if(!_supAudioCtx){
+      try{ _supAudioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){}
+    }
+  }, {once:true});
+}
+function _supPlaySound(){
+  if(!_supAudioCtx) return;
+  try{
+    const ctx = _supAudioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+    setTimeout(()=>{
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.frequency.value = 1175;
+      osc2.type = "sine";
+      gain2.gain.setValueAtTime(0, ctx.currentTime);
+      gain2.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.01);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc2.start(ctx.currentTime);
+      osc2.stop(ctx.currentTime + 0.25);
+    }, 100);
+  }catch(_){}
+}
+
+// ===== Mesaj render =====
+function _supRenderMessagesV2(msgs){
+  const body = document.getElementById("supBody");
+  if(!body) return;
+  let lastDay = "";
+  const parts = [];
+  const isAdminView = !!SUP.isViewingAsAdmin;
+  if(!msgs.length){
+    parts.push(`<div class="sup-welcome">👋 Salam! Sualınızı yazın, komandamız qısa müddətdə cavab verəcək.</div>`);
+  }
+  msgs.forEach(m=>{
+    const ts = m.createdAt;
+    if(ts?.seconds){
+      const day = new Date(ts.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'long',year:'numeric'});
+      if(day !== lastDay){
+        parts.push(`<div class="sup-day-separator">${day}</div>`);
+        lastDay = day;
+      }
+    }
+    if(m.isSystem){
+      parts.push(`<div class="sup-day-separator" style="color:#94a3b8">${_supEsc(m.text)}</div>`);
+      return;
+    }
+    const isOwnSide = isAdminView ? (m.by === "admin") : (m.by === "user");
+    const cls = isOwnSide ? "user" : "admin";
+    let checks = "";
+    if(isOwnSide && !isAdminView && m.by === "user"){
+      const read = !!m.readByAdmin;
+      checks = `<span class="sup-msg-checks ${read?'read':''}">${read?'✓✓':'✓'}</span>`;
+    } else if(isOwnSide && isAdminView && m.by === "admin"){
+      const read = !!m.readByUser;
+      checks = `<span class="sup-msg-checks ${read?'read':''}">${read?'✓✓':'✓'}</span>`;
+    }
+    parts.push(`
+      <div class="sup-msg ${cls}">
+        ${_supEsc(m.text)}
+        <div class="sup-msg-time">${_supTime(m.createdAt)}${checks}</div>
+      </div>`);
+  });
+  body.innerHTML = parts.join("");
+  body.scrollTop = body.scrollHeight;
+}
+
+let _supLastMsgCount = 0;
+function _supListenMessagesV2(chatId){
+  if(SUP.unsubMsgs){ try{SUP.unsubMsgs()}catch(_){}; }
+  const q = query(collection(db,"support_chats",chatId,"messages"));
+  SUP.unsubMsgs = onSnapshot(q, snap=>{
+    const arr = [];
+    snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
+    arr.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    if(_supLastMsgCount > 0 && arr.length > _supLastMsgCount){
+      const newest = arr[arr.length-1];
+      const isIncoming = SUP.isViewingAsAdmin ? newest.by === "user" : newest.by === "admin";
+      if(isIncoming) _supPlaySound();
+    }
+    _supLastMsgCount = arr.length;
+    _supRenderMessagesV2(arr);
+    const isVisible = document.getElementById("supportPanel")?.classList.contains("open");
+    if(isVisible){
+      if(SUP.isViewingAsAdmin){
+        _supMarkReadByAdmin(chatId);
+        arr.filter(m=>m.by==="user" && !m.readByAdmin).forEach(m=>{
+          try{ updateDoc(doc(db,"support_chats",chatId,"messages",m.id), { readByAdmin: serverTimestamp() }); }catch(_){}
+        });
+      } else {
+        _supMarkReadByUser(chatId);
+        arr.filter(m=>m.by==="admin" && !m.readByUser).forEach(m=>{
+          try{ updateDoc(doc(db,"support_chats",chatId,"messages",m.id), { readByUser: serverTimestamp() }); }catch(_){}
+        });
+      }
+    }
+  });
+}
+
+async function _supMarkReadByUser(chatId){
+  try{ await updateDoc(doc(db,"support_chats",chatId), { unreadByUser: 0 }); }catch(_){}
+}
+async function _supMarkReadByAdmin(chatId){
+  try{ await updateDoc(doc(db,"support_chats",chatId), { unreadByAdmin: 0 }); }catch(_){}
+}
+
+// ===== Pre-chat form submit =====
+window.supSubmitPrechat = async function(){
+  const name = document.getElementById("supPreName")?.value.trim();
+  const email = document.getElementById("supPreEmail")?.value.trim();
+  const category = document.getElementById("supPreCategory")?.value;
+  const message = document.getElementById("supPreMessage")?.value.trim();
+  if(!name || name.length < 2){ toast("Adınızı yazın"); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ toast("Düzgün email yazın"); return; }
+  if(!category){ toast("Kateqoriya seçin"); return; }
+  if(!message || message.length < 5){ toast("Ən azı 5 simvol yazın"); return; }
+  if(typeof rateLimiter === "function" && !rateLimiter("supPrechat", 5000, "5 saniyə gözləyin.")) return;
+  try{
+    await _supCreateChat({
+      userUid: currentUser?.uid || null,
+      userName: name,
+      userEmail: email,
+      category,
+      firstMessage: message
+    });
+    _supShowChatUI();
+    _supListenChatExtended(SUP.chatId);
+    _supListenMessagesV2(SUP.chatId);
+  }catch(e){
+    console.error("Prechat submit error:", e);
+    toast("Söhbət açılmadı. Yenidən cəhd edin.");
+  }
+}
+
+// ===== Mesaj göndər =====
+window.supSendMessage = async function(){
+  const input = document.getElementById("supInput");
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+  if(text.length > 1000){ toast("Mesaj çox uzundur"); return; }
+  if(!SUP.chatId) return;
+  if(typeof rateLimiter === "function" && !rateLimiter("supMsg", 1000, "")) return;
+  const isAdminView = !!SUP.isViewingAsAdmin;
+  const senderName = isAdminView
+    ? "Dəstək komandası"
+    : (currentUser?.email?.split("@")[0] || document.getElementById("supPreName")?.value || "İstifadəçi");
+  const by = isAdminView ? "admin" : "user";
+  input.value = "";
+  input.style.height = "auto";
+  try{
+    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+      text, by, senderName,
+      createdAt: serverTimestamp()
+    });
+    const upd = {
+      lastMessage: text,
+      lastMessageBy: by,
+      lastMessageAt: serverTimestamp()
+    };
+    if(by === "user") upd.unreadByAdmin = increment(1);
+    else upd.unreadByUser = increment(1);
+    await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+    if(by === "user"){
+      try{
+        tgNotify(`💬 <b>Yeni mesaj (dəstək)!</b>\n👤 ${senderName}\n💭 ${text.slice(0,200)}\n\nhesablar.net → Admin panel → Dəstək`);
+      }catch(_){}
+    }
+    // FAQ-ni gizlət (istifadəçi ilk mesajı yazdıqdan sonra)
+    const faq = document.getElementById("supFaq");
+    if(faq) faq.style.display = "none";
+  }catch(e){
+    console.error("Mesaj göndərilə bilmədi:", e);
+    toast("Mesaj göndərilmədi. Yenidən cəhd edin.");
+    input.value = text;
+  }
+}
+
+// ===== Admin: söhbəti bağla =====
+window.supCloseChat = async function(){
+  if(!SUP.chatId || !SUP.isViewingAsAdmin) return;
+  const confirmFn = window.showConfirm || (msg => Promise.resolve(window.confirm(msg)));
+  const ok = await confirmFn("Bu söhbəti bağlamaq istəyirsiniz? İstifadəçi yeni mesaj yaza bilməyəcək.", "🔒");
+  if(!ok) return;
+  try{
+    await updateDoc(doc(db,"support_chats",SUP.chatId), {
+      status: "closed",
+      closedAt: serverTimestamp(),
+      closedBy: currentUser?.uid || null
+    });
+    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+      text: "Söhbət admin tərəfindən bağlandı.",
+      by: "admin",
+      senderName: "Sistem",
+      isSystem: true,
+      createdAt: serverTimestamp()
+    });
+    toast("Söhbət bağlandı");
+    closeSupport();
+    if(typeof renderAdminSupport === "function") renderAdminSupport();
+  }catch(e){ console.error(e); toast("Xəta baş verdi"); }
+}
+
+// ===== İstifadəçi tərəfində oxunmamış badge =====
+function listenUserSupportUnread(){
+  const chatId = _supGetChatId();
+  if(!chatId) return;
+  try{
+    onSnapshot(doc(db,"support_chats",chatId), snap=>{
+      const badge = document.getElementById("supBadge");
+      if(!badge) return;
+      const unread = snap.exists() ? (snap.data()?.unreadByUser || 0) : 0;
+      if(unread > 0){
+        badge.textContent = unread > 9 ? "9+" : unread;
+        badge.style.display = "grid";
+      } else {
+        badge.style.display = "none";
+      }
+    }, ()=>{});
+  }catch(_){}
+}
+
+// ===== ADMIN PANEL — dəstək söhbətləri =====
+window.renderAdminSupport = function(){
+  const el = document.getElementById("adminSupport");
+  if(!el || !isAdmin()) return;
+  if(SUP.unsubAdminList){ try{SUP.unsubAdminList()}catch(_){}; }
+  const q = query(collection(db,"support_chats"));
+  SUP.unsubAdminList = onSnapshot(q, snap=>{
+    const arr = [];
+    snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
+    arr.sort((a,b)=>(b.lastMessageAt?.seconds||0)-(a.lastMessageAt?.seconds||0));
+    const openChats = arr.filter(c=>c.status !== "closed");
+    const closedChats = arr.filter(c=>c.status === "closed");
+    const totalUnread = arr.reduce((s,c)=>s+(c.unreadByAdmin||0), 0);
+    const renderItem = c => {
+      const unread = c.unreadByAdmin || 0;
+      const cls = (unread > 0 ? "unread " : "") + (c.status === "closed" ? "closed" : "");
+      const statusTag = c.status === "closed"
+        ? '<span class="admin-support-status-tag closed">Bağlı</span>'
+        : '<span class="admin-support-status-tag open">Açıq</span>';
+      const badge = unread > 0 ? `<span class="admin-support-badge">${unread}</span>` : "";
+      const preview = _supEsc((c.lastMessage||"").slice(0,80));
+      const previewBy = c.lastMessageBy === "admin" ? "Siz: " : "";
+      return `
+        <div class="admin-support-item ${cls}" data-open-support="${c.id}">
+          <div>
+            <div class="admin-support-name">
+              ${_supEsc(c.userName||"Qonaq")} ${badge} ${statusTag}
+            </div>
+            <div class="admin-support-meta">${_supEsc(c.userEmail||"-")} • ${_supEsc(c.category||"Ümumi")}</div>
+          </div>
+          <div class="admin-support-time">${_supTime(c.lastMessageAt)}</div>
+          <div class="admin-support-preview">${previewBy}${preview || "<i>Mesaj yoxdur</i>"}</div>
+        </div>`;
+    };
+    el.innerHTML = `
+      <h3>Canlı dəstək söhbətləri
+        ${totalUnread>0 ? `<span style="background:#ef4444;color:#fff;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:8px">${totalUnread} oxunmamış</span>` : ""}
+      </h3>
+      <div style="color:#64748b;font-size:12px;margin:6px 0 4px">Açıq: ${openChats.length} • Bağlı: ${closedChats.length}</div>
+      <div class="admin-support-list">
+        ${arr.length ? arr.map(renderItem).join("") : '<div class="cabinet-empty">Hələ dəstək söhbəti yoxdur.</div>'}
+      </div>`;
+    el.querySelectorAll("[data-open-support]").forEach(item=>{
+      item.onclick = ()=> openSupportAsAdmin(item.dataset.openSupport);
+    });
+  }, err=>{
+    console.error("Admin support list error:", err);
+    el.innerHTML = '<h3>Canlı dəstək</h3><div class="cabinet-empty">Yüklənmədi. Firestore Rules yoxla.</div>';
+  });
+}
+
+window.openSupportAsAdmin = function(chatId){
+  if(!isAdmin()) return;
+  SUP.chatId = chatId;
+  SUP.isViewingAsAdmin = chatId;
+  _supLastMsgCount = 0;
+  const panel = document.getElementById("supportPanel");
+  const btn = document.getElementById("supportBtn");
+  if(panel) panel.classList.add("open");
+  if(btn) btn.style.display = "none";
+  _supShowChatUI();
+  _supListenChatExtended(chatId);
+  _supListenMessagesV2(chatId);
+  _supMarkReadByAdmin(chatId);
+  const cannedWrap = document.getElementById("supCannedWrap");
+  if(cannedWrap) cannedWrap.style.display = "";
+  document.getElementById("supFaq").style.display = "none";
+  supRenderCannedMenu();
+  _supAttachRatingHandlers();
+}
+
+// ===== FAQ =====
+const SUP_FAQ = [
+  { q: "Necə hesab almaq olar?", a: "Elan siyahısından istədiyiniz hesabı seçib 'Səbətə əlavə et' düyməsini basın. Ödəniş etdikdən sonra hesab məlumatları sizə göndəriləcək." },
+  { q: "Balansımı necə artırım?", a: "Kabinet → Balans bölməsinə keçin, m10/kart və ya bank köçürməsi ilə balans artıra bilərsiniz." },
+  { q: "Satıcı olmaq üçün nə etməliyəm?", a: "Qeydiyyatdan keçin, sonra Kabinet → Elan Yerləşdir bölməsindən elanınızı yaradın. Admin təsdiqindən sonra elan aktiv olacaq." },
+  { q: "Pulumu necə çıxaram?", a: "Kabinet → Çıxarış bölməsində m10, kart və ya bank hesabınıza pul çıxarış müraciəti yarada bilərsiniz." },
+  { q: "Sifariş problemi var", a: "Sifariş nömrənizi mənə göndərin, dərhal yoxlayıram." }
+];
+function _supRenderFaq(){
+  const el = document.getElementById("supFaqList");
+  if(!el) return;
+  el.innerHTML = SUP_FAQ.map((f,i)=>`<button class="sup-faq-chip" data-faq-idx="${i}">${_supEsc(f.q)}</button>`).join("");
+  el.querySelectorAll("[data-faq-idx]").forEach(b=>{
+    b.onclick = ()=>{
+      const idx = parseInt(b.dataset.faqIdx);
+      const faq = SUP_FAQ[idx];
+      if(!faq) return;
+      const input = document.getElementById("supInput");
+      if(input){ input.value = faq.q; input.focus(); }
+    };
+  });
+}
+
+// ===== Hazır cavablar (localStorage) =====
+const _SUP_DEFAULT_CANNED = [
+  { title: "Salamlama", text: "Salam! Hesablar.net dəstək komandasıyıq. Sizə necə köməklik edə bilərik?" },
+  { title: "Gözlət", text: "Bir dəqiqə, sifarişinizi yoxlayıram..." },
+  { title: "Təşəkkür", text: "Müraciətiniz üçün təşəkkürlər! Başqa sualınız varsa yazın." },
+  { title: "Ödəniş gecikməsi", text: "Ödəniş 24 saat ərzində icra olunur. Səbir üçün təşəkkürlər." },
+  { title: "Sifariş tamamlandı", text: "Sifarişiniz uğurla tamamlandı. Yaxşı istifadələr! ⭐" }
+];
+function _supGetCannedList(){
+  try{ return JSON.parse(localStorage.getItem("sup_canned") || "null") || _SUP_DEFAULT_CANNED; }
+  catch(_){ return _SUP_DEFAULT_CANNED; }
+}
+function _supSaveCannedList(list){
+  try{ localStorage.setItem("sup_canned", JSON.stringify(list)); }catch(_){}
+}
+window.supRenderCannedMenu = function(){
+  const menu = document.getElementById("supCannedMenu");
+  if(!menu) return;
+  const list = _supGetCannedList();
+  menu.innerHTML = `
+    <div class="sup-canned-menu-header">
+      <span>Hazır cavablar (${list.length})</span>
+      <button class="sup-canned-add-btn" onclick="supAddCanned()">+ Yeni</button>
+    </div>
+    ${list.length ? list.map((c,i)=>`
+      <div class="sup-canned-item" data-canned-idx="${i}">
+        <div style="flex:1;min-width:0">
+          <span class="sup-canned-item-title">${_supEsc(c.title)}</span>
+          <div class="sup-canned-item-text">${_supEsc(c.text)}</div>
+        </div>
+        <button class="sup-canned-item-remove" data-canned-remove="${i}" title="Sil">✕</button>
+      </div>`).join("") : '<div style="padding:10px;color:#64748b;font-size:12px;text-align:center">Hazır cavab yoxdur</div>'}
+  `;
+  menu.querySelectorAll("[data-canned-idx]").forEach(el=>{
+    el.onclick = (e)=>{
+      if(e.target.hasAttribute("data-canned-remove")) return;
+      const list = _supGetCannedList();
+      const c = list[parseInt(el.dataset.cannedIdx)];
+      if(!c) return;
+      const input = document.getElementById("supInput");
+      if(input){ input.value = c.text; input.focus(); }
+      menu.classList.remove("open");
+    };
+  });
+  menu.querySelectorAll("[data-canned-remove]").forEach(b=>{
+    b.onclick = (e)=>{
+      e.stopPropagation();
+      const idx = parseInt(b.dataset.cannedRemove);
+      const list = _supGetCannedList();
+      list.splice(idx,1);
+      _supSaveCannedList(list);
+      supRenderCannedMenu();
+    };
+  });
+}
+window.supAddCanned = function(){
+  const title = window.prompt("Cavab başlığı:");
+  if(!title) return;
+  const text = window.prompt("Cavab mətni:");
+  if(!text) return;
+  const list = _supGetCannedList();
+  list.push({title: title.slice(0,40), text: text.slice(0,500)});
+  _supSaveCannedList(list);
+  supRenderCannedMenu();
+}
+
+// ===== Rating =====
+let _supRatingValue = 0;
+function _supAttachRatingHandlers(){
+  document.querySelectorAll(".sup-star").forEach(s=>{
+    if(s._supBound) return; s._supBound = true;
+    s.addEventListener("click", ()=>{
+      _supRatingValue = parseInt(s.dataset.star);
+      document.querySelectorAll(".sup-star").forEach(st=>{
+        st.classList.toggle("active", parseInt(st.dataset.star) <= _supRatingValue);
+      });
+    });
+  });
+  const submit = document.getElementById("supRatingSubmit");
+  if(submit && !submit._supBound){
+    submit._supBound = true;
+    submit.addEventListener("click", async()=>{
+      if(!_supRatingValue){ toast("Ulduz seçin"); return; }
+      if(!SUP.chatId) return;
+      const comment = document.getElementById("supRatingComment")?.value.trim() || "";
+      try{
+        await updateDoc(doc(db,"support_chats",SUP.chatId), {
+          rating: _supRatingValue,
+          ratingComment: comment,
+          ratedAt: serverTimestamp()
+        });
+        document.getElementById("supRating").innerHTML = '<div class="sup-rating-submitted">✓ Təşəkkürlər! Rəyiniz göndərildi.</div>';
+        try{
+          tgNotify(`⭐ <b>Dəstək rəyi</b>\nQiymət: ${'★'.repeat(_supRatingValue)}${'☆'.repeat(5-_supRatingValue)} (${_supRatingValue}/5)\n${comment ? '💭 '+comment.slice(0,200) : ''}`);
+        }catch(_){}
+        _supRatingValue = 0;
+      }catch(e){ console.error(e); toast("Rəy göndərilmədi"); }
+    });
+  }
+}
+
+// ===== Widget event handler-ləri =====
+function _supAttachHandlers(){
+  const btn = document.getElementById("supportBtn");
+  const minBtn = document.getElementById("supMinimize");
+  const closeBtn = document.getElementById("supCloseChat");
+  const preSubmit = document.getElementById("supPreSubmit");
+  const sendBtn = document.getElementById("supSendBtn");
+  const input = document.getElementById("supInput");
+  const cannedBtn = document.getElementById("supCannedBtn");
+  const cannedMenu = document.getElementById("supCannedMenu");
+
+  if(btn && !btn._supBound){ btn._supBound = true; btn.addEventListener("click", openSupport); }
+  if(minBtn && !minBtn._supBound){ minBtn._supBound = true; minBtn.addEventListener("click", closeSupport); }
+  if(closeBtn && !closeBtn._supBound){ closeBtn._supBound = true; closeBtn.addEventListener("click", supCloseChat); }
+  if(preSubmit && !preSubmit._supBound){ preSubmit._supBound = true; preSubmit.addEventListener("click", supSubmitPrechat); }
+  if(sendBtn && !sendBtn._supBound){ sendBtn._supBound = true; sendBtn.addEventListener("click", supSendMessage); }
+  if(input && !input._supBound){
+    input._supBound = true;
+    input.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        supSendMessage();
+      }
+    });
+    input.addEventListener("input", ()=>{
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 100) + "px";
+      _supBroadcastTyping();
+    });
+  }
+  if(cannedBtn && cannedMenu && !cannedBtn._supBound){
+    cannedBtn._supBound = true;
+    cannedBtn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      cannedMenu.classList.toggle("open");
+    });
+    document.addEventListener("click", (e)=>{
+      if(!cannedMenu.contains(e.target) && e.target !== cannedBtn){
+        cannedMenu.classList.remove("open");
+      }
+    });
+  }
+}
+
+// ===== Init =====
+(function initSupportWidget(){
+  const boot = ()=>{
+    _supAttachHandlers();
+    listenAdminPresence();
+    _supUpdateOnlineUI();
+    try{ listenUserSupportUnread(); }catch(_){}
+    _supRenderFaq();
+    _supInitSound();
+  };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else setTimeout(boot, 100);
+})();
+// ================================================================
+// ===== DƏSTƏK WIDGET SONU =====
+// ================================================================
 
 async function logoutUser(){
   await signOut(auth);
@@ -8174,6 +9166,7 @@ function adminShell(){
     <div id="adminReports" class="admin-section"></div>
   </div>
   <div id="adminCatSupportcat" class="admin-cat" style="display:none">
+    <div id="adminSupport" class="admin-section"></div>
     <div id="adminChats" class="admin-section"></div>
     <div id="adminTickets" class="admin-section"></div>
   </div>`;
@@ -8186,6 +9179,10 @@ window.showAdminCat = function(cat){
     if(el) el.style.display = key===cat ? "" : "none";
   });
   document.querySelectorAll(".admin-cat-tabs button").forEach(b=>b.classList.toggle("active", b.dataset.admincat===cat));
+  // Dəstək tab-ı açılanda söhbətlər siyahısını yüklə
+  if(cat === "supportcat" && typeof renderAdminSupport === "function"){
+    try{ renderAdminSupport(); }catch(e){ console.error(e); }
+  }
 }
 async function _fetchBalanceAdmin(){
   const el=document.getElementById("adminBalanceRequests"); if(!el||!isAdmin()) return;
