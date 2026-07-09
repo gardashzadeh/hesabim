@@ -3609,8 +3609,17 @@ button,input,select,textarea{max-width:100%}
         Nömrənizə SMS kod göndəriləcək.
       </p>
       <div id="pvStep1">
-        <input id="pvPhone" placeholder="+994551234567" inputmode="tel" autocomplete="tel"
-               style="width:100%;box-sizing:border-box;margin-bottom:10px">
+        <div style="display:flex;align-items:stretch;gap:0;margin-bottom:10px">
+          <select id="pvCountry" onchange="pvCountryChanged()"
+                  style="padding:0 8px;background:#1e2128;border:1px solid #2d3340;border-right:none;border-radius:8px 0 0 8px;font-weight:600;font-size:14px;color:#e2e8f0;cursor:pointer">
+            <option value="+994" data-len="9" data-ph="50 123 45 67" selected>🇦🇿 +994</option>
+            <option value="+90"  data-len="10" data-ph="532 123 45 67">🇹🇷 +90</option>
+            <option value="+7ru" data-len="10" data-ph="912 345 67 89">🇷🇺 +7</option>
+            <option value="+7kz" data-len="10" data-ph="701 234 56 78">🇰🇿 +7</option>
+          </select>
+          <input id="pvPhone" placeholder="50 123 45 67" inputmode="tel" autocomplete="tel-national" maxlength="14"
+                 style="width:100%;box-sizing:border-box;margin:0;border-radius:0 8px 8px 0">
+        </div>
         <button class="fullbtn" type="button" id="pvSendBtn" onclick="pvSendCode()">SMS kod göndər</button>
       </div>
       <div id="pvStep2" style="display:none">
@@ -6162,7 +6171,12 @@ window.syncPhoneLock = function(){
   document.body.classList.toggle("phone-locked", locked);
   const closeBtn = document.getElementById("pvCloseBtn");
   if(closeBtn) closeBtn.textContent = locked ? "Çıxış et" : "Bağla";
-  if(locked){ openPhoneVerifyModal(); }
+  if(locked){
+    // Modal onsuz da açıqdırsa yenidən açma — əks halda SMS kodu gözləyən
+    // 2-ci addım hər sinxronlaşmada 1-ci addıma sıfırlanır.
+    const m=document.getElementById("phoneVerifyModal");
+    if(!m || !m.classList.contains("show")) openPhoneVerifyModal();
+  }
   else { document.getElementById("phoneVerifyModal")?.classList.remove("show"); }
 };
 window.pvCloseOrLogout = function(){
@@ -6192,7 +6206,10 @@ document.addEventListener("click", function(ev){
   ev.preventDefault();
   ev.stopPropagation();
   ev.stopImmediatePropagation();
-  openPhoneVerifyModal();
+  {
+    const m=document.getElementById("phoneVerifyModal");
+    if(!m || !m.classList.contains("show")) openPhoneVerifyModal();
+  }
   const now=Date.now();
   if(now - _pvLockToastAt > 3000){
     _pvLockToastAt = now;
@@ -6240,9 +6257,25 @@ window.pvBack = function(){
   document.getElementById("pvStep2").style.display="none";
   pvStatus("");
 };
+window.pvCountryChanged = function(){
+  const sel=document.getElementById("pvCountry");
+  const opt=sel && sel.options[sel.selectedIndex];
+  const inp=document.getElementById("pvPhone");
+  if(opt && inp) inp.placeholder = opt.dataset.ph || "";
+};
 window.pvSendCode = async function(){
-  const phone = (document.getElementById("pvPhone")?.value||"").trim();
-  if(!/^\+[0-9]{10,15}$/.test(phone)){ pvStatus("Nömrəni ölkə kodu ilə yaz: +994551234567"); return; }
+  // İstifadəçi yalnız yerli hissəni yazır — ölkə kodu seçimdən götürülür.
+  const sel=document.getElementById("pvCountry");
+  const opt=sel ? sel.options[sel.selectedIndex] : null;
+  const cc  = (opt ? opt.value : "+994").replace(/[a-z]/g,""); // "+7ru"/"+7kz" → "+7"
+  const len = Number(opt ? opt.dataset.len : 9);
+  let raw = (document.getElementById("pvPhone")?.value||"").replace(/[^0-9]/g,"");
+  const ccDigits = cc.slice(1);
+  if(raw.startsWith(ccDigits) && raw.length > len) raw = raw.slice(ccDigits.length); // ölkə kodunu da yazıbsa
+  if(cc==="+7"  && raw.startsWith("8") && raw.length===len+1) raw = raw.slice(1);    // RU/KZ "8xxx..." vərdişi
+  if(cc!=="+7"  && raw.startsWith("0")) raw = raw.slice(1);                          // "050...", "0532..." vərdişi
+  const phone = cc + raw;
+  if(raw.length !== len){ pvStatus("Nömrəni düzgün yaz: " + (opt ? opt.dataset.ph : "")); return; }
   const btn=document.getElementById("pvSendBtn"); if(btn) btn.disabled=true;
   try{
     if(!_pvVerifier){
