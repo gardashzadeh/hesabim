@@ -6246,6 +6246,10 @@ window.pvSendCode = async function(){
   const btn=document.getElementById("pvSendBtn"); if(btn) btn.disabled=true;
   try{
     if(!_pvVerifier){
+      // Köhnə uğursuz cəhddən qalmış render varsa konteyneri təmizlə —
+      // əks halda "reCAPTCHA has already been rendered" xətası verir.
+      const box=document.getElementById("pvRecaptcha");
+      if(box) box.innerHTML="";
       _pvVerifier = new RecaptchaVerifier(auth, "pvRecaptcha", {size:"invisible"});
     }
     _pvConfirmation = await linkWithPhoneNumber(currentUser, phone, _pvVerifier);
@@ -6263,6 +6267,7 @@ window.pvSendCode = async function(){
     else pvStatus("SMS göndərilmədi: " + (e.code||e.message||""));
     try{ _pvVerifier && _pvVerifier.clear(); }catch(_){}
     _pvVerifier=null;
+    try{ const box=document.getElementById("pvRecaptcha"); if(box) box.innerHTML=""; }catch(_){}
   }
   if(btn) btn.disabled=false;
 };
