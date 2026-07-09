@@ -197,13 +197,21 @@ body{margin:0;background:#070808;color:var(--text);font-family:'DM Sans',Arial,s
   --font-mono:'Space Grotesk',sans-serif;
 }
 a, button{text-decoration:none;color:inherit;cursor:pointer}
-button{background:none;border:none;font-family:inherit;padding:0}
+button{background:none;border:none;font-family:inherit;font-size:14px;padding:0}
+/* ── FONT NORMALLAŞDIRMASI ── */
+.hbtn{font-size:14px}
+.fullbtn{font-size:15px}
+input,select,textarea{font-family:inherit}
+/* iOS: 16px-dən kiçik input fokusda avtomatik zoom edir — mobil üçün minimum 16px */
+@media (max-width:768px){
+  input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px!important}
+}
 .shell{width:1600px;max-width:100%;margin:0 auto;padding:0 14px}
 .header{height:auto;min-height:84px;background:#040505;border-bottom:1px solid #141515;display:flex;align-items:center;padding:10px 0}
 .header .shell{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:12px}
 .logo svg{width:150px;height:auto}
-.logo-sub{font-size:9.5px;color:#dedede;margin-top:4px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.logo-sub{font-size:11px;color:#dedede;margin-top:4px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
 .search{flex:1;max-width:590px;min-width:280px;height:48px;background:#101111;border:1px solid #343636;border-radius:10px;display:flex;overflow:hidden}
 .search input{flex:1;background:transparent;border:0;color:#d8d8d8;font-size:14px;padding:0 16px;outline:0}
 .search select{width:145px;background:#171818;color:#d8d8d8;border:0;border-left:1px solid #2d2f2f;padding:0 10px;outline:0}
@@ -213,14 +221,14 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .hbtn{height:40px;padding:0 24px;background:#121313;border:1px solid #2c2e2e;border-radius:7px;color:#fff;font-weight:700;letter-spacing:.15px;display:inline-flex;align-items:center;justify-content:center}
 .hbtn.orange{background:linear-gradient(#ff7a18,#ff5a00);border:0}
 .cart{width:48px;height:48px;border:1px solid #292b2b;border-radius:8px;background:#101111;display:grid;place-items:center;font-size:24px;position:relative}
-.cart b{position:absolute;right:7px;top:-7px;background:#ff6a00;border-radius:50%;width:18px;height:18px;font-size:10px;display:grid;place-items:center;color:#fff}
+.cart b{position:absolute;right:7px;top:-7px;background:#ff6a00;border-radius:50%;width:18px;height:18px;font-size:11px;display:grid;place-items:center;color:#fff}
 .notify-btn{width:48px;height:48px;border:1px solid #292b2b;border-radius:8px;background:#101111;display:grid;place-items:center;font-size:22px;position:relative;color:#fff}
-.notify-btn b{position:absolute;right:6px;top:-7px;background:#ef4444;border-radius:50%;min-width:18px;height:18px;padding:0 5px;font-size:10px;display:grid;place-items:center;color:#fff}
+.notify-btn b{position:absolute;right:6px;top:-7px;background:#ef4444;border-radius:50%;min-width:18px;height:18px;padding:0 5px;font-size:11px;display:grid;place-items:center;color:#fff}
 .nav{height:64px;background:#080909;border-bottom:1px solid #1e2020}
 .nav .shell{height:100%;display:flex;gap:3px;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 4px}
 .nav .shell::-webkit-scrollbar{display:none}
 /* ANA SƏHİFƏ - ağ button */
-.nav button, .nav a{height:40px;background:transparent;border:none;display:flex;align-items:center;gap:7px;padding:0 14px;font-size:12.5px;font-weight:700;letter-spacing:.25px;white-space:nowrap;color:#9ca3af;border-radius:8px;transition:all .18s ease;flex-shrink:0}
+.nav button, .nav a{height:40px;background:transparent;border:none;display:flex;align-items:center;gap:7px;padding:0 14px;font-size:13px;font-weight:700;letter-spacing:.25px;white-space:nowrap;color:#9ca3af;border-radius:8px;transition:all .18s ease;flex-shrink:0}
 .nav button:first-child{background:#ffffff;color:#111;padding:0 18px;margin-right:6px;gap:7px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
 .nav button:first-child:hover{background:#f0f0f0;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.35)}
 .nav button:first-child svg{color:#333}
@@ -249,8 +257,8 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .nav-sosial:hover{border-color:#0284c7;box-shadow:0 4px 18px rgba(2,132,199,.25)}
 .nav-konsol  {background:rgba(192,132,252,.08);color:#c084fc;border:1px solid rgba(192,132,252,.2)}
 .nav-konsol:hover{border-color:#9333ea;box-shadow:0 4px 18px rgba(147,51,234,.25)}
-.nav small{font-size:10px;color:#aaa;background:#262828;padding:2px 4px;border-radius:3px;margin-left:4px}
-.nav .new{background:#ff6a00;color:#fff;font-size:9px;padding:2px 4px;border-radius:3px;margin-left:4px}
+.nav small{font-size:11px;color:#aaa;background:#262828;padding:2px 4px;border-radius:3px;margin-left:4px}
+.nav .new{background:#ff6a00;color:#fff;font-size:11px;padding:2px 4px;border-radius:3px;margin-left:4px}
 .main{padding-top:16px}
 .layout{display:grid;grid-template-columns:1fr 382px;gap:12px}
 .hero{height:198px;border:1px solid #2a2c2c;border-radius:9px;background:radial-gradient(circle at 47% 45%,rgba(255,106,0,.35),transparent 23%),linear-gradient(90deg,#080909 0%,#111111 24%,#27140c 50%,#070808 100%);position:relative;overflow:hidden}
@@ -338,7 +346,7 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .logo-fallback{font-size:18px;font-weight:900;color:#fff;letter-spacing:.5px}
 .ad b{font-size:13px}.ad p{font-size:12px;color:#d0d0d0;margin:5px 0}.ad .aprice{color:#ff7a18;font-weight:700;font-size:13px;font-family:'Space Grotesk',monospace}
 .user{font-size:12px;color:#d0d0d0;margin-top:14px}.user span{color:#24c35a}
-.ad-views{display:inline-flex;align-items:center;gap:4px;margin-top:6px;color:#9ca3af;font-size:11.5px;font-weight:600}
+.ad-views{display:inline-flex;align-items:center;gap:4px;margin-top:6px;color:#9ca3af;font-size:12px;font-weight:600}
 .pd-views{display:inline-flex;align-items:center;gap:5px;color:#cbd5e1}
 .seller-head{display:flex;justify-content:space-between;margin-bottom:13px}
 .seller-head h3{margin:0;font-size:13px;font-family:'DM Sans',Arial,sans-serif;font-weight:900;letter-spacing:.2px;text-transform:uppercase;color:#f1f5f9}
@@ -354,12 +362,12 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .whats{position:fixed;right:22px;bottom:22px;background:#111212;border:1px solid #303232;border-radius:999px;padding:11px 24px 11px 12px;display:flex;align-items:center;gap:13px;z-index:999}
 /* ===== CANLI DƏSTƏK WIDGET ===== */
 .whats{display:none!important} /* Köhnə WhatsApp düyməsini gizlədirik — dəstək widget-i onu əvəz edir */
-#supportBtn{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;border-radius:999px;padding:13px 20px 13px 16px;color:#fff;font-family:inherit;font-weight:700;font-size:13.5px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 12px 30px rgba(255,90,0,.35),0 4px 12px rgba(0,0,0,.4);transition:.22s ease;z-index:99998}
+#supportBtn{position:fixed;right:22px;bottom:22px;background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;border-radius:999px;padding:13px 20px 13px 16px;color:#fff;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 12px 30px rgba(255,90,0,.35),0 4px 12px rgba(0,0,0,.4);transition:.22s ease;z-index:99998}
 #supportBtn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(255,90,0,.5),0 6px 18px rgba(0,0,0,.5)}
 #supportBtn svg{width:22px;height:22px;fill:#fff}
 #supportBtn .sup-status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(255,255,255,.25);animation:supPulse 2s infinite}
 #supportBtn.offline .sup-status-dot{background:#94a3b8;animation:none}
-#supportBtn .sup-badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 6px;font-size:11.5px;font-weight:800;display:grid;place-items:center;border:2px solid #0e1219;box-shadow:0 4px 12px rgba(239,68,68,.5)}
+#supportBtn .sup-badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 6px;font-size:12px;font-weight:800;display:grid;place-items:center;border:2px solid #0e1219;box-shadow:0 4px 12px rgba(239,68,68,.5)}
 @keyframes supPulse{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.4)}50%{box-shadow:0 0 0 7px rgba(34,197,94,.05)}}
 
 #supportPanel{position:fixed;right:22px;bottom:22px;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 40px);background:#0e1219;border:1px solid #1c2330;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.7);z-index:99999;display:none;flex-direction:column;overflow:hidden;font-family:inherit;animation:supSlideUp .28s cubic-bezier(.4,0,.2,1)}
@@ -368,28 +376,28 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .sup-header{background:linear-gradient(135deg,#ff7a18,#c94800);padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .sup-header-info{display:flex;flex-direction:column;gap:2px;min-width:0}
 .sup-header-title{font-weight:800;font-size:15px;letter-spacing:.2px}
-.sup-header-status{font-size:11.5px;opacity:.95;display:flex;align-items:center;gap:6px}
+.sup-header-status{font-size:12px;opacity:.95;display:flex;align-items:center;gap:6px}
 .sup-header-status .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.3)}
 .sup-header-status .dot.offline{background:#cbd5e1;box-shadow:none}
 .sup-header-actions{display:flex;gap:6px;align-items:center}
 .sup-header-btn{background:rgba(255,255,255,.15);border:0;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.15s ease}
 .sup-header-btn:hover{background:rgba(255,255,255,.28)}
-.sup-profile-link{background:rgba(255,255,255,.15);border:0;color:#fff;padding:5px 12px;border-radius:14px;font-size:11.5px;cursor:pointer;font-weight:600;font-family:inherit;transition:.15s}
+.sup-profile-link{background:rgba(255,255,255,.15);border:0;color:#fff;padding:5px 12px;border-radius:14px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit;transition:.15s}
 .sup-profile-link:hover{background:rgba(255,255,255,.28)}
 .sup-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#0a0c10}
 .sup-body::-webkit-scrollbar{width:6px}
 .sup-body::-webkit-scrollbar-thumb{background:#1c2330;border-radius:3px}
-.sup-welcome{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px;font-size:12.5px;color:#94a3b8;line-height:1.5;text-align:center;margin-bottom:4px}
-.sup-msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-wrap:break-word;position:relative}
+.sup-welcome{background:#11151d;border:1px solid #1c2330;border-radius:10px;padding:12px;font-size:13px;color:#94a3b8;line-height:1.5;text-align:center;margin-bottom:4px}
+.sup-msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.45;word-wrap:break-word;position:relative}
 .sup-msg.new{animation:supMsgIn .2s ease}
 @keyframes supMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .sup-msg.user{align-self:flex-end;background:linear-gradient(135deg,#ff7a18,#ff5a00);color:#fff;border-bottom-right-radius:4px}
 .sup-msg.admin{align-self:flex-start;background:#1a1f2e;color:#e2e8f0;border-bottom-left-radius:4px;border:1px solid #262d3d}
-.sup-msg-time{font-size:10px;opacity:.7;margin-top:3px}
+.sup-msg-time{font-size:11px;opacity:.7;margin-top:3px}
 .sup-msg.user .sup-msg-time{text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:2px}
 .sup-msg-checks{display:inline-flex;gap:1px;margin-left:4px;font-size:11px;letter-spacing:-2px}
 .sup-msg-checks.read{color:#38bdf8}
-.sup-day-separator{align-self:center;font-size:10.5px;color:#64748b;background:#11151d;padding:3px 10px;border-radius:10px;margin:6px 0;letter-spacing:.3px}
+.sup-day-separator{align-self:center;font-size:11px;color:#64748b;background:#11151d;padding:3px 10px;border-radius:10px;margin:6px 0;letter-spacing:.3px}
 
 .sup-typing{align-self:flex-start;background:#1a1f2e;border:1px solid #262d3d;padding:11px 14px;border-radius:14px;border-bottom-left-radius:4px;display:none;gap:4px;align-items:center;animation:supMsgIn .2s ease}
 .sup-typing.show{display:flex}
@@ -400,15 +408,15 @@ button{background:none;border:none;font-family:inherit;padding:0}
 
 .sup-prechat{padding:18px;display:flex;flex-direction:column;gap:10px;background:#0a0c10;flex:1;overflow-y:auto}
 .sup-prechat-title{color:#f1f5f9;font-size:15px;font-weight:800;margin:0}
-.sup-prechat-desc{color:#94a3b8;font-size:12.5px;line-height:1.5;margin:0 0 6px}
-.sup-prechat input,.sup-prechat select,.sup-prechat textarea{background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-family:inherit;font-size:13.5px;outline:0;transition:.15s}
+.sup-prechat-desc{color:#94a3b8;font-size:13px;line-height:1.5;margin:0 0 6px}
+.sup-prechat input,.sup-prechat select,.sup-prechat textarea{background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-family:inherit;font-size:14px;outline:0;transition:.15s}
 .sup-prechat input:focus,.sup-prechat select:focus,.sup-prechat textarea:focus{border-color:#fb923c}
 .sup-prechat textarea{min-height:70px;resize:vertical}
 .sup-prechat-btn{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;padding:12px;border-radius:8px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;transition:.15s}
 .sup-prechat-btn:hover{filter:brightness(1.12)}
 
 .sup-input-row{display:flex;gap:8px;padding:10px 12px;background:#11151d;border-top:1px solid #1c2330;align-items:flex-end}
-.sup-input{flex:1;background:#0a0c10;border:1px solid #1c2330;border-radius:20px;color:#e2e8f0;padding:10px 14px;font-family:inherit;font-size:13.5px;outline:0;resize:none;max-height:100px;line-height:1.4;transition:.15s}
+.sup-input{flex:1;background:#0a0c10;border:1px solid #1c2330;border-radius:20px;color:#e2e8f0;padding:10px 14px;font-family:inherit;font-size:14px;outline:0;resize:none;max-height:100px;line-height:1.4;transition:.15s}
 .sup-input:focus{border-color:#fb923c}
 .sup-send-btn{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;border-radius:50%;width:38px;height:38px;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
 .sup-send-btn:hover{transform:scale(1.06)}
@@ -421,7 +429,7 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .sup-canned-btn svg{width:19px;height:19px;fill:currentColor}
 .sup-canned-menu{position:absolute;bottom:44px;left:0;background:#11151d;border:1px solid #1c2330;border-radius:10px;min-width:260px;max-width:320px;max-height:280px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:100000;display:none;padding:6px}
 .sup-canned-menu.open{display:block}
-.sup-canned-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12.5px;color:#e2e8f0;line-height:1.4;transition:.12s;display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.sup-canned-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:#e2e8f0;line-height:1.4;transition:.12s;display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
 .sup-canned-item:hover{background:#1a1f2e}
 .sup-canned-item-title{font-weight:700;color:#fb923c;font-size:11px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;display:block}
 .sup-canned-item-text{color:#94a3b8;font-size:12px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -433,11 +441,11 @@ button{background:none;border:none;font-family:inherit;padding:0}
 
 .sup-rating-panel{padding:20px;text-align:center;background:#0a0c10;border-top:1px solid #1c2330}
 .sup-rating-panel h4{color:#f1f5f9;margin:0 0 4px;font-size:15px}
-.sup-rating-panel p{color:#94a3b8;font-size:12.5px;margin:0 0 12px;line-height:1.4}
+.sup-rating-panel p{color:#94a3b8;font-size:13px;margin:0 0 12px;line-height:1.4}
 .sup-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
 .sup-star{font-size:32px;cursor:pointer;color:#334155;transition:.15s;user-select:none;line-height:1}
 .sup-star:hover,.sup-star.active{color:#ffae00;transform:scale(1.15)}
-.sup-rating-textarea{width:100%;background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-family:inherit;font-size:12.5px;outline:0;resize:vertical;min-height:60px;margin-bottom:8px}
+.sup-rating-textarea{width:100%;background:#11151d;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:8px 10px;font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:60px;margin-bottom:8px}
 .sup-rating-textarea:focus{border-color:#fb923c}
 .sup-rating-submit{background:linear-gradient(135deg,#ff7a18,#ff5a00);border:0;color:#fff;padding:9px 24px;border-radius:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
 .sup-rating-submit:hover{filter:brightness(1.1)}
@@ -449,7 +457,7 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .sup-faq-chip{background:#11151d;border:1px solid #1c2330;color:#cbd5e1;padding:6px 12px;border-radius:14px;font-size:12px;cursor:pointer;transition:.15s;font-family:inherit}
 .sup-faq-chip:hover{border-color:#fb923c;color:#fb923c;background:#1a1105}
 
-.sup-fallback-links{padding:10px 14px;background:#0a0c10;border-top:1px solid #1c2330;display:flex;gap:10px;justify-content:center;font-size:11.5px;color:#64748b}
+.sup-fallback-links{padding:10px 14px;background:#0a0c10;border-top:1px solid #1c2330;display:flex;gap:10px;justify-content:center;font-size:12px;color:#64748b}
 .sup-fallback-links a{color:#94a3b8;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:.15s}
 .sup-fallback-links a:hover{color:#fb923c}
 
@@ -458,18 +466,18 @@ button{background:none;border:none;font-family:inherit;padding:0}
 .admin-support-item:hover{border-color:#fb923c66;transform:translateY(-1px)}
 .admin-support-item.unread{background:linear-gradient(to right,rgba(251,146,60,.1),transparent);border-color:#fb923c55}
 .admin-support-item.closed{opacity:.6}
-.admin-support-name{font-weight:700;color:#e2e8f0;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.admin-support-name{font-weight:700;color:#e2e8f0;font-size:14px;display:flex;align-items:center;gap:8px}
 .admin-support-badge{background:#ef4444;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;min-width:22px;text-align:center}
-.admin-support-meta{font-size:11.5px;color:#64748b}
-.admin-support-preview{font-size:12.5px;color:#94a3b8;grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+.admin-support-meta{font-size:12px;color:#64748b}
+.admin-support-preview{font-size:13px;color:#94a3b8;grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
 .admin-support-time{font-size:11px;color:#64748b;text-align:right}
-.admin-support-status-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.3px}
+.admin-support-status-tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.3px}
 .admin-support-status-tag.open{background:#052e1a;color:#4ade80}
 .admin-support-status-tag.closed{background:#1a1a1a;color:#94a3b8}
 
 @media(max-width:500px){
   #supportPanel{right:10px;bottom:10px;left:10px;width:auto;height:calc(100vh - 20px);max-height:100%;border-radius:14px}
-  #supportBtn{right:14px;bottom:14px;padding:11px 16px 11px 12px;font-size:12.5px}
+  #supportBtn{right:14px;bottom:14px;padding:11px 16px 11px 12px;font-size:13px}
   #supportBtn svg{width:18px;height:18px}
 }
 
@@ -571,7 +579,7 @@ body.light-mode .admin-support-name{color:#1a1d23}
   .modal{padding:10px}
   .modal-box{padding:14px;border-radius:10px}
   .nav{position:relative;top:auto}
-  .nav button,.nav a{height:38px;padding:0 11px;font-size:11.5px}
+  .nav button,.nav a{height:38px;padding:0 11px;font-size:12px}
   .nav button:first-child,.nav a:first-child{padding:0 14px}
   .main{padding-top:10px}
   .layout{gap:10px}
@@ -624,11 +632,11 @@ body.light-mode .admin-support-name{color:#1a1d23}
 #adminTabBtn{display:none!important}
 body.is-admin #adminTabBtn{display:block!important}
 .cabinet-content{padding:16px}
-.cabinet-form input,.cabinet-form select,.cabinet-form textarea{width:100%;background:#0c0d0d;border:1px solid #333636;border-radius:8px;color:#e8eaed;padding:11px 14px;margin:6px 0 10px;outline:0;font-family:'DM Sans',Arial,sans-serif;font-size:13.5px;font-weight:400;letter-spacing:.2px;line-height:1.5}
+.cabinet-form input,.cabinet-form select,.cabinet-form textarea{width:100%;background:#0c0d0d;border:1px solid #333636;border-radius:8px;color:#e8eaed;padding:11px 14px;margin:6px 0 10px;outline:0;font-family:'DM Sans',Arial,sans-serif;font-size:14px;font-weight:400;letter-spacing:.2px;line-height:1.5}
 .cabinet-form textarea{height:90px;resize:vertical}
-.cabinet-form .hint{font-size:11.5px;color:#6b7280;margin:0 0 10px;letter-spacing:.25px;font-weight:400;line-height:1.55}
+.cabinet-form .hint{font-size:12px;color:#6b7280;margin:0 0 10px;letter-spacing:.25px;font-weight:400;line-height:1.55}
 .cabinet-table{width:100%;border-collapse:collapse}
-.cabinet-table th,.cabinet-table td{padding:11px 10px;border-bottom:1px solid #292b2b;text-align:left;font-size:12.5px;letter-spacing:.15px;line-height:1.45}
+.cabinet-table th,.cabinet-table td{padding:11px 10px;border-bottom:1px solid #292b2b;text-align:left;font-size:13px;letter-spacing:.15px;line-height:1.45}
 .cabinet-table th{color:#6b7280;font-weight:400;letter-spacing:.8px;font-size:11px;text-transform:uppercase;font-family:'DM Sans',Arial,sans-serif}
 .cabinet-table td{color:#d1d5db;font-weight:400}
 .cabinet-table th{color:#aaa;background:#151616}
@@ -705,7 +713,7 @@ body{
   font-weight:900;
 }
 
-.toplinks{color:#cbd5e1;font-size:12.5px}
+.toplinks{color:#cbd5e1;font-size:13px}
 .toplinks button:hover{color:#fff}
 
 .hbtn{
@@ -784,7 +792,7 @@ body{
 .hero-title p{font-size:14px;color:#cbd5e1}
 .hero-title span{color:#fb923c}
 .hero-title .line{background:linear-gradient(90deg,#fb923c,transparent);height:2px}
-.feature b{font-size:12.5px;color:#f8fafc;letter-spacing:.15px}
+.feature b{font-size:13px;color:#f8fafc;letter-spacing:.15px}
 .feature small{color:#94a3b8}
 .feature i{color:#fb923c}
 
@@ -837,7 +845,7 @@ body{
 }
 
 .game b,.epin b,.ad b,.seller b{
-  font-size:12.8px;
+  font-size:13px;
   color:#f8fafc;
   letter-spacing:.05px;
 }
@@ -860,7 +868,7 @@ body{
   color:#cbd5e1;
   background:#111418;
   border-radius:999px;
-  font-size:12.5px;
+  font-size:13px;
   transition:.16s ease;
 }
 .tab:hover{border-color:#f97316;color:#fff}
@@ -928,7 +936,7 @@ body{
   border:1px solid #252b32;
   border-radius:10px;
   color:#f8fafc;
-  font-size:13.5px;
+  font-size:14px;
 }
 .modal-box input:focus,.modal-box select:focus,.cabinet-form input:focus,.cabinet-form select:focus,.cabinet-form textarea:focus{
   border-color:#f97316;
@@ -1011,7 +1019,7 @@ body{
   font-size:30px;
 }
 .hero-title .line{display:none}
-.hero-title p{font-size:13.5px;color:#7a8699;line-height:1.6;margin-top:10px;font-weight:500}
+.hero-title p{font-size:14px;color:#7a8699;line-height:1.6;margin-top:10px;font-weight:500}
 
 .hero-features{
   background:rgba(13,16,20,.55);
@@ -1029,7 +1037,7 @@ body{
   border-radius:9px;
   color:#fb923c;
 }
-.feature b{font-size:11.5px;font-weight:700;letter-spacing:.2px;text-transform:none;color:#f1f5f9}
+.feature b{font-size:12px;font-weight:700;letter-spacing:.2px;text-transform:none;color:#f1f5f9}
 .feature small{font-size:11px;color:#5b6678;margin-top:2px}
 
 .arr{
@@ -1096,7 +1104,7 @@ body{
 }
 
 .game b,.epin b,.ad b,.seller b{
-  font-size:12.5px;
+  font-size:13px;
   font-weight:600;
   color:#e2e8f0;
   letter-spacing:0;
@@ -1163,7 +1171,7 @@ body{
   color:#e2e8f0;
   font-family:'DM Sans',Arial,sans-serif;
 }
-.box p{color:#7a8699;font-size:12.5px;line-height:1.6}
+.box p{color:#7a8699;font-size:13px;line-height:1.6}
 
 .benefit{
   background:#0e1218;
@@ -1205,7 +1213,7 @@ body{
 }
 .follow:hover{border-color:#1a1f27}
 .follow:last-child{margin-bottom:0}
-.follow b{font-size:12.5px;font-weight:600;color:#e2e8f0}
+.follow b{font-size:13px;font-weight:600;color:#e2e8f0}
 .follow small{color:#5b6678;font-size:11px}
 .follow button{
   margin-left:auto;
@@ -1214,7 +1222,7 @@ body{
   border:1px solid #232b38;
   color:#cbd5e1;
   border-radius:8px;
-  font-size:11.5px;
+  font-size:12px;
   font-weight:600;
 }
 .follow button:hover{border-color:#fb923c;color:#fb923c;background:#1a141038}
@@ -1257,13 +1265,13 @@ body{
 .admin-trade-top strong{color:#fb923c;font-family:'Space Grotesk',monospace;font-size:18px;white-space:nowrap}
 .admin-trade-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .trade-info-box{background:#080b10;border:1px solid #18202b;border-radius:11px;padding:10px;min-width:0}
-.trade-info-box span,.admin-trade-creds span{display:block;color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.trade-info-box b{display:block;color:#e5e7eb;font-size:12.5px;line-height:1.35;word-break:break-word}
-.trade-info-box small{display:block;color:#475569;font-size:10.5px;line-height:1.35;margin-top:4px;word-break:break-word}
+.trade-info-box span,.admin-trade-creds span{display:block;color:#64748b;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.trade-info-box b{display:block;color:#e5e7eb;font-size:13px;line-height:1.35;word-break:break-word}
+.trade-info-box small{display:block;color:#475569;font-size:11px;line-height:1.35;margin-top:4px;word-break:break-word}
 .admin-trade-creds{background:#08111f;border:1px solid #1e2d45;border-radius:12px;padding:10px}
 .admin-trade-creds pre{white-space:pre-wrap;margin:0;color:#dbeafe;font-size:12px;line-height:1.55;font-family:'DM Sans',Arial,sans-serif;word-break:break-word}
 @media(max-width:900px){.admin-trade-grid{grid-template-columns:1fr 1fr}.admin-trade-top{flex-direction:column}.admin-trade-top strong{font-size:16px}}
-@media(max-width:560px){.admin-trade-grid{grid-template-columns:1fr}.admin-trade-card{padding:12px}.admin-trade-creds pre{font-size:11.5px}}
+@media(max-width:560px){.admin-trade-grid{grid-template-columns:1fr}.admin-trade-card{padding:12px}.admin-trade-creds pre{font-size:12px}}
 
 
 /* ADMIN PANEL EXTENSION */
@@ -1321,7 +1329,7 @@ body.light-mode .admin-tag{background:#f5f7fa;border:1px solid #dde1e7;color:#4a
 @media(max-width:700px){
   .chat-msg-delete{display:flex;background:rgba(0,0,0,.25)}
 }
-.chat-msg small{display:block;opacity:.75;font-size:10px;margin-top:5px}
+.chat-msg small{display:block;opacity:.75;font-size:11px;margin-top:5px}
 .chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;border-top:1px solid #1f2937}
 .chat-form input{height:42px;background:#0c0d0d;border:1px solid #333636;border-radius:10px;color:#fff;padding:0 12px;font-family:inherit}
 .chat-unread{display:inline-flex;min-width:18px;height:18px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;align-items:center;justify-content:center;margin-left:6px}
@@ -1402,7 +1410,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .product-detail-image:hover svg,.product-detail-image:hover img{transform:scale(1.04)}
 .pd-img-cat-label{
   position:relative;z-index:1;
-  font-size:10px;font-weight:700;letter-spacing:.7px;
+  font-size:11px;font-weight:700;letter-spacing:.7px;
   text-transform:uppercase;color:#8b95a8;
   font-family:'DM Sans',Arial,sans-serif;
   background:#11151c;border:1px solid #232b38;
@@ -1420,7 +1428,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .badge{
   border:1px solid #1e2531;background:#0e1218;color:#8b95a8;
   border-radius:7px;padding:5px 11px 5px 8px;
-  font-size:10.5px;font-weight:700;letter-spacing:.15px;
+  font-size:11px;font-weight:700;letter-spacing:.15px;
   font-family:'DM Sans',Arial,sans-serif;
   display:inline-flex;align-items:center;gap:5px;line-height:1;
   transition:border-color .15s;
@@ -1439,7 +1447,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 
 .product-detail-info p{
   color:#9aa5b8;line-height:1.7;
-  margin:0 0 20px;font-size:13.5px;
+  margin:0 0 20px;font-size:14px;
   background:#0c0f14;border:1px solid #161d28;
   border-radius:10px;padding:13px 15px;
 }
@@ -1475,14 +1483,14 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 }
 .seller-card-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .rating{color:#fbbf24;font-weight:700;font-size:12px;letter-spacing:0}
-.seller-sales-count{color:#5b6678;font-size:11.5px;font-weight:600}
+.seller-sales-count{color:#5b6678;font-size:12px;font-weight:600}
 
 /* ---------- Action buttons — clear hierarchy ---------- */
 .product-actions{display:flex;flex-direction:column;gap:9px;margin-top:0}
 
 .product-actions .fullbtn{
   height:48px;border-radius:11px;
-  font-size:14.5px;font-weight:700;letter-spacing:0;
+  font-size:14px;font-weight:700;letter-spacing:0;
   background:linear-gradient(135deg,#fb923c,#ea580c);
   box-shadow:0 8px 20px -4px rgba(251,146,60,.35);
   transition:all .18s ease;
@@ -1509,7 +1517,7 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .pd-report-row{display:flex;justify-content:flex-end;margin-top:2px}
 .report-btn{
   background:none;border:none;color:#5b6678;
-  font-size:11.5px;font-weight:600;padding:4px 6px;
+  font-size:12px;font-weight:600;padding:4px 6px;
   cursor:pointer;transition:color .15s;
   display:inline-flex;align-items:center;gap:4px;
 }
@@ -1525,20 +1533,20 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .review-author{display:flex;align-items:center;gap:9px}
 .review-avatar{width:28px;height:28px;flex:none;border-radius:50%;background:linear-gradient(180deg,#2b2d2d,#171818);border:1px solid #333636;display:grid;place-items:center;font-size:12px;font-weight:800;color:#ddd;font-family:'Barlow Condensed',Arial,sans-serif}
 .review-name{font-weight:700;color:#f8fafc;font-size:13px;letter-spacing:.1px}
-.review-stars{color:#f59e0b;font-weight:900;white-space:nowrap;font-size:12.5px}
+.review-stars{color:#f59e0b;font-weight:900;white-space:nowrap;font-size:13px}
 .review-text{color:#c2c8d1;line-height:1.5;word-break:break-word;font-size:13px;padding-left:37px}
 .review-delete{height:28px;border-radius:7px;background:#3f1717;color:#ffb4b4;border:1px solid #7f1d1d;padding:0 9px;font-size:12px;font-weight:900}
 .review-form{margin-top:14px;border-top:1px solid #252b32;padding-top:14px;display:grid;grid-template-columns:120px 1fr 44px;gap:8px;align-items:center}
 .review-form select,.review-form input{height:40px;background:#090b0d;border:1px solid #252b32;border-radius:9px;color:#fff;padding:0 12px;font-family:'DM Sans',Arial,sans-serif;font-size:13px}
 .review-form button{height:40px;border-radius:9px;font-size:13px;letter-spacing:.2px}
-.review-login-note{color:#9ca3af;font-size:12.5px;margin-top:10px;font-family:'DM Sans',Arial,sans-serif}
+.review-login-note{color:#9ca3af;font-size:13px;margin-top:10px;font-family:'DM Sans',Arial,sans-serif}
 @media(max-width:700px){.review-form{grid-template-columns:1fr}.review-form button{width:100%}}
 @media(max-width:700px){
   .product-detail-box{max-width:100%!important;max-height:94vh;overflow-y:auto;border-radius:16px!important}
   .product-detail-grid{grid-template-columns:1fr}
   .product-detail-image{min-height:180px;border-right:none;border-bottom:1px solid #1a1f28;flex-direction:row;justify-content:center;gap:20px;padding:20px}
   .product-detail-image svg,.product-detail-image img{max-width:90px;max-height:90px}
-  .pd-img-cat-label{font-size:9px}
+  .pd-img-cat-label{font-size:11px}
   .product-detail-info{padding:16px 16px 14px}
   .reviews-box{padding:16px}
   .product-actions{grid-template-columns:1fr 1fr}
@@ -1596,7 +1604,7 @@ body.light-mode .notif-dd-item.unread{background:#eef6ff}
 /* WALLET / SELLER-BUYER PANEL EXTENSION */
 .wallet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0 16px}
 .wallet-card{background:#090b0d;border:1px solid #252b32;border-radius:12px;padding:14px}
-.wallet-card span{display:block;color:#6b7280;font-size:10.5px;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;font-weight:500;font-family:'DM Sans',Arial,sans-serif}
+.wallet-card span{display:block;color:#6b7280;font-size:11px;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;font-weight:500;font-family:'DM Sans',Arial,sans-serif}
 .wallet-card b{display:block;color:#fb923c;font-size:26px;font-family:'Space Grotesk',monospace;font-weight:300;letter-spacing:-.5px}
 .wallet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 16px}
 .wallet-note{background:#0b0d0f;border:1px dashed #334155;color:#cbd5e1;border-radius:12px;padding:12px;font-size:13px;line-height:1.55;margin:10px 0}
@@ -1666,7 +1674,7 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 .ad-slot:hover{border-color:#f97316}
 .ad-slot.filled{border-style:solid;border-color:#252b32;cursor:default}
 .ad-slot .plus{font-size:34px;color:#4b5563;font-weight:300;line-height:1;pointer-events:none}
-.ad-slot .plus-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:10.5px;color:#6b7280;letter-spacing:.3px;pointer-events:none}
+.ad-slot .plus-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#6b7280;letter-spacing:.3px;pointer-events:none}
 .ad-slot img{width:100%;height:100%;object-fit:cover;display:block}
 .ad-slot .slot-actions{position:absolute;top:4px;right:4px;display:flex;gap:4px}
 .ad-slot .slot-actions button{width:26px;height:26px;border-radius:6px;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;backdrop-filter:blur(4px)}
@@ -1797,7 +1805,7 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 }
 .pd-back-btn:hover{background:#1a212e;border-color:#3a4456;color:#f1f5f9}
 .pd-back-btn svg{width:16px;height:16px}
-.pd-breadcrumb{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#5b6678;min-width:0;overflow:hidden;white-space:nowrap;font-family:'DM Sans',Arial,sans-serif;}
+.pd-breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:#5b6678;min-width:0;overflow:hidden;white-space:nowrap;font-family:'DM Sans',Arial,sans-serif;}
 .pd-breadcrumb a{color:#8b95a8;text-decoration:none;transition:color .15s;cursor:pointer;}
 .pd-breadcrumb a:hover{color:#fb923c}
 .pd-bc-sep{color:#333c4a}
@@ -1824,7 +1832,7 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 .pd-seller-col .pd-action-btn{
   width:100%;flex:none;min-width:0;
   height:40px;border-radius:10px;
-  font-size:12.5px;font-weight:600;letter-spacing:0;
+  font-size:13px;font-weight:600;letter-spacing:0;
   display:flex;align-items:center;justify-content:center;gap:7px;
   cursor:pointer;border:1px solid #1c2330;background:#0d1118;color:#8b95a8;
   transition:all .15s ease;white-space:nowrap;
@@ -1843,7 +1851,7 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 
 /* PRODUCT DETAIL — benefits strip footer */
 .pd-benefits-strip{display:flex;flex-wrap:wrap;border-top:1px solid #161b24;background:#0a0c10;}
-.pd-benefit{flex:1;min-width:180px;display:flex;align-items:center;gap:10px;padding:16px 20px;border-right:1px solid #161b24;font-size:12.5px;font-weight:600;color:#8b95a8;}
+.pd-benefit{flex:1;min-width:180px;display:flex;align-items:center;gap:10px;padding:16px 20px;border-right:1px solid #161b24;font-size:13px;font-weight:600;color:#8b95a8;}
 .pd-benefit:last-child{border-right:0}
 .pd-benefit svg{width:18px;height:18px;color:#fb923c;flex:none}
 
@@ -2096,7 +2104,7 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   .panel-head-actions{flex-wrap:wrap;width:100%;justify-content:space-between;gap:8px}
   .sort-control{flex:1;min-width:0}
   .sort-control-label{display:none}
-  .sort-select{width:100%;font-size:12.5px}
+  .sort-select{width:100%;font-size:13px}
 }
 
 
@@ -2177,7 +2185,7 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   color:#fff;font-weight:800;font-size:13px;
   font-family:'DM Sans',Arial,sans-serif;
 }
-.ad-seller-row b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-seller-row b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ad-body p{margin:6px 0 8px}
 
 .ad-cart-btn{
@@ -2286,8 +2294,8 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   color:#fb923c;
   box-shadow:0 0 0 1px rgba(251,146,60,.18), 0 6px 16px -4px rgba(251,146,60,.25);
 }
-.feature b{font-size:12.5px;font-weight:800;letter-spacing:.3px;color:#f1f5f9}
-.feature small{font-size:11.5px;color:#7a8699;margin-top:3px}
+.feature b{font-size:13px;font-weight:800;letter-spacing:.3px;color:#f1f5f9}
+.feature small{font-size:12px;color:#7a8699;margin-top:3px}
 
 /* --- Populyar Oyunlar: PORTRET (hündür) kartlar, mockup kimi --- */
 .games{grid-template-columns:repeat(5,1fr);gap:14px;padding:16px}
@@ -2664,7 +2672,7 @@ button,input,select,textarea{max-width:100%}
   .logo svg{width:135px!important;max-width:58vw!important}
   .toplinks{display:none!important}
   .actions{order:2;width:100%;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px!important;align-items:center!important;justify-content:stretch!important}
-  .actions .hbtn{width:100%;min-width:0;height:40px!important;padding:0 8px!important;font-size:11.5px!important;border-radius:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions .hbtn{width:100%;min-width:0;height:40px!important;padding:0 8px!important;font-size:12px!important;border-radius:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .actions .cart,.actions .notify-btn{width:100%!important;height:40px!important;border-radius:10px!important;font-size:18px!important}
   .actions .cart b,.actions .notify-btn b{right:4px!important;top:-6px!important}
 
@@ -2677,7 +2685,7 @@ button,input,select,textarea{max-width:100%}
   /* Category nav */
   .nav{position:sticky!important;top:118px!important;z-index:860;height:auto!important;min-height:52px;overflow:hidden}
   .nav .shell{display:flex!important;gap:7px!important;overflow-x:auto!important;padding:8px 12px!important;scroll-snap-type:x proximity}
-  .nav button,.nav a{height:36px!important;padding:0 12px!important;font-size:11.5px!important;border-radius:999px!important;scroll-snap-align:start}
+  .nav button,.nav a{height:36px!important;padding:0 12px!important;font-size:12px!important;border-radius:999px!important;scroll-snap-align:start}
 
   /* Main layout */
   .main{padding-top:10px!important}
@@ -2723,13 +2731,13 @@ button,input,select,textarea{max-width:100%}
   .ad b{font-size:13px!important;line-height:1.35!important}
   .ad p{font-size:12px!important;line-height:1.45!important;max-height:38px;overflow:hidden}
   .ad .aprice{font-size:14px!important}
-  .user{font-size:11.5px!important;margin-top:8px!important}
+  .user{font-size:12px!important;margin-top:8px!important}
   .ad-views{font-size:11px!important}
 
   /* Floating WhatsApp */
   .whats{right:12px!important;bottom:78px!important;padding:8px 12px 8px 8px!important;border-radius:999px!important;z-index:870!important}
   .whats i{width:42px!important;height:42px!important;padding:9px!important}
-  .whats b{font-size:12px!important}.whats span{font-size:10.5px!important}
+  .whats b{font-size:12px!important}.whats span{font-size:11px!important}
 
   /* Modals */
   .modal{align-items:flex-end!important;padding:0!important;z-index:99999!important}
@@ -2786,18 +2794,18 @@ button,input,select,textarea{max-width:100%}
 
   /* Mobile bottom navigation — 5 tab */
   .mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;height:60px;background:#0b0d10;border-top:1px solid #1e2128;display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding:4px 0 calc(4px + env(safe-area-inset-bottom,0px));z-index:920;box-shadow:0 -4px 20px rgba(0,0,0,.5)}
-  .mobile-bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6b7280;font-size:9.5px;font-weight:600;background:transparent;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s}
+  .mobile-bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#6b7280;font-size:11px;font-weight:600;background:transparent;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s}
   .mobile-bottom-nav button svg{width:20px;height:20px;stroke-width:1.8}
   .mobile-bottom-nav button.active{color:#fb923c}
   .mobile-bottom-nav button.active svg{stroke:#fb923c}
-  .mob-cart-badge{position:absolute;top:2px;right:50%;transform:translateX(14px);min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
+  .mob-cart-badge{position:absolute;top:2px;right:50%;transform:translateX(14px);min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
 }
 
 @media (min-width: 901px){.mobile-bottom-nav{display:none!important}.cab-menu-toggle{display:none!important}}
 
 @media (max-width: 430px){
   .actions{grid-template-columns:repeat(5,minmax(0,1fr))!important}
-  .actions .hbtn{font-size:10.5px!important;padding:0 5px!important}
+  .actions .hbtn{font-size:11px!important;padding:0 5px!important}
   .search select{width:104px!important;font-size:12px!important}
   .games{grid-template-columns:repeat(3,minmax(0,1fr))!important}
   .ad{grid-template-columns:82px 1fr!important}
@@ -2889,7 +2897,7 @@ button,input,select,textarea{max-width:100%}
   .actions .hbtn{
     height:38px!important;
     padding:0 10px!important;
-    font-size:11.5px!important;
+    font-size:12px!important;
     flex:0 0 auto!important;
     white-space:nowrap!important;
   }
@@ -2899,7 +2907,7 @@ button,input,select,textarea{max-width:100%}
     flex:0 0 38px!important;
   }
   .cart-badge, [class*="cart-count"], [class*="cart-badge"]{
-    font-size:9px!important;
+    font-size:11px!important;
     min-width:15px!important;height:15px!important;
     padding:0 3px!important;
     border-radius:9px!important;
@@ -2956,7 +2964,7 @@ button,input,select,textarea{max-width:100%}
     display:block;
   }
   .game b, .game .name, .game span{font-size:11px!important;padding:6px 4px!important;display:block;text-align:center}
-  .game small{font-size:10px!important}
+  .game small{font-size:11px!important}
 
   /* Profil / Çıxış düymələri — mobildə kompakt */
   #loginBtn, #registerBtn{
@@ -3063,7 +3071,7 @@ button,input,select,textarea{max-width:100%}
   .pd-topbar{padding:10px 12px!important;gap:8px!important;position:sticky!important;top:0!important;z-index:5;background:#0a0c10}
   .pd-breadcrumb{font-size:11px!important}
   .pd-benefits-strip{flex-wrap:wrap}
-  .pd-benefit{min-width:50%!important;flex-basis:50%!important;padding:12px 14px!important;font-size:11.5px!important}
+  .pd-benefit{min-width:50%!important;flex-basis:50%!important;padding:12px 14px!important;font-size:12px!important}
 
   /* Kabinet menyusu — mobil dropdown */
   .cabinet-menu{
@@ -3167,7 +3175,7 @@ button,input,select,textarea{max-width:100%}
   .ad{grid-template-columns:82px 1fr!important;padding:9px!important}
   .ad-banner{aspect-ratio:auto}
   .pd-benefit{min-width:100%!important;flex-basis:100%!important}
-  .cabinet-menu button{min-width:105px!important;font-size:11.5px!important}
+  .cabinet-menu button{min-width:105px!important;font-size:12px!important}
   .hbtn{font-size:11px!important;padding:0 10px!important}
   .header .shell{padding:8px 10px!important}
   .hero-title h1{font-size:19px!important}
@@ -3628,7 +3636,7 @@ button,input,select,textarea{max-width:100%}
         <button class="fullbtn" type="button" id="pvConfirmBtn" onclick="pvConfirmCode()">Təsdiqlə</button>
         <button type="button" onclick="pvBack()" style="width:100%;margin-top:8px;background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer">← Nömrəni dəyiş</button>
       </div>
-      <div id="pvStatus" style="margin-top:10px;font-size:12.5px;color:#fb923c;min-height:16px"></div>
+      <div id="pvStatus" style="margin-top:10px;font-size:13px;color:#fb923c;min-height:16px"></div>
       <div id="pvRecaptcha"></div>
     </div>
   </div>
@@ -3663,10 +3671,10 @@ button,input,select,textarea{max-width:100%}
         <div id="cabAdd" style="display:none">
           <h3>Yeni elan yerləşdir</h3>
           <div class="cabinet-form">
-            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Elan başlığı <span style="color:#ef4444">*</span></label>
+            <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Elan başlığı <span style="color:#ef4444">*</span></label>
             <input id="adTitle" placeholder="Elan başlığı">
 
-            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Kateqoriya <span style="color:#ef4444">*</span></label>
+            <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Kateqoriya <span style="color:#ef4444">*</span></label>
             <select id="adCategory" onchange="syncAdFormToCategory()">
               <option value="Hesab">Hesab</option>
               <option value="Skin">Skin</option>
@@ -3681,7 +3689,7 @@ button,input,select,textarea{max-width:100%}
             <!-- HESAB: oyun + rank + level -->
             <div id="adSec_hesab" class="ad-form-section">
               <div class="ad-form-section-title">Oyun məlumatları</div>
-              <label style="font-size:11.5px;color:#9ca3af;display:block;margin-bottom:2px;">Oyun <span style="color:#ef4444">*</span></label>
+              <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:2px;">Oyun <span style="color:#ef4444">*</span></label>
               <select id="adGame" onchange="updateAdGameCustomVisibility()">
                 <option value="">Oyun seç</option>
                 <option>Valorant</option><option>PUBG Mobile</option><option>League of Legends</option>
@@ -3703,14 +3711,14 @@ button,input,select,textarea{max-width:100%}
 
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
                   <button type="button" id="contactBtnPlatform" onclick="setContactMode('platform')"
-                    style="padding:14px 12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                    style="padding:14px 12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:13px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
                     🛡️ Sayt vasitəsilə
-                    <div style="font-weight:400;font-size:10.5px;color:#94a3b8;margin-top:4px">Alıcı ödəyir, admin nəzarətdə. Təhlükəsiz.</div>
+                    <div style="font-weight:400;font-size:11px;color:#94a3b8;margin-top:4px">Alıcı ödəyir, admin nəzarətdə. Təhlükəsiz.</div>
                   </button>
                   <button type="button" id="contactBtnDirect" onclick="setContactMode('direct_contact')"
-                    style="padding:14px 12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                    style="padding:14px 12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:13px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
                     📞 Özüm satıram
-                    <div style="font-weight:400;font-size:10.5px;color:#475569;margin-top:4px">Nömrə göstərilir. Sən özün alıcı ilə əlaqə saxla.</div>
+                    <div style="font-weight:400;font-size:11px;color:#475569;margin-top:4px">Nömrə göstərilir. Sən özün alıcı ilə əlaqə saxla.</div>
                   </button>
                 </div>
                 <input type="hidden" id="adContactMode" value="platform">
@@ -3723,14 +3731,14 @@ button,input,select,textarea{max-width:100%}
                   <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px">Çatdırılma üsulu</div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
                     <button type="button" id="deliveryBtnDirect" onclick="setDeliveryMode('direct')"
-                      style="padding:12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                      style="padding:12px;border-radius:10px;border:1px solid #fb923c;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;font-size:13px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
                       ⚡ Birbaşa
-                      <div style="font-weight:400;font-size:10.5px;color:#94a3b8;margin-top:4px">Hesab məlumatlarını indi yaz. Satış olsa, dərhal alıcıya gedir.</div>
+                      <div style="font-weight:400;font-size:11px;color:#94a3b8;margin-top:4px">Hesab məlumatlarını indi yaz. Satış olsa, dərhal alıcıya gedir.</div>
                     </button>
                     <button type="button" id="deliveryBtnChat" onclick="setDeliveryMode('chat')"
-                      style="padding:12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
+                      style="padding:12px;border-radius:10px;border:1px solid #1c2330;background:transparent;color:#64748b;font-weight:700;font-size:13px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
                       💬 Chat vasitəsilə
-                      <div style="font-weight:400;font-size:10.5px;color:#475569;margin-top:4px">Alıcı ödəyəndə sənə avtomatik sorğu gəlir, məlumatı chat-də yazırsan.</div>
+                      <div style="font-weight:400;font-size:11px;color:#475569;margin-top:4px">Alıcı ödəyəndə sənə avtomatik sorğu gəlir, məlumatı chat-də yazırsan.</div>
                     </button>
                   </div>
 
@@ -3741,7 +3749,7 @@ button,input,select,textarea{max-width:100%}
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                         HESAB MƏLUMATLARI
                       </div>
-                      <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
+                      <p style="font-size:12px;color:#5b6678;margin:0 0 12px;line-height:1.6">
                         Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşan kimi <b style="color:#94a3b8">avtomatik alıcıya çatdırılır</b>.
                       </p>
 
@@ -3765,7 +3773,7 @@ button,input,select,textarea{max-width:100%}
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                         CHAT VASİTƏSİLƏ ÇATDIRILMA
                       </div>
-                      <p style="font-size:11.5px;color:#94a3b8;margin:0;line-height:1.7">
+                      <p style="font-size:12px;color:#94a3b8;margin:0;line-height:1.7">
                         • İndi hesab məlumatlarını yazmağa ehtiyac yoxdur.<br>
                         • Alıcı məhsulu alan kimi sənə <b style="color:#e2e8f0">avtomatik sorğu</b> gəlir (chat açılır).<br>
                         • O chat-də hesab məlumatlarını yazırsan, mesaj birbaşa alıcıya gedir.<br>
@@ -3778,7 +3786,7 @@ button,input,select,textarea{max-width:100%}
                   <!-- Şərtlər checkbox (hər iki üsul üçün) -->
                   <div style="background:#0a0e14;border:1px solid #22c55e33;border-radius:10px;padding:12px;margin-bottom:10px">
                     <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:8px">📋 QAYDALARI OXU VƏ QƏBUL ET</div>
-                    <div style="font-size:11.5px;color:#94a3b8;line-height:1.7;margin-bottom:10px">
+                    <div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:10px">
                       • Verdiyin məlumat düzgün olmalıdır. Yalan/köhnə şifrə üçün balansın dondurulur.<br>
                       • Satışdan sonra hesabın şifrəsini dəyişməyəcəksən. Dəyişsən — balansın bloklanır.<br>
                       • Şikayət olsa, məhsul qaytarılırsa, pul geri alıcıya köçürülür.<br>
@@ -3796,7 +3804,7 @@ button,input,select,textarea{max-width:100%}
                 <div id="contactDirectSection" style="display:none">
                   <div style="background:#0a0e14;border:1px solid #64748b33;border-radius:10px;padding:14px;margin-bottom:10px">
                     <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px">📞 ƏLAQƏ NÖMRƏSİ</div>
-                    <p style="font-size:11.5px;color:#5b6678;margin:0 0 12px;line-height:1.6">
+                    <p style="font-size:12px;color:#5b6678;margin:0 0 12px;line-height:1.6">
                       Alıcılar bu nömrəyə zəng edəcək. WhatsApp və ya telefon nömrəsi olsun.
                       <b style="color:#f97316">Sayt zəmanət vermir</b> — bütün riski öz üzərinə götürürsən.
                     </p>
@@ -3825,7 +3833,7 @@ button,input,select,textarea{max-width:100%}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
                     STEAM TRADE MODELİ
                   </div>
-                  <p style="font-size:11.5px;color:#5b6678;margin:0;line-height:1.6">
+                  <p style="font-size:12px;color:#5b6678;margin:0;line-height:1.6">
                     Bu oyun <b style="color:#94a3b8">Steam trade</b> ilə işləyir. Satış olduqda alıcı öz <b style="color:#94a3b8">Steam trade linkini</b> daxil edəcək, sən skini həmin ünvana göndərəcəksən. Alıcı skini aldığını təsdiqlədikdən sonra pul sənə keçəcək.
                     <br><br>⚠️ Qeyd: Steam trade bəzən 7-15 gün hold-da qala bilər.
                   </p>
@@ -3836,7 +3844,7 @@ button,input,select,textarea{max-width:100%}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                     HESAB MODELİ
                   </div>
-                  <p style="font-size:11.5px;color:#5b6678;margin:0;line-height:1.6">
+                  <p style="font-size:12px;color:#5b6678;margin:0;line-height:1.6">
                     Bu oyunda skinlər <b style="color:#94a3b8">ayrıca köçürülə bilmir</b>. Ona görə satış <b style="color:#94a3b8">hesab təhvili</b> ilə olur: hesab məlumatları admin yoxlamasından keçib alıcıya çatdırılır (Hesab kateqoriyası kimi).
                   </p>
                 </div>
@@ -3940,16 +3948,16 @@ button,input,select,textarea{max-width:100%}
 
             <!-- QİYMƏT — hamı üçün -->
             <div style="margin-top:6px">
-              <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
+              <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Satış qiyməti (₼) <span style="color:#ef4444">*</span></label>
               <input id="adPrice" placeholder="Məsələn: 50" inputmode="decimal" type="text">
             </div>
             <div>
-              <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Stok sayı</label>
+              <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Stok sayı</label>
               <input id="adStock" placeholder="Məsələn: 1" inputmode="numeric" type="text">
             </div>
-            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
+            <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
             <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
-            <label style="font-size:11.5px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 3 ədəd)</label>
+            <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 3 ədəd)</label>
             <div id="adImageSlots" class="ad-slot-grid">
               <div class="ad-slot" data-slot="0" onclick="pickAdImage(0)"><span class="plus">+</span><span class="plus-label">Şəkil 1</span></div>
               <div class="ad-slot" data-slot="1" onclick="pickAdImage(1)"><span class="plus">+</span><span class="plus-label">Şəkil 2</span></div>
@@ -4056,7 +4064,7 @@ button,input,select,textarea{max-width:100%}
           <div class="seller-card-body">
             <div style="display:flex;align-items:center;gap:8px;min-width:0;">
               <span class="seller-card-name" id="pdSeller">Hesablar.net</span>
-              <span id="pdSellerOnlineText" style="display:none;font-size:10px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
+              <span id="pdSellerOnlineText" style="display:none;font-size:11px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
             </div>
             <div class="seller-card-meta">
               <span class="rating">★★★★★ 100%</span>
@@ -4084,7 +4092,7 @@ button,input,select,textarea{max-width:100%}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         Elan haqqında
       </h4>
-      <p id="pdDesc" style="margin:0;color:#c8ccd0;font-size:13.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;">Məhsul haqqında məlumat.</p>
+      <p id="pdDesc" style="margin:0;color:#c8ccd0;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;">Məhsul haqqında məlumat.</p>
     </div>
     <div class="reviews-box">
       <h4>
@@ -4236,7 +4244,7 @@ window.openLegal = function(page){
   if(!el) return;
   var pages = {
     terms: '<h3 style="margin-bottom:14px">İstifadə şərtləri</h3>'
-      +'<div style="font-size:13.5px;line-height:1.7;color:#94a3b8">'
+      +'<div style="font-size:14px;line-height:1.7;color:#94a3b8">'
       +'<p><b style="color:#e2e8f0">1. Ümumi müddəalar.</b> Hesablar.net oyun hesabları, skinlər, gift card və rəqəmsal məhsulların alqı-satqısı üçün vasitəçi platformadır. Saytdan istifadə etməklə bu şərtləri qəbul etmiş sayılırsınız.</p>'
       +'<p><b style="color:#e2e8f0">2. Qeydiyyat.</b> Qeydiyyat üçün 16 yaşdan yuxarı olmalısınız. Hesab məlumatlarınızın təhlükəsizliyinə görə siz məsuliyyət daşıyırsınız.</p>'
       +'<p><b style="color:#e2e8f0">3. Alış-veriş.</b> Bütün ödənişlər platforma daxilindəki balans sistemi ilə aparılır. Ödəniş escrow (etibarlı saxlama) sistemində saxlanılır — alıcı məhsulu təsdiqləməyincə satıcıya köçürülmür.</p>'
@@ -4247,7 +4255,7 @@ window.openLegal = function(page){
       +'<p><b style="color:#e2e8f0">8. Məsuliyyət.</b> Platforma vasitəçidir; oyun şirkətlərinin hesablara tətbiq etdiyi sanksiyalara görə məsuliyyət daşımır. Şübhəli hallarda dəstək xəttinə müraciət edin.</p>'
       +'</div>',
     privacy: '<h3 style="margin-bottom:14px">Məxfilik siyasəti</h3>'
-      +'<div style="font-size:13.5px;line-height:1.7;color:#94a3b8">'
+      +'<div style="font-size:14px;line-height:1.7;color:#94a3b8">'
       +'<p><b style="color:#e2e8f0">1. Toplanan məlumatlar.</b> Qeydiyyat zamanı ad, soyad, email və doğum tarixi toplanır. Google ilə girişdə yalnız email və ad alınır.</p>'
       +'<p><b style="color:#e2e8f0">2. İstifadə məqsədi.</b> Məlumatlar yalnız hesabınızın idarəsi, alış-veriş tarixçəsi və dəstək xidməti üçün istifadə olunur. Üçüncü tərəflərə satılmır.</p>'
       +'<p><b style="color:#e2e8f0">3. Hesab məlumatları.</b> Satılan oyun hesablarının giriş məlumatları şifrələnmiş formada saxlanılır və yalnız ödəniş təsdiqindən sonra alıcıya ötürülür.</p>'
@@ -4256,7 +4264,7 @@ window.openLegal = function(page){
       +'<p><b style="color:#e2e8f0">6. Çərəzlər.</b> Sayt sessiya idarəsi üçün lokal yaddaşdan (localStorage) istifadə edir; üçüncü tərəf izləmə çərəzləri istifadə olunmur.</p>'
       +'</div>',
     about: '<h3 style="margin-bottom:14px">Haqqımızda</h3>'
-      +'<div style="font-size:13.5px;line-height:1.7;color:#94a3b8">'
+      +'<div style="font-size:14px;line-height:1.7;color:#94a3b8">'
       +'<p>Hesablar.net — Azərbaycanda oyunçular üçün yaradılmış rəqəmsal marketplace-dir. Missiyamız oyun hesabları, skinlər, oyun pulu və gift card alqı-satqısını <b style="color:#e2e8f0">təhlükəsiz, sürətli və şəffaf</b> etməkdir.</p>'
       +'<p>Platformamızda bütün ödənişlər escrow sistemi ilə qorunur: pul yalnız alıcı məhsulu təsdiqlədikdən sonra satıcıya köçürülür. 24/7 dəstək xəttimiz WhatsApp üzərindən əlçatandır.</p>'
       +'<p style="margin-top:14px"><b style="color:#e2e8f0">Əlaqə:</b><br>📱 WhatsApp: +994 55 570 70 71<br>📧 info@hesablar.net</p>'
@@ -5547,7 +5555,7 @@ function showBuyerTermsModal(){
             📋 Alış qaydaları
           </h3>
           <div style="background:#0a0e14;border:1px solid #22c55e33;border-radius:10px;padding:14px;margin-bottom:14px">
-            <div style="font-size:12.5px;color:#cbd5e1;line-height:1.75">
+            <div style="font-size:13px;color:#cbd5e1;line-height:1.75">
               • Ödənişi sayt vasitəsilə edirəm; pul balansımdan çıxılacaq.<br>
               • Məhsulun məlumatları (hesab / kod / trade) satıcı tərəfindən göndəriləcək, admin təsdiqindən keçəcək.<br>
               • Məhsul çatandan sonra <b style="color:#e2e8f0">özüm yoxlayacağam</b> və düzgün olmadığı halda şikayət edə bilərəm.<br>
@@ -10458,7 +10466,7 @@ function listenSales(){
         if(o.credentialsStatus === "Satıcıdan gözlənilir"){
           btns += `
             <div style="background:#0a1420;border:1px solid #38bdf8;border-radius:10px;padding:12px;margin-bottom:8px;max-width:360px">
-              <div style="font-size:11.5px;font-weight:700;color:#38bdf8;margin-bottom:8px">🔔 HESAB MƏLUMATLARINI DOLDUR</div>
+              <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:8px">🔔 HESAB MƏLUMATLARINI DOLDUR</div>
               <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;line-height:1.5">
                 Alıcı ödənişi tamamladı. Aşağıdakı sahələri doldurub təsdiqlə — məlumatlar birbaşa alıcıya göndəriləcək.
               </div>
