@@ -1557,6 +1557,38 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 .auth-divider:before,.auth-divider:after{content:"";height:1px;background:#252b32;flex:1}
 .phone-step{display:none}
 .phone-step.active{display:block}
+
+/* ── Bildiriş dropdown ── */
+.notif-dropdown{
+  display:none;position:fixed;z-index:9999;width:320px;max-width:calc(100vw - 16px);
+  background:#101111;border:1px solid #292b2b;border-radius:12px;
+  box-shadow:0 12px 32px rgba(0,0,0,.45);overflow:hidden;
+}
+.notif-dropdown.show{display:block;animation:notifDdIn .15s ease}
+@keyframes notifDdIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.notif-dd-head{padding:10px 14px;font-size:13px;font-weight:700;color:#e2e8f0;border-bottom:1px solid #232525}
+.notif-dd-empty{padding:18px 14px;font-size:13px;color:#94a3b8;text-align:center}
+.notif-dd-item{
+  display:flex;gap:10px;width:100%;text-align:left;padding:10px 14px;
+  background:none;border:none;border-bottom:1px solid #1c1e1e;cursor:pointer;color:#e2e8f0;
+}
+.notif-dd-item:hover{background:#17181a}
+.notif-dd-item.unread{background:#13181f}
+.notif-dd-icon{font-size:18px;line-height:1;margin-top:2px}
+.notif-dd-body{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.notif-dd-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-dd-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;vertical-align:middle;margin-left:4px}
+.notif-dd-text{font-size:12px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-dd-time{font-size:11px;color:#64748b}
+.notif-dd-all{
+  display:block;width:100%;padding:10px 14px;background:none;border:none;
+  color:#38bdf8;font-size:13px;font-weight:600;cursor:pointer;text-align:center;
+}
+.notif-dd-all:hover{background:#17181a}
+body.light-mode .notif-dropdown{background:#ffffff;border-color:#c8cdd8;box-shadow:0 12px 32px rgba(0,0,0,.15)}
+body.light-mode .notif-dd-head,body.light-mode .notif-dd-item{color:#2d3748;border-color:#e5e9f0}
+body.light-mode .notif-dd-item:hover,body.light-mode .notif-dd-all:hover{background:#f1f5f9}
+body.light-mode .notif-dd-item.unread{background:#eef6ff}
 #recaptcha-container{margin:8px 0;min-height:1px}
 @media(max-width:520px){.provider-grid{grid-template-columns:1fr}.provider-card{height:58px;flex-direction:row}}
 
@@ -3240,6 +3272,7 @@ button,input,select,textarea{max-width:100%}
     </div>
     <div class="actions">
       <button id="notifyBtn" class="notify-btn" type="button" title="Bildirişlər" onclick="openNotifications()">🔔<b id="notifyBadge" style="display:none">0</b></button>
+      <div id="notifDropdown" class="notif-dropdown"></div>
       <button id="headerBalanceBtn" class="header-balance" type="button" title="Balansım" style="display:none" onclick="openWalletPage()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor"/></svg>
         <span id="headerBalanceAmount">0.00 ₼</span>
@@ -3560,6 +3593,36 @@ button,input,select,textarea{max-width:100%}
   <div id="cartItems"></div>
   <div class="cart-total"><span>Cəmi</span><span id="cartTotal">0.00 ₼</span></div>
   <button class="fullbtn" onclick="checkoutCart()">Sifarişi Tamamla</button>
+</div>
+
+
+<!-- ── TELEFON TƏSDİQİ (məcburi) ─────────────────────────── -->
+<div class="cabinet-modal" id="phoneVerifyModal">
+  <div class="cabinet-box" style="max-width:420px;min-height:auto">
+    <div class="cabinet-head">
+      <h3>📱 Nömrə təsdiqi</h3>
+      <button class="hbtn" type="button" id="pvCloseBtn" onclick="pvCloseOrLogout()">Bağla</button>
+    </div>
+    <div style="padding:18px">
+      <p style="margin:0 0 14px;color:#c8ccd0;font-size:13px;line-height:1.6">
+        Alış-satış və digər əməliyyatlar üçün telefon nömrənizi təsdiqləməlisiniz.
+        Nömrənizə SMS kod göndəriləcək.
+      </p>
+      <div id="pvStep1">
+        <input id="pvPhone" placeholder="+994551234567" inputmode="tel" autocomplete="tel"
+               style="width:100%;box-sizing:border-box;margin-bottom:10px">
+        <button class="fullbtn" type="button" id="pvSendBtn" onclick="pvSendCode()">SMS kod göndər</button>
+      </div>
+      <div id="pvStep2" style="display:none">
+        <input id="pvCode" placeholder="6 rəqəmli kod" inputmode="numeric" maxlength="6"
+               style="width:100%;box-sizing:border-box;margin-bottom:10px">
+        <button class="fullbtn" type="button" id="pvConfirmBtn" onclick="pvConfirmCode()">Təsdiqlə</button>
+        <button type="button" onclick="pvBack()" style="width:100%;margin-top:8px;background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer">← Nömrəni dəyiş</button>
+      </div>
+      <div id="pvStatus" style="margin-top:10px;font-size:12.5px;color:#fb923c;min-height:16px"></div>
+      <div id="pvRecaptcha"></div>
+    </div>
+  </div>
 </div>
 
 <div class="cabinet-modal" id="cabinetModal">
@@ -5360,6 +5423,7 @@ window.goToPage = function(page){
 };
 
 function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
+  if(currentUser && !currentUser.phoneNumber){ if(window.requirePhoneVerified) window.requirePhoneVerified(); return; }
   // Özüm satıram elanı — səbətə əlavə oluna bilməz
   const p = currentDetailProduct || {};
   if(p.contactMode === "direct_contact" || window._pendingContactMode === "direct_contact"){
@@ -5417,6 +5481,7 @@ function removeCart(i){
 
 async function checkoutCart(){
   if(cart.length===0){showToast("Səbət boşdur");return}
+  if(!requirePhoneVerified()){ toast("Alış üçün nömrənizi təsdiqləyin."); return; }
 
   // Alıcı üçün alış şərtləri — sayt vasitəsilə alışda oxunub qəbul edilməlidir
   const termsAccepted = await showBuyerTermsModal();
@@ -5558,6 +5623,7 @@ import {
   getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  linkWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -6084,6 +6150,151 @@ window.openCabinetModal = function(){
   const m=document.getElementById("cabinetModal");
   if(m){ m.classList.add("show"); document.body.style.overflow="hidden"; }
 };
+// ── MƏCBURİ NÖMRƏ TƏSDİQİ ──────────────────────────────────
+// Auth token-dəki phoneNumber saxtalaşdırıla bilməz — yoxlama ona əsaslanır.
+window.isPhoneVerified = function(){ return !!(currentUser && currentUser.phoneNumber); };
+// TAM KİLİD: nömrə təsdiqlənməyənə qədər saytın BÜTÜN funksiyaları bağlıdır.
+window.syncPhoneLock = function(){
+  // DÜZƏLİŞ: əvvəl yalnız emailVerified olanda kilidlənirdi — köhnə/persist
+  // sessiyalar (email təsdiqsiz qalanlar) kiliddən yayınırdı. İndi giriş etmiş
+  // və nömrəsi olmayan HƏR KƏS kilidlənir.
+  const locked = !!(currentUser && !currentUser.phoneNumber);
+  document.body.classList.toggle("phone-locked", locked);
+  const closeBtn = document.getElementById("pvCloseBtn");
+  if(closeBtn) closeBtn.textContent = locked ? "Çıxış et" : "Bağla";
+  if(locked){ openPhoneVerifyModal(); }
+  else { document.getElementById("phoneVerifyModal")?.classList.remove("show"); }
+};
+window.pvCloseOrLogout = function(){
+  if(document.body.classList.contains("phone-locked")){
+    if(typeof logoutUser === "function") logoutUser();
+    else signOut(auth).catch(()=>{});
+    document.getElementById("phoneVerifyModal")?.classList.remove("show");
+    document.body.classList.remove("phone-locked");
+  } else {
+    closeModal("phoneVerifyModal");
+  }
+};
+// Qlobal bloklama — kilidli ikən modal, çıxış və dəstəkdən başqa hər klik dayandırılır
+let _pvLockToastAt = 0;
+document.addEventListener("click", function(ev){
+  if(!document.body.classList.contains("phone-locked")) return;
+  const t = ev.target;
+  if(t.closest && (
+       t.closest("#phoneVerifyModal")
+    || t.closest("#supportBtn")
+    || t.closest("#supportPanel")
+    || t.closest("#registerBtn")
+    || t.closest("#themeToggle")
+  )) return;
+  const actionable = t.closest && t.closest("button, [role='button'], [onclick], a, input[type='submit'], .fullbtn, .ad-cart-btn, .ad-fav-btn");
+  if(!actionable) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  ev.stopImmediatePropagation();
+  openPhoneVerifyModal();
+  const now=Date.now();
+  if(now - _pvLockToastAt > 3000){
+    _pvLockToastAt = now;
+    toast("\ud83d\udcf1 Davam etm\u0259k \u00fc\u00e7\u00fcn n\u00f6mr\u0259nizi t\u0259sdiql\u0259yin.");
+  }
+}, true);
+// Kilidli ikən form submit və Enter də bloklanır (klik blokerindən yayınma yolu idi)
+document.addEventListener("submit", function(ev){
+  if(!document.body.classList.contains("phone-locked")) return;
+  if(ev.target && ev.target.closest && ev.target.closest("#phoneVerifyModal")) return;
+  ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+  openPhoneVerifyModal();
+}, true);
+document.addEventListener("keydown", function(ev){
+  if(ev.key !== "Enter") return;
+  if(!document.body.classList.contains("phone-locked")) return;
+  const t = ev.target;
+  if(t && t.closest && (t.closest("#phoneVerifyModal") || t.closest("#supportPanel"))) return;
+  ev.preventDefault(); ev.stopPropagation();
+  openPhoneVerifyModal();
+}, true);
+// Sığorta: hər 5 saniyədə kilid vəziyyəti yenidən sinxronlaşdırılır
+// (hansısa axın syncPhoneLock çağırmasa belə kilid tez bərpa olunur)
+setInterval(function(){
+  try{ if(currentUser && !window._isRegistering) window.syncPhoneLock(); }catch(e){}
+}, 5000);
+
+window.requirePhoneVerified = function(){
+  if(!currentUser){ openModal("loginModal"); return false; }
+  if(currentUser.phoneNumber) return true;
+  openPhoneVerifyModal();
+  return false;
+};
+window.openPhoneVerifyModal = function(){
+  document.getElementById("pvStep1").style.display="";
+  document.getElementById("pvStep2").style.display="none";
+  document.getElementById("pvStatus").textContent="";
+  document.getElementById("phoneVerifyModal")?.classList.add("show");
+};
+let _pvConfirmation = null;
+let _pvVerifier = null;
+function pvStatus(t){ const el=document.getElementById("pvStatus"); if(el) el.textContent=t; }
+window.pvBack = function(){
+  document.getElementById("pvStep1").style.display="";
+  document.getElementById("pvStep2").style.display="none";
+  pvStatus("");
+};
+window.pvSendCode = async function(){
+  const phone = (document.getElementById("pvPhone")?.value||"").trim();
+  if(!/^\+[0-9]{10,15}$/.test(phone)){ pvStatus("Nömrəni ölkə kodu ilə yaz: +994551234567"); return; }
+  const btn=document.getElementById("pvSendBtn"); if(btn) btn.disabled=true;
+  try{
+    if(!_pvVerifier){
+      _pvVerifier = new RecaptchaVerifier(auth, "pvRecaptcha", {size:"invisible"});
+    }
+    _pvConfirmation = await linkWithPhoneNumber(currentUser, phone, _pvVerifier);
+    document.getElementById("pvStep1").style.display="none";
+    document.getElementById("pvStep2").style.display="";
+    pvStatus("Kod göndərildi: " + phone);
+  }catch(e){
+    console.error("pvSendCode:", e);
+    if(e.code==="auth/credential-already-in-use" || e.code==="auth/account-exists-with-different-credential")
+      pvStatus("Bu nömrə başqa hesaba bağlıdır.");
+    else if(e.code==="auth/provider-already-linked")
+      pvStatus("Nömrəniz artıq təsdiqlənib. Səhifəni yeniləyin.");
+    else if(e.code==="auth/too-many-requests")
+      pvStatus("Çox cəhd edildi. Bir az sonra yenidən yoxla.");
+    else pvStatus("SMS göndərilmədi: " + (e.code||e.message||""));
+    try{ _pvVerifier && _pvVerifier.clear(); }catch(_){}
+    _pvVerifier=null;
+  }
+  if(btn) btn.disabled=false;
+};
+window.pvConfirmCode = async function(){
+  const code=(document.getElementById("pvCode")?.value||"").trim();
+  if(!/^[0-9]{6}$/.test(code)){ pvStatus("6 rəqəmli kodu yaz."); return; }
+  if(!_pvConfirmation){ pvStatus("Əvvəl SMS kod göndər."); return; }
+  const btn=document.getElementById("pvConfirmBtn"); if(btn) btn.disabled=true;
+  try{
+    const cred = await _pvConfirmation.confirm(code);
+    currentUser = auth.currentUser;
+    // Profilə yaz (göstərici — real yoxlama auth token-dədir)
+    try{
+      await setDoc(doc(db,"users",currentUser.uid), {
+        phone: currentUser.phoneNumber || "",
+        phoneVerified: true,
+        phoneVerifiedAt: serverTimestamp()
+      }, {merge:true});
+    }catch(e){ console.warn("phone profile save:", e); }
+    document.body.classList.remove("phone-locked");
+    closeModal("phoneVerifyModal");
+    try{ window.syncPhoneLock(); }catch(e){}
+    toast("✅ Nömrəniz təsdiqləndi! İndi bütün funksiyalardan istifadə edə bilərsiniz.");
+  }catch(e){
+    console.error("pvConfirmCode:", e);
+    if(e.code==="auth/invalid-verification-code") pvStatus("Kod yanlışdır.");
+    else if(e.code==="auth/code-expired") pvStatus("Kodun vaxtı bitib. Yenidən göndər.");
+    else pvStatus("Təsdiq alınmadı: " + (e.code||""));
+  }
+  if(btn) btn.disabled=false;
+};
+
 let adminStatsState = {pendingAds:0,openTickets:0,activeOrders:0,balanceRequests:0,users:0,verifiedSellers:0,blockedUsers:0,totalSales:0,totalVolume:0};
 // ── Statistika sıfırlama nöqtəsi: bu tarixdən əvvəlki sifarişlər dashboard
 // rəqəmlərinə sayılmır (birdəfəlik reset — 2026-07-09).
@@ -6303,6 +6514,7 @@ window.submitProductReview = async function(){
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
   if(!currentUser.emailVerified){ toast("Rəy yazmaq üçün emaili təsdiqlə."); return; }
+  if(!requirePhoneVerified()){ toast("Rəy yazmaq üçün nömrənizi təsdiqləyin."); return; }
   if(!rateLimiter("submitReview", 120_000, "Rəy yazmaq üçün 2 dəqiqə gözləyin.")) return;
   const text=(document.getElementById("pdReviewText")?.value||"").trim();
   const rating=Number(document.getElementById("pdReviewStars")?.value||5);
@@ -6667,6 +6879,7 @@ async function loginUser(){
     updateHeader();
     closeModal("loginModal");
     toast("Giriş uğurludur");
+    try{ window.syncPhoneLock(); }catch(e){}
   }catch(e){
     authStatus("Email və ya şifrə yanlışdır.");
   }
@@ -7825,6 +8038,7 @@ window.submitAd = async function(){
 
   await refreshUser();
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); return; }
+  if(!requirePhoneVerified()){ toast("Elan yerləşdirmək üçün nömrənizi təsdiqləyin."); return; }
 
   // Rate limiter — xəbərdarlıq göstər
   if(!rateLimiter("submitAd", 5_000, "")) {
@@ -8038,6 +8252,12 @@ window.addEventListener("unhandledrejection", (ev)=>{
 });
 
 window.createOrdersFromCart = async function(items){
+  // MƏCBURİ NÖMRƏ TƏSDİQİ — checkout keçilsə belə burada dayanır
+  if(!currentUser || !currentUser.phoneNumber){
+    toast("Alış üçün əvvəlcə nömrənizi təsdiqləyin.");
+    try{ openPhoneVerifyModal(); }catch(e){}
+    return;
+  }
   await refreshUser();
   if(!currentUser || !currentUser.emailVerified){ openModal("loginModal"); toast("Alış üçün əvvəlcə giriş et"); return; }
   if(await blockGuard("Alış")) return;
@@ -8380,6 +8600,7 @@ async function renderWallet(){
 }
 
 window.submitDepositRequest = async function(){
+  if(!requirePhoneVerified()){ toast("Balans əməliyyatı üçün nömrənizi təsdiqləyin."); return; }
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
   if(!rateLimiter("submitDeposit", 30_000, "Balans artırma müraciəti üçün 30 saniyə gözləyin.")) return;
@@ -8430,6 +8651,7 @@ async function renderWithdraw(){
 }
 
 window.submitWithdrawRequest = async function(){
+  if(!requirePhoneVerified()){ toast("Çıxarış üçün nömrənizi təsdiqləyin."); return; }
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
   if(!rateLimiter("submitWithdraw", 30_000, "Çıxarış müraciəti üçün 30 saniyə gözləyin.")) return;
@@ -8594,14 +8816,32 @@ function listenHeaderNotifications(){
   };
   const qb=query(collection(db,"chats"),where("buyerUid","==",currentUser.uid));
   const qs=query(collection(db,"chats"),where("sellerUid","==",currentUser.uid));
+  const collectChatItems=(snap, side)=>{
+    const arr=[];
+    snap.forEach(d=>{
+      const c=d.data()||{};
+      const t=(c.updatedAt&&c.updatedAt.toMillis)?c.updatedAt.toMillis():((c.createdAt&&c.createdAt.toMillis)?c.createdAt.toMillis():0);
+      arr.push({
+        type:"chat", id:d.id,
+        title:(c.productTitle||"Yazışma"),
+        text:(c.lastMessage||"Yeni yazışma"),
+        time:t,
+        unread:Number(side==="buyer"?(c.unreadBuyer||0):(c.unreadSeller||0))
+      });
+    });
+    _notifItems[side]=arr;
+    renderNotifDropdown();
+  };
   headerNotifUnsubs.push(onSnapshot(qb,s=>{
     buyerUnread=0;
     s.forEach(d=>{ buyerUnread+=Number((d.data()||{}).unreadBuyer||0); });
+    collectChatItems(s,"buyer");
     draw();
   },retry));
   headerNotifUnsubs.push(onSnapshot(qs,s=>{
     sellerUnread=0;
     s.forEach(d=>{ sellerUnread+=Number((d.data()||{}).unreadSeller||0); });
+    collectChatItems(s,"seller");
     draw();
   },retry));
   // Admin bildirişləri — yalnız admin üçün
@@ -8609,18 +8849,108 @@ function listenHeaderNotifications(){
     const qa=query(collection(db,"adminNotifications"),where("status","==","Admin təsdiqi gözləyir"));
     headerNotifUnsubs.push(onSnapshot(qa,s=>{
       adminUnread=s.size;
+      const arr=[];
+      s.forEach(d=>{
+        const n=d.data()||{};
+        const t=(n.createdAt&&n.createdAt.toMillis)?n.createdAt.toMillis():0;
+        arr.push({type:"admin", id:d.id, title:(n.title||"Admin təsdiqi"), text:(n.text||n.productTitle||""), time:t, unread:1});
+      });
+      _notifItems.admin=arr;
+      renderNotifDropdown();
       draw();
     },retry));
-  }
+  } else { _notifItems.admin=[]; }
 }
-window.openNotifications=function(){
+
+// ── BİLDİRİŞ DROPDOWN — zəngə toxunanda son 3 bildiriş göstərilir,
+// toxunanda müvafiq bölməyə (yazışma / admin paneli) yönləndirir.
+let _notifItems = {buyer:[], seller:[], admin:[]};
+function _notifTimeAgo(t){
+  if(!t) return "";
+  const s=Math.max(0,(Date.now()-t)/1000);
+  if(s<60) return "indicə";
+  if(s<3600) return Math.floor(s/60)+" dəq əvvəl";
+  if(s<86400) return Math.floor(s/3600)+" saat əvvəl";
+  return Math.floor(s/86400)+" gün əvvəl";
+}
+function _notifEsc(s){ return String(s||"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function getRecentNotifItems(){
+  const all=[..._notifItems.buyer, ..._notifItems.seller, ..._notifItems.admin];
+  // Eyni chat həm buyer həm seller siyahısına düşə bilməz, amma ehtiyat üçün dedupe:
+  const seen={}; const out=[];
+  all.sort((a,b)=>b.time-a.time);
+  for(const it of all){
+    const k=it.type+":"+it.id;
+    if(seen[k]) continue; seen[k]=1; out.push(it);
+    if(out.length>=3) break;
+  }
+  return out;
+}
+function renderNotifDropdown(){
+  const panel=document.getElementById("notifDropdown");
+  if(!panel) return;
+  const items=getRecentNotifItems();
+  let html='<div class="notif-dd-head">🔔 Son bildirişlər</div>';
+  if(!items.length){
+    html+='<div class="notif-dd-empty">Hələ bildiriş yoxdur.</div>';
+  }else{
+    html+=items.map(it=>{
+      const icon = it.type==="admin" ? "🛠" : "💬";
+      return '<button type="button" class="notif-dd-item'+(it.unread>0?" unread":"")+'" '
+        + 'onclick="notifItemClick(\''+it.type+'\',\''+_notifEsc(it.id)+'\')">'
+        + '<span class="notif-dd-icon">'+icon+'</span>'
+        + '<span class="notif-dd-body">'
+        +   '<span class="notif-dd-title">'+_notifEsc(it.title).slice(0,60)+(it.unread>0?' <b class="notif-dd-dot"></b>':'')+'</span>'
+        +   '<span class="notif-dd-text">'+_notifEsc(it.text).slice(0,70)+'</span>'
+        +   '<span class="notif-dd-time">'+_notifTimeAgo(it.time)+'</span>'
+        + '</span>'
+        + '</button>';
+    }).join("");
+  }
+  html+='<button type="button" class="notif-dd-all" onclick="notifSeeAll()">Hamısına bax →</button>';
+  panel.innerHTML=html;
+}
+window.notifItemClick=function(type,id){
+  hideNotifDropdown();
+  if(!currentUser){ openModal("loginModal"); return; }
+  if(type==="admin"){
+    openCabinetModal();
+    if(typeof window.showTab==="function") window.showTab("admin");
+  }else{
+    openCabinetModal();
+    if(typeof window.showTab==="function") window.showTab("messages");
+    try{ openChat(id); }catch(e){ console.warn("notif chat open:",e); }
+  }
+};
+window.notifSeeAll=function(){
+  hideNotifDropdown();
   if(!currentUser){ openModal("loginModal"); return; }
   openCabinetModal();
-  if(currentUserRole === "admin"){
-    if(typeof window.showTab==="function") window.showTab("admin");
-  } else {
-    if(typeof window.showTab==="function") window.showTab("messages");
-  }
+  if(typeof window.showTab==="function") window.showTab(currentUserRole==="admin"?"admin":"messages");
+};
+function hideNotifDropdown(){ const p=document.getElementById("notifDropdown"); if(p) p.classList.remove("show"); }
+function toggleNotifDropdown(){
+  const p=document.getElementById("notifDropdown");
+  const btn=document.getElementById("notifyBtn");
+  if(!p||!btn) return;
+  if(p.classList.contains("show")){ p.classList.remove("show"); return; }
+  renderNotifDropdown();
+  const r=btn.getBoundingClientRect();
+  p.style.top=(r.bottom+8)+"px";
+  const right=Math.max(8, window.innerWidth - r.right);
+  p.style.right=right+"px";
+  p.classList.add("show");
+}
+document.addEventListener("click",function(ev){
+  const p=document.getElementById("notifDropdown");
+  if(!p||!p.classList.contains("show")) return;
+  if(ev.target.closest && (ev.target.closest("#notifDropdown")||ev.target.closest("#notifyBtn"))) return;
+  p.classList.remove("show");
+});
+window.openNotifications=function(){
+  if(!currentUser){ openModal("loginModal"); return; }
+  // Artıq birbaşa kabinetə keçmir — əvvəl son 3 bildiriş göstərilir.
+  toggleNotifDropdown();
 };
 
 // ============================================================
@@ -8751,6 +9081,7 @@ async function ensureChatForProduct(p){
   return chatId;
 }
 window.openChatFromProduct=async function(p){
+  if(!requirePhoneVerified()){ toast("Yazışma üçün nömrənizi təsdiqləyin."); return; }
   const id=await ensureChatForProduct(p);
   if(!id) return;
   closeModal("productModal");
@@ -10769,7 +11100,12 @@ onAuthStateChanged(auth, async user=>{
   if(currentUser){
     startOwnPresence();
     if(typeof startGlobalChatNotifications === "function") startGlobalChatNotifications();
+    // MƏCBURİ NÖMRƏ TƏSDİQİ: nömrə bağlanana qədər sayt tam kilidlənir.
+    if(!window._isRegistering){
+      try{ window.syncPhoneLock(); }catch(e){}
+    }
   }else{
+    document.body.classList.remove("phone-locked");
     stopOwnPresence();
     if(typeof stopGlobalChatNotifications === "function") stopGlobalChatNotifications();
   }
