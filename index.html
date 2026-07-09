@@ -5432,10 +5432,16 @@ window.goToPage = function(page){
 };
 
 function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
-  if(currentUser && !currentUser.phoneNumber){ if(window.requirePhoneVerified) window.requirePhoneVerified(); return; }
-  // Özüm satıram elanı — səbətə əlavə oluna bilməz
+  // Telefon təsdiqi qoruyucusu. QEYD: currentUser modul skriptindədir və burada
+  // görünmür — window üzərindən yoxlayırıq ki, ReferenceError çökməsi olmasın.
+  const _cu = window.currentUser;
+  if(_cu && !_cu.phoneNumber){ if(window.requirePhoneVerified) window.requirePhoneVerified(); return; }
+  // Özüm satıram elanı — səbətə əlavə oluna bilməz.
+  // DÜZƏLİŞ: currentDetailProduct köhnə (əvvəl açılmış) elan ola bilər —
+  // yoxlama yalnız ƏLAVƏ OLUNAN elanın özünə aid olduqda aparılır.
   const p = currentDetailProduct || {};
-  if(p.contactMode === "direct_contact" || window._pendingContactMode === "direct_contact"){
+  const sameProduct = adId && p.adId === adId;
+  if(sameProduct && p.contactMode === "direct_contact"){
     const phone = p.directPhone || p.directWhatsapp || "";
     const msg = "Bu elan səbətə əlavə oluna bilməz.\n\n"
       + "Səbəb: Satıcı 'Özüm satıram' üsulunu seçib. Məhsul sayt üzərindən deyil, birbaşa satıcı tərəfindən satılır — sayt ödənişi qəbul etmir və zəmanət vermir.\n\n"
@@ -6164,6 +6170,9 @@ window.openCabinetModal = function(){
 window.isPhoneVerified = function(){ return !!(currentUser && currentUser.phoneNumber); };
 // TAM KİLİD: nömrə təsdiqlənməyənə qədər saytın BÜTÜN funksiyaları bağlıdır.
 window.syncPhoneLock = function(){
+  // window.currentUser-i sinxron saxla — qeyri-modul skriptlər (addToCart və s.)
+  // istifadəçini yalnız buradan görə bilir.
+  window.currentUser = currentUser;
   // DÜZƏLİŞ: əvvəl yalnız emailVerified olanda kilidlənirdi — köhnə/persist
   // sessiyalar (email təsdiqsiz qalanlar) kiliddən yayınırdı. İndi giriş etmiş
   // və nömrəsi olmayan HƏR KƏS kilidlənir.
@@ -6234,7 +6243,7 @@ document.addEventListener("keydown", function(ev){
 // Sığorta: hər 5 saniyədə kilid vəziyyəti yenidən sinxronlaşdırılır
 // (hansısa axın syncPhoneLock çağırmasa belə kilid tez bərpa olunur)
 setInterval(function(){
-  try{ if(currentUser && !window._isRegistering) window.syncPhoneLock(); }catch(e){}
+  try{ if(!window._isRegistering) window.syncPhoneLock(); }catch(e){}
 }, 5000);
 
 window.requirePhoneVerified = function(){
