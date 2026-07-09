@@ -9460,6 +9460,14 @@ async function _fetchDealsAdmin(){
   }
 }
 window._fetchDealsAdmin = _fetchDealsAdmin;
+// adminShell inline onclick-ləri modul scope-u görmür — window-a bağla
+window._fetchOrdersAdmin = _fetchOrdersAdmin;
+window._fetchPendingAds = _fetchPendingAds;
+window._fetchAllAdsAdmin = _fetchAllAdsAdmin;
+window._fetchBalanceAdmin = _fetchBalanceAdmin;
+window._fetchUsersAdmin = _fetchUsersAdmin;
+window._fetchChatsAdmin = _fetchChatsAdmin;
+window._fetchTicketsAdmin = _fetchTicketsAdmin;
 
 // Admin: sifarişdəki hesab məlumatlarını yalnız admin yoxlamasına çıxarır.
 // Buradan alıcıya mesaj getmir. Alıcıya yalnız adminNotifications bölməsindəki
