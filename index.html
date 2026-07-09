@@ -4689,26 +4689,47 @@ function render(){
   const epinsEl=document.getElementById("epins");
   const sellersEl=document.getElementById("sellers");
 
+  // DÜZƏLİŞ (XSS): əvvəl massiv dəyərləri birbaşa inline onclick-in içinə
+  // yapışdırılırdı — tək dırnaq və ya HTML simvolu kod icrasına yol açırdı.
+  // İndi dəyərlər yalnız data-idx ilə ötürülür, obyekt JS tərəfdə qurulur.
   if(gamesEl) {
-    gamesEl.innerHTML=games.map(x=>`
-      <button class="game searchable" data-game="${x[4]||''}" data-category="Oyun" onclick="openProductDetail({title:'${x[1]}',price:'Elanlara bax',category:'${x[3]}',desc:'${x[2]}',seller:'Hesablar.net',icon:x[0]})">
-        <div class="game-img" data-game="${x[4]||''}">${x[0]}</div><b>${safeText(x[1])}</b>
+    gamesEl.innerHTML=games.map((x,i)=>`
+      <button class="game searchable" data-game="${safeText(x[4]||'')}" data-category="Oyun" data-idx="${i}">
+        <div class="game-img" data-game="${safeText(x[4]||'')}">${x[0]}</div><b>${safeText(x[1])}</b>
       </button>`).join("");
+    gamesEl.querySelectorAll("button[data-idx]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const x=games[Number(btn.dataset.idx)]; if(!x) return;
+        openProductDetail({title:x[1],price:"Elanlara bax",category:x[3],desc:x[2],seller:"Hesablar.net",icon:x[0]});
+      });
+    });
   }
 
   if(epinsEl) {
-    epinsEl.innerHTML=epins.map(x=>`
-      <button class="epin searchable" data-category="Gift Card & E-Pin" onclick="openProductDetail({title:'${x[1]}',price:x[2],category:'Gift Card & E-Pin',desc:'Rəqəmsal kod. Ödənişdən sonra çatdırılır.',seller:'Hesablar.net',icon:x[0]})">
+    epinsEl.innerHTML=epins.map((x,i)=>`
+      <button class="epin searchable" data-category="Gift Card & E-Pin" data-idx="${i}">
         <div class="epin-img">${x[0]}</div>
         <div class="epin-body"><b>${safeText(x[1])}</b><div class="price">${safeText(x[2])}</div><div class="old">${safeText(x[3])}</div></div>
       </button>`).join("");
+    epinsEl.querySelectorAll("button[data-idx]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const x=epins[Number(btn.dataset.idx)]; if(!x) return;
+        openProductDetail({title:x[1],price:x[2],category:"Gift Card & E-Pin",desc:"Rəqəmsal kod. Ödənişdən sonra çatdırılır.",seller:"Hesablar.net",icon:x[0]});
+      });
+    });
   }
 
   if(sellersEl) {
-    sellersEl.innerHTML=sellers.map(x=>`
-      <button class="seller searchable" onclick="showToast('${safeText(x[1])} mağazası açılır...')">
+    sellersEl.innerHTML=sellers.map((x,i)=>`
+      <button class="seller searchable" data-idx="${i}">
         <div class="sicon">${x[0]}</div><div><b>${safeText(x[1])}</b><br><span class="star">★</span> <small>${safeText(x[2])}</small></div><strong>${safeText(x[3])}</strong>
       </button>`).join("");
+    sellersEl.querySelectorAll("button[data-idx]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const x=sellers[Number(btn.dataset.idx)]; if(!x) return;
+        showToast(x[1]+" mağazası açılır...");
+      });
+    });
   }
 
   renderMarketAds();
@@ -10805,7 +10826,9 @@ async function requestPayout(id){
     const oRef = doc(db,"orders",id);
     // Atomik: yoxlama + payoutRequested + payoutRequests sənədi bir transaction-da.
     // İki tab paralel bassa, ikincisi ALREADY_REQUESTED ilə dayanır.
-    const payoutRef = doc(collection(db,"payoutRequests"));
+    // DÜZƏLİŞ: deterministik ID — eyni order üçün ikinci payout sənədi
+    // yaradıla bilməz (Rules tərəfində də eyni şərt yoxlanılır).
+    const payoutRef = doc(db,"payoutRequests","po_"+id);
     let _o = null;
     await runTransaction(db, async (tx)=>{
       const oSnap = await tx.get(oRef);
