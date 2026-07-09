@@ -610,7 +610,7 @@ body.light-mode .admin-support-name{color:#1a1d23}
 .cart-total{display:flex;justify-content:space-between;font-weight:900;margin:14px 0}
 
 #cabinetBtn{align-items:center!important;justify-content:center!important;border:1px solid #ff6a00!important}
-.cabinet-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;align-items:center;justify-content:center;padding:18px}
+.cabinet-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:999999;align-items:center;justify-content:center;padding:18px}
 .cabinet-modal.show{display:flex!important}
 .cabinet-box{width:100%;max-width:980px;max-height:90vh;overflow:auto;background:#101111;border:1px solid #333636;border-radius:12px;color:#fff;box-shadow:0 20px 80px #000}
 .cabinet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #292b2b}
@@ -3950,8 +3950,6 @@ button,input,select,textarea{max-width:100%}
           <span id="pdPrice">0.00 ₼</span>
         </div>
 
-        <p id="pdDesc">Məhsul haqqında məlumat.</p>
-
         <div class="product-actions">
           <button class="fullbtn" type="button" id="pdAddCart">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:17px;height:17px;margin-right:7px;vertical-align:middle"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
@@ -4008,6 +4006,13 @@ button,input,select,textarea{max-width:100%}
           Elanı şikayət et
         </button>
       </div>
+    </div>
+    <div class="reviews-box" id="pdDescBox">
+      <h4>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Elan haqqında
+      </h4>
+      <p id="pdDesc" style="margin:0;color:#c8ccd0;font-size:13.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;">Məhsul haqqında məlumat.</p>
     </div>
     <div class="reviews-box">
       <h4>
@@ -4570,6 +4575,7 @@ function openModal(id){
 }
 function closeModal(id){
   document.getElementById(id)?.classList.remove("show");
+  if(id === "cabinetModal") document.body.style.overflow="";
   if(id === "productModal") document.body.classList.remove("pd-open");
   // Elan bağlananda SEO meta-larını ana səhifə default-una qaytar
   if(id === "productModal"){
@@ -4863,7 +4869,6 @@ window.renderMarketAds = function renderMarketAds(){
             + '<span class="ad-seller-avatar">'+esc((a.seller||"?").trim().slice(0,1).toUpperCase())+'</span>'
             + '<b>'+a.title+'</b>'
           + '</div>'
-          + '<p>'+a.desc+'</p>'
           + '<div style="display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;">'
             + '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">'
               + '<div class="aprice">'+a.price+'</div>'
@@ -5490,7 +5495,7 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Escape"){
     document.querySelectorAll(".modal").forEach(m=>m.classList.remove("show"));
     document.getElementById("cartPanel")?.classList.remove("show");
-    document.getElementById("cabinetModal")?.classList.remove("show");
+    document.getElementById("cabinetModal")?.classList.remove("show"); document.body.style.overflow="";
   }
 });
 
@@ -6070,7 +6075,19 @@ function stopOwnPresence(){
 let unsubMyAds = null, unsubAdmin = null, unsubPublicAds = null;
 let unsubProductReviews = null;
 let adminUnsubs = [];
+// ── Kabinet modalını təhlükəsiz aç: səbət/bildiriş panellərini bağlayır,
+// arxa fonun skrollunu kilidləyir (üst-üstə düşmə bugı üçün).
+window.openCabinetModal = function(){
+  document.getElementById("cartPanel")?.classList.remove("show");
+  document.getElementById("notifPanel")?.classList.remove("show");
+  document.querySelectorAll(".notif-panel,.notif-dropdown").forEach(x=>x.classList.remove("show"));
+  const m=document.getElementById("cabinetModal");
+  if(m){ m.classList.add("show"); document.body.style.overflow="hidden"; }
+};
 let adminStatsState = {pendingAds:0,openTickets:0,activeOrders:0,balanceRequests:0,users:0,verifiedSellers:0,blockedUsers:0,totalSales:0,totalVolume:0};
+// ── Statistika sıfırlama nöqtəsi: bu tarixdən əvvəlki sifarişlər dashboard
+// rəqəmlərinə sayılmır (birdəfəlik reset — 2026-07-09).
+window.ADMIN_STATS_RESET_AT = 1752019200000;
 let activeReviewProductKey = "";
 
 function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg); }
@@ -6531,7 +6548,7 @@ function updateHeader(){
   const notifyPerm=document.getElementById("notifyPermBtn");
 
   if(currentUser && currentUser.emailVerified){
-    if(login){ login.textContent="Kabinet"; login.onclick=()=>{ document.getElementById("cabinetModal")?.classList.add("show"); }; }
+    if(login){ login.textContent="Kabinet"; login.onclick=()=>{ openCabinetModal(); }; }
     if(register) register.textContent="Çıxış";
   }else{
     if(login){ login.textContent="Giriş et"; login.onclick=null; }
@@ -7751,7 +7768,7 @@ async function openCabinet(){
   }
   if(await blockGuard("Kabinet")) return;
   syncAdminBodyClass();
-  document.getElementById("cabinetModal")?.classList.add("show");
+  openCabinetModal();
   window.showTab("profile");
 }
 
@@ -7982,7 +7999,7 @@ window.submitAd = async function(){
 
     // Kabineti bağla və uğur bildirişi göstər
     const modal = document.getElementById("cabinetModal");
-    if(modal) modal.classList.remove("show");
+    if(modal){ modal.classList.remove("show"); document.body.style.overflow=""; }
     authStatus(editingId
       ? "✅ Elan yeniləndi! Admin təsdiqindən sonra bazara çıxacaq."
       : "✅ Elanınız göndərildi! Admin təsdiqindən sonra bazara çıxacaq.");
@@ -8560,34 +8577,45 @@ window.openWalletPage = function(){
 
 function listenHeaderNotifications(){
   stopHeaderNotifications();
-  setHeaderNotificationCount(0);
-  if(!currentUser) return;
-  let buyerUnread=0, sellerUnread=0, adminUnread=0;
-  const draw=()=>setHeaderNotificationCount(buyerUnread+sellerUnread+adminUnread);
+  // DÜZƏLİŞ: yenidən qoşulanda sayğacı dərhal 0-lamırıq — snapshot gələnə
+  // qədər köhnə rəqəm qalır (badge "gah gəlir gah gedir" flicker-inin qarşısı).
+  if(!currentUser){ setHeaderNotificationCount(0); return; }
+  let buyerUnread=null, sellerUnread=null, adminUnread=(currentUserRole==="admin")?null:0;
+  const draw=()=>{
+    // Yalnız bütün mənbələr ən azı bir dəfə cavab verəndə çək
+    if(buyerUnread===null||sellerUnread===null||adminUnread===null) return;
+    setHeaderNotificationCount(buyerUnread+sellerUnread+adminUnread);
+  };
+  // Xəta olduqda (kvota/şəbəkə) 20 saniyə sonra yenidən qoşul
+  const retry=(e)=>{
+    console.warn("notif listen err:",e?.code||e);
+    stopHeaderNotifications();
+    setTimeout(()=>{ if(currentUser) listenHeaderNotifications(); }, 20000);
+  };
   const qb=query(collection(db,"chats"),where("buyerUid","==",currentUser.uid));
   const qs=query(collection(db,"chats"),where("sellerUid","==",currentUser.uid));
   headerNotifUnsubs.push(onSnapshot(qb,s=>{
     buyerUnread=0;
     s.forEach(d=>{ buyerUnread+=Number((d.data()||{}).unreadBuyer||0); });
     draw();
-  },e=>console.error(e)));
+  },retry));
   headerNotifUnsubs.push(onSnapshot(qs,s=>{
     sellerUnread=0;
     s.forEach(d=>{ sellerUnread+=Number((d.data()||{}).unreadSeller||0); });
     draw();
-  },e=>console.error(e)));
+  },retry));
   // Admin bildirişləri — yalnız admin üçün
   if(currentUserRole === "admin"){
     const qa=query(collection(db,"adminNotifications"),where("status","==","Admin təsdiqi gözləyir"));
     headerNotifUnsubs.push(onSnapshot(qa,s=>{
       adminUnread=s.size;
       draw();
-    },e=>console.error(e)));
+    },retry));
   }
 }
 window.openNotifications=function(){
   if(!currentUser){ openModal("loginModal"); return; }
-  document.getElementById("cabinetModal")?.classList.add("show");
+  openCabinetModal();
   if(currentUserRole === "admin"){
     if(typeof window.showTab==="function") window.showTab("admin");
   } else {
@@ -8726,7 +8754,7 @@ window.openChatFromProduct=async function(p){
   const id=await ensureChatForProduct(p);
   if(!id) return;
   closeModal("productModal");
-  document.getElementById("cabinetModal")?.classList.add("show");
+  openCabinetModal();
   window.showTab("messages");
   setTimeout(()=>openChat(id),250);
 };
@@ -9293,13 +9321,17 @@ async function _fetchOrdersAdmin(){
     window.__adminAllOrders = all;
 
     // ── Dashboard statistikası
-    const done = all.filter(o=>o.status==="Tamamlandı");
+    // Statistika sıfırlama nöqtəsi: bu tarixdən əvvəlki sifarişlər statistikaya sayılmır.
+    // (Sifariş siyahısı toxunulmur — yalnız yuxarıdakı rəqəmlər sıfırdan başlayır.)
+    const statsResetAt = window.ADMIN_STATS_RESET_AT || 0;
+    const stat = all.filter(o=>(o.createdAt?.seconds||0)*1000 >= statsResetAt);
+    const done = stat.filter(o=>o.status==="Tamamlandı");
     const volume = done.reduce((s,o)=>s+Number(o.price||0),0);
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
     const todaySales = done.filter(o=>(o.completedAt?.seconds||o.createdAt?.seconds||0)*1000 >= todayStart.getTime());
-    setAdminStat("activeOrders", all.filter(o=>o.status==="Aktiv").length);
-    setAdminStat("disputes", all.filter(o=>o.status==="Mübahisə").length);
-    setAdminStat("refundsPending", all.filter(o=>o.escrowStatus==="Geri ödəniş gözlənilir (admin)").length);
+    setAdminStat("activeOrders", stat.filter(o=>o.status==="Aktiv").length);
+    setAdminStat("disputes", stat.filter(o=>o.status==="Mübahisə").length);
+    setAdminStat("refundsPending", stat.filter(o=>o.escrowStatus==="Geri ödəniş gözlənilir (admin)").length);
     setAdminStat("totalSales", done.length);
     setAdminStat("totalVolume", volume);
     setAdminStat("totalCommission", Math.round(volume*5)/100 * 1); // 5%
