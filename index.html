@@ -2354,11 +2354,12 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   right:0;
   background-image:linear-gradient(270deg,rgba(6,7,8,.15) 0%,rgba(6,7,8,.55) 60%,#060708 100%), url("img/sekil_03.webp");
 }
-/* Mərkəz mətn — hər iki şəklin arasında, ortada */
+/* Mərkəz mətn — hər iki şəklin arasında, DƏQİQ ortada */
 .hero-mockup .hero-title{
   position:absolute;
-  left:50%;top:70px;
-  transform:translateX(-50%);
+  left:0;right:0;top:70px;
+  transform:none;
+  margin:0 auto;
   text-align:center;
   z-index:3;
   width:auto;max-width:620px;
@@ -2374,12 +2375,13 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   margin-top:14px;font-size:14px;color:#cbd5e1;line-height:1.55;
   text-shadow:0 1px 10px rgba(0,0,0,.5);
 }
-/* Alt feature paneli — üfüqi, mərkəzdə */
+/* Alt feature paneli — üfüqi, DƏQİQ mərkəzdə */
 .hero-mockup .hero-features{
-  position:absolute;left:50%;bottom:24px;top:auto;right:auto;
-  transform:translateX(-50%);
-  display:flex;gap:0;align-items:center;
-  width:auto;max-width:940px;
+  position:absolute;left:0;right:0;bottom:24px;top:auto;
+  transform:none;
+  margin:0 auto;
+  display:flex;gap:0;align-items:center;justify-content:center;
+  width:max-content;max-width:940px;
   background:rgba(10,12,16,.72);
   backdrop-filter:blur(16px);
   border:1px solid rgba(251,146,60,.14);
@@ -2392,8 +2394,9 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   grid-template-columns:38px 1fr;gap:12px;margin:0;
   padding:0 26px;border-right:1px solid rgba(255,255,255,.08);white-space:nowrap;
 }
-.hero-mockup .feature:first-child{padding-left:0}
-.hero-mockup .feature:last-child{border-right:0;padding-right:0}
+/* Simmetriya: kənar elementlərdə də bərabər padding — blok tam ortada dayanır */
+.hero-mockup .feature:first-child{padding-left:26px}
+.hero-mockup .feature:last-child{border-right:0;padding-right:26px}
 /* Oxlar */
 .hero-mockup .arr{
   position:absolute;top:50%;transform:translateY(-50%);
