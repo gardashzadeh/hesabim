@@ -4839,6 +4839,7 @@ function closeModal(id){
   document.getElementById(id)?.classList.remove("show");
   if(id === "cabinetModal") document.body.style.overflow="";
   if(id === "productModal") document.body.classList.remove("pd-open");
+  if(id === "cabinetModal" && window.setCabFullscreen) window.setCabFullscreen(false);
   // Elan bağlananda SEO meta-larını ana səhifə default-una qaytar
   if(id === "productModal"){
     try{
@@ -8210,6 +8211,15 @@ async function logoutUser(){
   toast("Hesabdan çıxış edildi");
 }
 
+/* Kabineti tam ekran rejiminə keçirir. Yalnız admin paneli üçün istifadə olunur. */
+window.setCabFullscreen = function(on){
+  const m = document.getElementById("cabinetModal");
+  if(m) m.classList.toggle("cab-fullscreen", !!on);
+  const h = m ? m.querySelector(".cabinet-head h3") : null;
+  if(h) h.textContent = on ? "Admin panel" : "Şəxsi kabinet";
+  document.body.classList.toggle("admin-full", !!on);
+};
+
 window.showTab = function(tab){
   if(tab==="admin" && !isAdmin()){
     syncAdminBodyClass();
@@ -8224,6 +8234,9 @@ window.showTab = function(tab){
   var tabNames={profile:"Profil",add:"Elan yerləşdir",ads:"Elanlarım",sales:"Satışlarım",purchases:"Alışlarım",messages:"Mesajlar",saved:"Saxlanılanlar",wallet:"Balansım",withdraw:"Çıxarış",support:"Dəstək",admin:"Admin"};
   var label=document.getElementById("cabMenuLabel");
   if(label) label.textContent=tabNames[tab]||"Menyu";
+
+  // Admin panel tam ekran açılır (pəncərə deyil)
+  if(window.setCabFullscreen) window.setCabFullscreen(tab === "admin");
 
   if(tab==="profile") renderProfile();
   if(tab==="ads") listenMyAds();
@@ -12621,6 +12634,76 @@ window.openSellerProfileFromPd = function(){
   };
 })();
 </script>
+<style id="adminFullscreen">
+/* ===========================================================
+   ADMIN PANEL — tam ekran rejimi (.cab-fullscreen)
+   Kabinetin qalan tabları əvvəlki kimi pəncərə olaraq qalır.
+=========================================================== */
+.cabinet-modal.cab-fullscreen{
+  padding:0!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  background:#08090b;
+}
+.cabinet-modal.cab-fullscreen .cabinet-box{
+  width:100vw!important;max-width:none!important;
+  height:100dvh!important;max-height:100dvh!important;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;
+  display:flex!important;flex-direction:column!important;
+  overflow:hidden!important;
+}
+.cabinet-modal.cab-fullscreen .cabinet-head{
+  flex:none;
+  padding:0 20px;height:56px;
+  background:#0b0c0c;
+  border-bottom:1px solid #1e2228;
+  position:sticky;top:0;z-index:5;
+}
+.cabinet-modal.cab-fullscreen .cabinet-head h3{
+  font-size:14px;letter-spacing:.8px;
+  display:flex;align-items:center;gap:9px;
+}
+.cabinet-modal.cab-fullscreen .cabinet-head h3::before{
+  content:"";width:7px;height:7px;border-radius:50%;
+  background:#ff5100;box-shadow:0 0 0 3px rgba(255,81,0,.18);
+}
+.cabinet-modal.cab-fullscreen .cabinet-body{
+  display:grid!important;
+  grid-template-columns:230px minmax(0,1fr)!important;
+  min-height:0!important;flex:1 1 auto!important;
+  overflow:hidden!important;
+}
+.cabinet-modal.cab-fullscreen .cabinet-menu{
+  overflow-y:auto;min-height:0;
+  padding:14px 12px;
+}
+.cabinet-modal.cab-fullscreen .cabinet-content{
+  overflow-y:auto;min-height:0;
+  padding:22px 26px 40px;
+}
+/* Admin məzmunu geniş ekranda dağılmasın */
+.cabinet-modal.cab-fullscreen #cabAdmin{max-width:1560px;margin:0 auto}
+/* Cədvəllər üfüqi sığmayanda öz daxilində sürüşsün */
+.cabinet-modal.cab-fullscreen .admin-section{overflow-x:auto}
+.cabinet-modal.cab-fullscreen .cabinet-table{min-width:720px}
+/* Filtr sətri geniş ekranda tək sırada */
+.cabinet-modal.cab-fullscreen .admin-filter-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cabinet-modal.cab-fullscreen .admin-filter-row input{min-width:240px;flex:1}
+/* Arxa fon sürüşməsin */
+body.admin-full{overflow:hidden!important}
+
+body.light-mode .cabinet-modal.cab-fullscreen{background:#eef1f5}
+body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;border-bottom:1px solid #e3e8ef}
+
+@media(max-width:800px){
+  .cabinet-modal.cab-fullscreen .cabinet-body{
+    display:flex!important;flex-direction:column!important;
+  }
+  .cabinet-modal.cab-fullscreen .cabinet-content{padding:14px 14px 30px}
+  .cabinet-modal.cab-fullscreen .cabinet-head{padding:0 14px;height:52px}
+}
+</style>
 <style id="mobileFixes">
 /* ---- Mobil: dəstək düyməsi alt bar-ın üstünə düşməsin ---- */
 @media (max-width:900px){
