@@ -118,7 +118,8 @@
       {"@type":"OfferCatalog","name":"Oyun Pulu (UC, VP, Robux, V-Bucks)"},
       {"@type":"OfferCatalog","name":"Gift Card & E-Pin (Steam, Google Play, App Store)"},
       {"@type":"OfferCatalog","name":"Oyun Boost və Rank Yüksəltmə"},
-      {"@type":"OfferCatalog","name":"Sosial Media Hesabları"}
+      {"@type":"OfferCatalog","name":"Sosial Media Hesabları"},
+      {"@type":"OfferCatalog","name":"Digital Hesablar (Netflix, Spotify, Canva, ChatGPT)"}
     ]
   }
 }
@@ -237,9 +238,9 @@ input,select,textarea{font-family:inherit}
 .nav-cat svg{flex-shrink:0;transition:transform .15s ease}
 .nav-cat:hover{transform:translateY(-1px)}
 .nav-cat:hover svg{transform:scale(1.1)}
-/* BÜTÜN KATEQORİYALAR */
-.nav button:nth-child(2){background:#1a1c1e;color:#e5e7eb;border:1px solid #2d3035;margin-right:4px}
-.nav button:nth-child(2):hover{background:#252729;border-color:#444;color:#fff}
+/* QEYD: köhnə "BÜTÜN KATEQORİYALAR" düyməsi silinib; ona aid olan
+   .nav button:nth-child(2) qaydası indi "Hesab"-a düşür və onun öz
+   narıncı .nav-hesab stilini əzirdi — ona görə ləğv edildi. */
 /* Hər kateqoriya üçün öz rəngi */
 .nav-hesab   {background:rgba(255,81,0,.08);color:#ff5100;border:1px solid rgba(255,81,0,.2)}
 .nav-hesab:hover{border-color:#ff5100;box-shadow:0 4px 18px rgba(255,81,0,.25)}
@@ -257,6 +258,8 @@ input,select,textarea{font-family:inherit}
 .nav-sosial:hover{border-color:#0284c7;box-shadow:0 4px 18px rgba(2,132,199,.25)}
 .nav-konsol  {background:rgba(192,132,252,.08);color:#c084fc;border:1px solid rgba(192,132,252,.2)}
 .nav-konsol:hover{border-color:#9333ea;box-shadow:0 4px 18px rgba(147,51,234,.25)}
+.nav-digital {background:rgba(45,212,191,.08);color:#2dd4bf;border:1px solid rgba(45,212,191,.2)}
+.nav-digital:hover{border-color:#0d9488;box-shadow:0 4px 18px rgba(13,148,136,.25)}
 .nav small{font-size:11px;color:#aaa;background:#262828;padding:2px 4px;border-radius:3px;margin-left:4px}
 .nav .new{background:#ff5100;color:#fff;font-size:11px;padding:2px 4px;border-radius:3px;margin-left:4px}
 .main{padding-top:16px}
@@ -339,6 +342,7 @@ input,select,textarea{font-family:inherit}
 .ad-img[data-cat="Hesab Kirayəsi"]   {background:radial-gradient(circle at 60% 40%,#1e0f00,#080400)}
 .ad-img[data-cat="Sosial Media"]     {background:radial-gradient(circle at 60% 40%,#001220,#00060f)}
 .ad-img[data-cat="Oyun Konsolu"]     {background:radial-gradient(circle at 60% 40%,#10062a,#050012)}
+.ad-img[data-cat="Digital Hesablar"] {background:radial-gradient(circle at 60% 40%,#04201e,#00090c)}
 .ad-img svg{width:100%;height:100%}
 .ad-img img{width:100%;height:100%;object-fit:cover;border-radius:6px}
 .game-img img,.epin-img img,.ad-img img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
@@ -1904,6 +1908,7 @@ body.light-mode .nav-boost{background:rgba(37,99,235,.07);border-color:rgba(37,9
 body.light-mode .nav-kiraye{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.25)}
 body.light-mode .nav-sosial{background:rgba(2,132,199,.07);border-color:rgba(2,132,199,.25)}
 body.light-mode .nav-konsol{background:rgba(147,51,234,.07);border-color:rgba(147,51,234,.25)}
+body.light-mode .nav-digital{background:rgba(13,148,136,.07);border-color:rgba(13,148,136,.25)}
 body.light-mode .nav small{background:#dde1e7;color:#7a8599}
 body.light-mode .hero{
   border:1px solid #dde1e7;
@@ -3335,6 +3340,10 @@ button,input,select,textarea{max-width:100%}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="12" rx="3"/><path d="M6 13h4M8 11v4"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="17.5" cy="14" r="1" fill="currentColor"/></svg>
       Oyun Konsolu
     </button>
+    <button onclick="filterCategory('Digital Hesablar')" class="nav-cat nav-digital">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M10 8.5l4 2-4 2z" fill="currentColor" stroke="none"/></svg>
+      Digital Hesablar
+    </button>
   </div>
 </nav>
 
@@ -3437,6 +3446,7 @@ button,input,select,textarea{max-width:100%}
     <button class="tab" onclick="filterCategory('Hesab Kirayəsi')">Hesab Kirayəsi</button>
     <button class="tab" onclick="filterCategory('Sosial Media')">Sosial Media</button>
     <button class="tab" onclick="filterCategory('Oyun Konsolu')">Oyun Konsolu</button>
+    <button class="tab" onclick="filterCategory('Digital Hesablar')">Digital Hesablar</button>
   </div>
   <div class="ads" id="ads">
     <div class="skel-card"><div class="skel-img skel"></div><div class="skel-line w80 skel"></div><div class="skel-line w60 skel"></div><div class="skel-line w40 skel"></div></div>
@@ -3692,6 +3702,7 @@ button,input,select,textarea{max-width:100%}
               <option value="Hesab Kirayəsi">Hesab Kirayəsi</option>
               <option value="Sosial Media">Sosial Media</option>
               <option value="Oyun Konsolu">Oyun Konsolu</option>
+              <option value="Digital Hesablar">Digital Hesablar</option>
             </select>
 
             <!-- HESAB: oyun + rank + level -->
@@ -3968,6 +3979,42 @@ button,input,select,textarea{max-width:100%}
                 <option value="">Vəziyyət seç</option>
                 <option>Yeni (açılmamış)</option><option>Yeni kimi (az işlənmiş)</option>
                 <option>Yaxşı vəziyyətdə</option><option>Orta vəziyyətdə</option>
+              </select>
+            </div>
+
+            <!-- DİGİTAL HESABLAR: xidmət növü + plan/müddət -->
+            <div id="adSec_digital" class="ad-form-section" style="display:none;">
+              <div class="ad-form-section-title">Xidmət məlumatları</div>
+              <select id="adDigitalService">
+                <option value="">Xidmət seç</option>
+                <optgroup label="🎬 Film & Serial">
+                  <option>Netflix</option><option>Disney+</option><option>Amazon Prime Video</option>
+                  <option>HBO Max</option><option>Apple TV+</option><option>YouTube Premium</option>
+                </optgroup>
+                <optgroup label="🎵 Musiqi">
+                  <option>Spotify</option><option>Apple Music</option><option>YouTube Music</option>
+                  <option>SoundCloud Go</option>
+                </optgroup>
+                <optgroup label="🤖 AI Xidmətləri">
+                  <option>ChatGPT Plus</option><option>Claude Pro</option><option>Gemini Advanced</option>
+                  <option>Midjourney</option><option>Perplexity Pro</option><option>Cursor</option>
+                  <option>GitHub Copilot</option>
+                </optgroup>
+                <optgroup label="🎨 Dizayn & Məhsuldarlıq">
+                  <option>Canva Pro</option><option>Adobe Creative Cloud</option><option>Figma</option>
+                  <option>Notion</option><option>Microsoft 365</option><option>Google One</option>
+                </optgroup>
+                <optgroup label="📚 Təhsil & Digər">
+                  <option>Duolingo Super</option><option>Coursera</option><option>Udemy</option>
+                  <option>LinkedIn Premium</option><option>VPN (NordVPN, ExpressVPN və s.)</option>
+                  <option>Digər</option>
+                </optgroup>
+              </select>
+              <select id="adDigitalPlan" style="margin-top:6px;">
+                <option value="">Plan / müddət seç</option>
+                <option>1 aylıq</option><option>3 aylıq</option><option>6 aylıq</option>
+                <option>1 illik</option><option>Ömürlük</option>
+                <option>Fərdi hesab</option><option>Ailə / paylaşımlı</option>
               </select>
             </div>
 
@@ -4363,8 +4410,12 @@ function getCategoryDefaultIcon(category, game){
     "oyun boost":  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#60a5fa" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#60a5fa" opacity=".12"/></svg>',
     "hesab kirayəsi": '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="3" y="11" width="18" height="10" rx="2" stroke="#ff5100" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="#ff5100" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#ff5100"/><path d="M12 17.5v1.5" stroke="#ff5100" stroke-width="1.3" stroke-linecap="round"/></svg>',
     "sosial media":'<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><circle cx="18" cy="5" r="2.5" stroke="#38bdf8" stroke-width="1.5"/><circle cx="6" cy="12" r="2.5" stroke="#38bdf8" stroke-width="1.5"/><circle cx="18" cy="19" r="2.5" stroke="#38bdf8" stroke-width="1.5"/><path d="M8.5 10.5l7-4M8.5 13.5l7 4" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/></svg>',
-    "oyun konsolu":'<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="2" y="7" width="20" height="12" rx="3" stroke="#c084fc" stroke-width="1.5"/><path d="M6 13h4M8 11v4" stroke="#c084fc" stroke-width="1.6" stroke-linecap="round"/><circle cx="15" cy="12" r="1" fill="#c084fc"/><circle cx="17.5" cy="14" r="1" fill="#c084fc"/></svg>'
+    "oyun konsolu":'<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="2" y="7" width="20" height="12" rx="3" stroke="#c084fc" stroke-width="1.5"/><path d="M6 13h4M8 11v4" stroke="#c084fc" stroke-width="1.6" stroke-linecap="round"/><circle cx="15" cy="12" r="1" fill="#c084fc"/><circle cx="17.5" cy="14" r="1" fill="#c084fc"/></svg>',
+    "digital hesablar":'<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:56px;height:56px;"><rect x="2" y="4" width="20" height="13" rx="2" stroke="#2dd4bf" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round"/><path d="M10.5 8.2l4 2.3-4 2.3z" fill="#2dd4bf"/><rect x="2" y="4" width="20" height="13" rx="2" fill="#2dd4bf" opacity=".08"/></svg>'
   };
+  // Dəqiq uyğunluq əvvəl: "digital hesablar" və "hesab kirayəsi" tərkibində
+  // "hesab" olduğu üçün includes() onlara səhv ikon verirdi.
+  if(icons[cat]) return icons[cat];
   for(const key of Object.keys(icons)){
     if(cat.includes(key)) return icons[key];
   }
@@ -4623,6 +4674,24 @@ function safeText(v){
 
 function rawAdMetaParts(a){
   const parts=[];
+  // Kateqoriyaya uyğun etiketlər (ümumi "Platforma/Level" hər kateqoriyaya yaraşmır)
+  const _c = String(a.category||"").trim();
+  if(_c === "Digital Hesablar"){
+    if(a.platform) parts.push("Xidmət: "+a.platform);
+    if(a.level)    parts.push("Plan: "+a.level);
+    if(a.rank)     parts.push("Rank: "+a.rank);
+    return parts;
+  }
+  if(_c === "Sosial Media"){
+    if(a.platform) parts.push("Platforma: "+a.platform);
+    if(a.level)    parts.push("İzləyici: "+a.level);
+    return parts;
+  }
+  if(_c === "Oyun Konsolu"){
+    if(a.platform) parts.push("Cihaz: "+a.platform);
+    if(a.rank)     parts.push("Vəziyyət: "+a.rank);
+    return parts;
+  }
   if(a.platform) parts.push("Platforma: "+a.platform);
   if(a.region) parts.push("Region: "+a.region);
   if(a.server) parts.push("Server: "+a.server);
@@ -4677,9 +4746,10 @@ const AD_CAT_CFG = {
   "Oyun Boost":      {sections:["boost"]},
   "Hesab Kirayəsi":  {sections:["kiraye"]},
   "Sosial Media":    {sections:["sosial"]},
-  "Oyun Konsolu":    {sections:["konsol"]}
+  "Oyun Konsolu":    {sections:["konsol"]},
+  "Digital Hesablar":{sections:["digital"]}
 };
-const ALL_SECTIONS = ["hesab","skin","oyunpulu","giftcard","boost","kiraye","sosial","konsol"];
+const ALL_SECTIONS = ["hesab","skin","oyunpulu","giftcard","boost","kiraye","sosial","konsol","digital"];
 
 function syncAdFormToCategory(){
   const cat = document.getElementById("adCategory")?.value || "Hesab";
@@ -4717,6 +4787,7 @@ function readAdProfessionalFields(){
   if(cat==="Hesab Kirayəsi")  return {platform:v("adGameRent"),region:"",server:"",rank:v("adRentRank"),level:v("adRentDuration")};
   if(cat==="Sosial Media")    return {platform:v("adSocialPlatform"),region:"",server:"",rank:"",level:v("adSocialFollowers")};
   if(cat==="Oyun Konsolu")    return {platform:v("adConsoleBrand"),region:"",server:"",rank:v("adConsoleCondition"),level:""};
+  if(cat==="Digital Hesablar") return {platform:v("adDigitalService"),region:"",server:"",rank:"",level:v("adDigitalPlan")};
   return {platform:"",region:"",server:"",rank:"",level:""};
 }
 
@@ -4724,7 +4795,8 @@ function clearAdProfessionalFields(){
   setSelectOrCustom("adGame","adGameCustom","");
   ["adRank","adGameSkin","adGameCurrency","adGiftStore",
    "adGameBoost","adGameRent","adRentRank","adRentDuration",
-   "adSocialPlatform","adConsoleBrand","adConsoleCondition"].forEach(id=>{
+   "adSocialPlatform","adConsoleBrand","adConsoleCondition",
+   "adDigitalService","adDigitalPlan"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
   ["adLevel","adCurrencyAmount","adGiftNominal","adBoostFrom",
@@ -5042,10 +5114,13 @@ window.renderMarketAds = function renderMarketAds(){
   adsEl.innerHTML=combined.map(function(a){
     try {
       var tagsHtml = "";
-      var _catColorMap = {"hesab":"#ff5100","skin":"#a78bfa","oyun pulu":"#34d399","gift card":"#f472b6","oyun boost":"#60a5fa","hesab kirayəsi":"#fbbf24","sosial media":"#38bdf8","oyun konsolu":"#c084fc"};
+      var _catColorMap = {"hesab":"#ff5100","skin":"#a78bfa","oyun pulu":"#34d399","gift card":"#f472b6","oyun boost":"#60a5fa","hesab kirayəsi":"#fbbf24","sosial media":"#38bdf8","oyun konsolu":"#c084fc","digital hesablar":"#2dd4bf"};
       var _catColor = "#ff5100";
-      var _catLower = (a.category||"").toLowerCase();
-      for(var _ck in _catColorMap){ if(_catLower.indexOf(_ck) > -1){ _catColor = _catColorMap[_ck]; break; } }
+      var _catLower = (a.category||"").toLowerCase().trim();
+      // Əvvəlcə dəqiq uyğunluq: "Digital Hesablar"/"Hesab Kirayəsi" tərkibində
+      // "hesab" olduğu üçün substring axtarışı onları səhvən narıncı edirdi.
+      if(_catColorMap[_catLower]){ _catColor = _catColorMap[_catLower]; }
+      else { for(var _ck in _catColorMap){ if(_catLower.indexOf(_ck) > -1){ _catColor = _catColorMap[_ck]; break; } } }
       var oldHtml = a.originalPrice > 0
         ? '<div class="old" style="font-size:11px;text-decoration:line-through;color:#6b7280;">'+Number(a.originalPrice).toFixed(2)+' ₼</div>'
         : "";
@@ -8289,6 +8364,8 @@ window.editMyAd = async function(id,arr){
     _sv("adSocialPlatform",a.platform); _sv("adSocialFollowers",a.level);
   } else if(_cat==="Oyun Konsolu"){
     _sv("adConsoleBrand",a.platform); _sv("adConsoleCondition",a.rank);
+  } else if(_cat==="Digital Hesablar"){
+    _sv("adDigitalService",a.platform); _sv("adDigitalPlan",a.level);
   }
   document.getElementById("adPrice").value=Number(a.price||0).toFixed(2);
   if(document.getElementById("adOriginalPrice")) document.getElementById("adOriginalPrice").value=a.originalPrice ? Number(a.originalPrice).toFixed(2) : "";
@@ -12110,9 +12187,10 @@ function toggleTheme(){
 }
 .sp-card-img{
   position:relative;aspect-ratio:16/10;overflow:hidden;
-  background:linear-gradient(150deg,#1b2230,#0d1117);display:grid;place-items:center;
+  background:linear-gradient(150deg,#1b2230,#0d1117);display:grid;place-items:stretch;
 }
-.sp-card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.3,1)}
+.sp-card-img > .sp-card-ph{place-self:center}
+.sp-card-img img{width:100%;height:100%;object-fit:cover;display:block;grid-area:1/1;transition:transform .45s cubic-bezier(.2,.7,.3,1)}
 .sp-card:hover .sp-card-img img{transform:scale(1.06)}
 .sp-card-ph{color:#2f3949}
 .sp-card-ph svg{width:30px;height:30px}
@@ -12450,6 +12528,99 @@ window.openSellerProfileFromPd = function(){
    .toast ................... 9999999
 */
 #sellerProfileModal{z-index:1000005!important}
+</style>
+
+<style id="mobileLayoutFix2">
+/* ===========================================================
+   MOBİL DÜZƏLİŞLƏR (skrinşotlardakı problemlər üzrə)
+   Bu blok faylın sonundadır — kaskadda üstün gəlir.
+=========================================================== */
+@media(max-width:700px){
+
+  /* --- 1. ELAN BAZARI başlığı üst nav-ın altında kəsilirdi --- */
+  .panel-head{
+    flex-wrap:wrap!important;height:auto!important;
+    row-gap:10px!important;padding:12px 10px!important;
+    scroll-margin-top:130px; /* scrollIntoView zamanı başlıq görünsün */
+  }
+  .panel-head h2{width:100%;font-size:15px!important;line-height:1.2}
+
+  /* --- 2. "Bütün Elanlar" düyməsi sətirdən daşıb kəsilirdi --- */
+  .panel-head-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    overflow:visible!important;   /* köhnə overflow-x:auto kəsirdi */
+    padding-top:0!important;
+  }
+  .panel-head-actions > .sort-control{width:auto!important;min-width:0!important}
+  .panel-head-actions > .sort-select{width:100%!important}
+  /* Ayrıca "Bütün Elanlar" düyməsi — selectlərlə dublikat idi, gizlədilir.
+     Eyni funksiya "Hamısı" tabında və "Bütün elanlar" seçimində var. */
+  .panel-head-actions > button{display:none!important}
+
+  /* --- 3. Elan kartı: başlıq kəsilirdi, səbət düyməsi qiymətin üstünə düşürdü --- */
+  .ad-seller-row{gap:7px!important;min-width:0!important}
+  .ad-seller-avatar{width:24px!important;height:24px!important;font-size:11px!important}
+  .ad-seller-row b{
+    font-size:12.5px!important;
+    white-space:normal!important;      /* nowrap başlığı kəsirdi */
+    display:-webkit-box!important;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;min-width:0;line-height:1.3;
+  }
+  .ads .ad .aprice{font-size:14px!important}
+  .ad-cart-btn{width:30px!important;height:30px!important;border-radius:9px!important}
+  .ad-cart-btn svg{width:14px!important;height:14px!important}
+  /* qiymət + səbət sətri daşmasın */
+  .ad-body > div[style*="space-between"]{gap:6px!important;flex-wrap:nowrap!important}
+  .ad-body > div[style*="space-between"] > div{min-width:0!important;flex-wrap:nowrap!important}
+
+  /* --- 4. Alt sətir: "3 baxış" və satıcı adı kəsilirdi --- */
+  .ad-footer-row{gap:6px!important;min-width:0!important}
+  .ad-views{font-size:11px!important;flex:none!important}
+  .ad-footer-row .user{
+    min-width:0!important;overflow:hidden!important;
+    text-overflow:ellipsis!important;white-space:nowrap!important;
+    font-size:11px!important;
+  }
+
+  /* --- 5. "Dəstək" düyməsi son kartların üstünü örtürdü --- */
+  .ads{padding-bottom:78px!important}
+}
+
+/* --- 6. Satıcı profili modalı (Şəkil 1) --- */
+@media(max-width:700px){
+  /* Kart şəkilləri ortada nazik zolaq kimi görünürdü — sp-card-img fix
+     yuxarıda edilib; burada mobil ölçüləndirmə */
+  #sellerProfileModal .seller-ads-grid,
+  #sellerProfileModal #spGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  .sp-card-img{aspect-ratio:4/3!important}
+  .sp-card-t{
+    font-size:12.5px!important;line-height:1.3!important;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .sp-card-seller{font-size:10.5px!important;max-width:calc(100% - 12px)!important}
+  .sp-card-ava{width:16px!important;height:16px!important}
+  /* Modal alt boşluq — son kartlar kəsilməsin */
+  #sellerProfileModal .modal-box{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))!important}
+}
+
+/* --- 7. Satıcı modalında axtarış/sıralama sahələri --- */
+@media(max-width:700px){
+  #spSearch,#spSort{
+    width:100%!important;height:44px!important;font-size:14px!important;
+    box-sizing:border-box!important;
+  }
+}
+</style>
+
+<style id="legacyTail">
+/* (əvvəlki blokun bağlanışı üçün saxlanılıb) */
 #sellerProfileModal .modal-box{z-index:1000006!important;position:relative}
 #reportModal{z-index:1000007!important}
 .cabinet-modal{z-index:1000010!important}
