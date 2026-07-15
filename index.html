@@ -3784,6 +3784,23 @@ button,input,select,textarea{max-width:100%}
                         • Yanlış/yalan məlumat üçün balansın bloklanır.
                       </p>
                     </div>
+
+                    <div style="background:#0a0e14;border:1px solid #38bdf833;border-radius:10px;padding:14px;margin-bottom:10px">
+                      <div style="font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                        ÇATDIRILMA MÜDDƏTİ <span style="color:#ef4444">*</span>
+                      </div>
+                      <p style="font-size:12px;color:#5b6678;margin:0 0 10px;line-height:1.6">
+                        Alıcı ödəyəndən sonra ən geci nə vaxt çatdıracaqsan? Bu müddət <b style="color:#94a3b8">elanda göstərilir</b> — real seç.
+                      </p>
+                      <div id="adEtaBtns" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+                        <button type="button" class="eta-btn active" data-eta="3"  onclick="setDeliveryEta(3)">3 saat</button>
+                        <button type="button" class="eta-btn"        data-eta="12" onclick="setDeliveryEta(12)">12 saat</button>
+                        <button type="button" class="eta-btn"        data-eta="24" onclick="setDeliveryEta(24)">24 saat</button>
+                        <button type="button" class="eta-btn"        data-eta="48" onclick="setDeliveryEta(48)">2 gün</button>
+                      </div>
+                      <input type="hidden" id="adDeliveryEta" value="3">
+                    </div>
                   </div>
 
                   <!-- Şərtlər checkbox (hər iki üsul üçün) -->
@@ -4511,8 +4528,11 @@ function renderPdDeliveryBadge(P){
   } else {
     box.classList.add("pd-dl-chat");
     if(icon) icon.innerHTML = CHAT;
-    txt.textContent = "Chat vasitəsilə çatdırılma";
-    box.title = "Ödənişdən sonra satıcıya sorğu gedir, məlumatları chat-də göndərir.";
+    const eta = Number(P.deliveryEta || 0);
+    const lbl = (typeof window.etaLabel === "function") ? window.etaLabel(eta) : "";
+    txt.textContent = lbl ? ("Çatdırılma: ən geci " + lbl) : "Chat vasitəsilə çatdırılma";
+    box.title = "Ödənişdən sonra satıcıya sorğu gedir, məlumatları chat-də göndərir."
+      + (lbl ? (" Satıcının öhdəliyi: " + lbl + " ərzində.") : "");
   }
 }
 
@@ -4933,6 +4953,7 @@ window.renderMarketAds = function renderMarketAds(){
     imageUrls: a.imageUrls || [],
     contactMode: a.contactMode || "platform",
     deliveryMode: a.deliveryMode || (a.hasCredentials ? "direct" : "chat"),
+    deliveryEta: Number(a.deliveryEta || 0),
     directPhone: a.directPhone || "",
     directWhatsapp: a.directWhatsapp || "",
     stock: Number(a.stock || 1),
@@ -4995,6 +5016,7 @@ window.renderMarketAds = function renderMarketAds(){
       contact: btn.dataset.contact,
       contactMode: btn.dataset.contactmode || "platform",
       deliveryMode: btn.dataset.deliverymode || "",
+      deliveryEta: Number(btn.dataset.deliveryeta || 0),
       directPhone: btn.dataset.directphone || "",
       directWhatsapp: btn.dataset.directwhatsapp || "",
       tags: tags,
@@ -5052,6 +5074,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-contact="'+attr(a.contact)+'" '
         + 'data-contactmode="'+attr(a.contactMode||"platform")+'" '
         + 'data-deliverymode="'+attr(a.deliveryMode||"")+'" '
+        + 'data-deliveryeta="'+attr(String(a.deliveryEta||""))+'" '
         + 'data-directphone="'+attr(a.directPhone||"")+'" '
         + 'data-directwhatsapp="'+attr(a.directWhatsapp||"")+'" '
         + 'data-tags="'+tagsB64+'" '
@@ -6911,6 +6934,19 @@ window.setContactMode = function(mode){
   }
 };
 
+window.setDeliveryEta = function(h){
+  const inp = document.getElementById("adDeliveryEta");
+  if(inp) inp.value = String(h);
+  document.querySelectorAll("#adEtaBtns .eta-btn").forEach(b=>{
+    b.classList.toggle("active", String(b.dataset.eta) === String(h));
+  });
+};
+window.etaLabel = function(h){
+  const n = Number(h) || 0;
+  if(n <= 0) return "";
+  if(n >= 24 && n % 24 === 0) return (n/24) + " gün";
+  return n + " saat";
+};
 window.setDeliveryMode = function(mode){
   const dm = document.getElementById("adDeliveryMode"); if(dm) dm.value = mode;
   const directSection = document.getElementById("deliveryDirectSection");
@@ -8222,6 +8258,12 @@ window.editMyAd = async function(id,arr){
   if(document.getElementById("adStock"))   document.getElementById("adStock").value=a.stock || "1";
   if(document.getElementById("adVideo"))   document.getElementById("adVideo").value=a.video || "";
   document.getElementById("adDesc").value=a.desc || "";
+  // Satış üsulu / çatdırılma rejimi / müddət bərpası
+  if(window.setContactMode)  window.setContactMode(a.contactMode || "platform");
+  if((a.contactMode || "platform") === "platform" && window.setDeliveryMode){
+    window.setDeliveryMode(a.deliveryMode || (a.hasCredentials ? "direct" : "chat"));
+  }
+  if(window.setDeliveryEta) window.setDeliveryEta(Number(a.deliveryEta || 3));
   const btn=document.getElementById("adSubmit"); if(btn){ btn.textContent="Elanı yenilə"; btn.dataset.editingId=id; }
   window._existingAdImages = Array.isArray(a.imageUrls) && a.imageUrls.length ? a.imageUrls.slice() : (a.imageUrl ? [a.imageUrl] : []);
   // Slotları köhnə şəkillərlə doldur
@@ -8303,6 +8345,7 @@ window.submitAd = async function(){
     const contactMode  = document.getElementById("adContactMode")?.value || "platform";
     const deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
     const chatMode     = document.getElementById("adChatMode")?.value || "chat_only";
+    const deliveryEta  = Number(document.getElementById("adDeliveryEta")?.value || 3);
 
     let directPhone = "", directWhatsapp = "";
     if(contactMode === "direct_contact"){
@@ -8354,6 +8397,7 @@ window.submitAd = async function(){
       directWhatsapp,
       deliveryMode: contactMode === "platform" ? deliveryMode : null,
       chatMode: (contactMode === "platform" && deliveryMode==="chat") ? chatMode : null,
+      deliveryEta: (contactMode === "platform" && deliveryMode==="chat") ? deliveryEta : null,
       updatedAt: serverTimestamp()
     };
 
@@ -8404,6 +8448,7 @@ window.submitAd = async function(){
     });
     // Çatdırılma üsulunu sıfırla
     if(window.setDeliveryMode) window.setDeliveryMode("direct");
+    if(window.setDeliveryEta)  window.setDeliveryEta(3);
     clearAdProfessionalFields();
     if(document.getElementById("adImageFile"))    document.getElementById("adImageFile").value="";
     if(document.getElementById("adImagePreview")) document.getElementById("adImagePreview").innerHTML="";
@@ -12197,6 +12242,21 @@ body.light-mode .pd-rev-avg{color:#c2410c}
   .pd-tab{padding:10px 11px;font-size:12px}
   .pd-tabpane{padding:15px}
 }
+
+/* ---------- 2d. Çatdırılma müddəti düymələri (elan formu) ---------- */
+.eta-btn{
+  padding:10px 6px;border-radius:9px;cursor:pointer;
+  border:1px solid #1c2330;background:transparent;color:#64748b;
+  font-family:'DM Sans',Arial,sans-serif;font-size:12.5px;font-weight:700;
+  transition:.15s ease;
+}
+.eta-btn:hover{border-color:#2d3648;color:#94a3b8}
+.eta-btn.active{
+  border-color:#38bdf8;background:rgba(56,189,248,.12);color:#7dd3fc;
+  box-shadow:0 0 0 1px rgba(56,189,248,.14);
+}
+body.light-mode .eta-btn{border-color:#dde1e7;color:#64748b}
+body.light-mode .eta-btn.active{border-color:#0284c7;background:rgba(2,132,199,.1);color:#0369a1}
 
 /* ---------- 2c. Çatdırılma/satış üsulu badge-i ---------- */
 #pdDeliveryBadge{transition:color .15s,border-color .15s,background .15s}
