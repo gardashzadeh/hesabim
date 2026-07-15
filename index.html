@@ -12323,9 +12323,21 @@ window.openSellerProfileFromPd = function(){
 })();
 </script>
 <style id="sellerModalLayerFix">
+/* ---- Modal z-index yığını (üst-üstə düşməyə qarşı) ----
+   .modal (default) ......... 9999
+   #productModal ............ 1000000
+   #sellerProfileModal ...... 1000005
+   #reportModal ............. 1000007
+   .cabinet-modal ........... 1000010   ← header-dən açılır, elan modalının üstündə olmalıdır
+   #confirmModal ............ 1000020
+   .toast ................... 9999999
+*/
 #sellerProfileModal{z-index:1000005!important}
 #sellerProfileModal .modal-box{z-index:1000006!important;position:relative}
 #reportModal{z-index:1000007!important}
+.cabinet-modal{z-index:1000010!important}
+#confirmModal{z-index:1000020!important}
+#supportPanel{z-index:1000030!important}
 </style>
 </body>
 </html>
