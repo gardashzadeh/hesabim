@@ -3232,14 +3232,20 @@ button,input,select,textarea{max-width:100%}
         window.open('https://wa.me/994555707071?text=Salam%2C%20kömək%20lazımdır','_blank');
       }
     });
-    // Səbətdəki say sayğacını sinxronlaşdır — mövcud .cart-badge və ya #cartCount-i izlə
+    // Səbətdəki say sayğacını sinxronlaşdır.
+    // QEYD: header-dəki real sayğac #cartBadge-dir (.cart-badge/#cartCount saytda mövcud deyil).
     function syncMobCart(){
       var badge=document.getElementById('mobCartBadge'); if(!badge) return;
-      var src=document.querySelector('.cart-badge, #cartCount, [data-cart-count]');
-      var n=src?parseInt((src.textContent||'').replace(/\D/g,''),10):0;
+      var n = 0;
+      if(Array.isArray(window.cart)) n = window.cart.length;
+      else{
+        var src=document.querySelector('#cartBadge, .cart-badge, #cartCount, [data-cart-count]');
+        n = src ? (parseInt((src.textContent||'').replace(/\D/g,''),10) || 0) : 0;
+      }
       if(n>0){ badge.textContent=n; badge.style.display='flex'; }
       else{ badge.style.display='none'; }
     }
+    window.syncMobCart = syncMobCart;
     syncMobCart();
     new MutationObserver(syncMobCart).observe(document.body,{subtree:true,childList:true,characterData:true});
   });
@@ -3265,17 +3271,6 @@ button,input,select,textarea{max-width:100%}
     <button class="logo" onclick="goHome(event)"><img src="img/sekil_01.webp" alt="Hesablar.net" style="height:128px;width:auto;object-fit:contain;display:block" loading="lazy"></button>
     <form class="search" onsubmit="event.preventDefault();filterCards()">
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      <select id="searchCategory" onchange="syncSearchCategory()">
-        <option value="Hamısı">Bütün Kateqoriyalar</option>
-        <option value="Hesab">Hesab</option>
-        <option value="Skin">Skin</option>
-        <option value="Oyun Pulu">Oyun Pulu</option>
-        <option value="Gift Card &amp; E-Pin">Gift Card &amp; E-Pin</option>
-        <option value="Oyun Boost">Oyun Boost</option>
-        <option value="Hesab Kirayəsi">Hesab Kirayəsi</option>
-        <option value="Sosial Media">Sosial Media</option>
-        <option value="Oyun Konsolu">Oyun Konsolu</option>
-      </select>
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
     </form>
     <div class="toplinks">
@@ -3301,10 +3296,6 @@ button,input,select,textarea{max-width:100%}
     <button id="homeResetBtn" onclick="goHome(event)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       ANA SƏHİFƏ
-    </button>
-    <button onclick="filterCategory('Hamısı')" class="nav-cat">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      BÜTÜN KATEQORİYALAR
     </button>
     <button onclick="filterCategory('Hesab')" class="nav-cat nav-hesab">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
@@ -4506,7 +4497,6 @@ function renderPdDeliveryBadge(P){
   if(!box || !txt) return;
 
   const BOLT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
-  const CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.5 8.5 0 01-3.9-.9L3 21l1.9-5a8.4 8.4 0 01-.9-3.9 8.5 8.5 0 018.4-9h.5a8.5 8.5 0 018.1 8.1v.3z"/></svg>';
   const PHONE= '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8.1 9.7a16 16 0 006 6l1.2-1.1a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.9 2.2z"/></svg>';
 
   box.classList.remove("pd-dl-fast","pd-dl-chat","pd-dl-self");
@@ -4527,10 +4517,10 @@ function renderPdDeliveryBadge(P){
     box.title = "Hesab məlumatları əvvəlcədən yazılıb — ödənişdən dərhal sonra avtomatik çatdırılır.";
   } else {
     box.classList.add("pd-dl-chat");
-    if(icon) icon.innerHTML = CHAT;
+    if(icon) icon.innerHTML = "";   // mesaj ikonu göstərilmir
     const eta = Number(P.deliveryEta || 0);
     const lbl = (typeof window.etaLabel === "function") ? window.etaLabel(eta) : "";
-    txt.textContent = lbl ? ("Çatdırılma: ən geci " + lbl) : "Chat vasitəsilə çatdırılma";
+    txt.textContent = lbl ? (lbl + " ərzində çatdırılma") : "Chat vasitəsilə çatdırılma";
     box.title = "Ödənişdən sonra satıcıya sorğu gedir, məlumatları chat-də göndərir."
       + (lbl ? (" Satıcının öhdəliyi: " + lbl + " ərzində.") : "");
   }
@@ -4787,8 +4777,9 @@ function setProductViewText(views){
 }
 
 function syncSearchCategory() {
-  const selectCat = document.getElementById("searchCategory").value;
-  if(selectCat) filterCategory(selectCat);
+  // Header-dəki kateqoriya seçimi silinib — funksiya geriyə uyğunluq üçün saxlanılır.
+  const sel = document.getElementById("searchCategory");
+  if(sel && sel.value) filterCategory(sel.value);
 }
 
 function render(){
@@ -5444,7 +5435,8 @@ async function saveCurrentProduct(){
 
 function filterCards(){
   const q=document.getElementById("q").value.toLowerCase().trim();
-  const selectCat = document.getElementById("searchCategory").value;
+  // Kateqoriya seçimi header-dən silindi — aktiv kateqoriya nav düymələri ilə idarə olunur.
+  const selectCat = document.getElementById("searchCategory")?.value || currentCategory || "Hamısı";
   
   document.querySelectorAll(".searchable").forEach(el=>{
     const textMatch = el.innerText.toLowerCase().includes(q);
@@ -5615,6 +5607,8 @@ function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
 function updateCart(){
   const count=document.getElementById("cartBadge");
   if(count) count.textContent=cart.length;
+  window.cart = cart;                                   // mobil bar sayğacı üçün
+  if(window.syncMobCart) window.syncMobCart();
   
   const list=document.getElementById("cartItems");
   const total=document.getElementById("cartTotal");
@@ -8109,7 +8103,7 @@ async function renderProfile(){
       <div style="grid-column:1/-1;background:#0a0e14;border:1px solid #38bdf833;border-radius:10px;padding:12px">
         <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:6px">📱 Telegram bildirişləri (telefona anında)</div>
         <p style="font-size:12px;color:#94a3b8;margin:0 0 10px;line-height:1.6">
-          Sayt kapalı olsa belə telefonunda anında bildiriş almaq üçün:<br>
+          Sayt bağlı olsa da telefonunda anında bildiriş almaq üçün:<br>
           <b>1.</b> Telegramda <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:#38bdf8">@userinfobot</a>-a "start" yaz — sənə <code style="background:#060810;padding:2px 6px;border-radius:4px">Id</code> nömrəsi verəcək (misal: 123456789).<br>
           <b>2.</b> Telegramda <a href="https://t.me/hesablarnet_bot" target="_blank" rel="noopener" style="color:#38bdf8">@hesablarnet_bot</a>-a "start" yaz.<br>
           <b>3.</b> ID-ni aşağı qoy və yadda saxla.
@@ -12263,10 +12257,10 @@ body.light-mode .eta-btn.active{border-color:#0284c7;background:rgba(2,132,199,.
 #pdDeliveryBadge #pdDeliveryIcon{display:inline-flex}
 #pdDeliveryBadge svg{width:12px;height:12px;flex:none}
 .pd-dl-fast{color:#ffb066!important;border-color:rgba(255,140,26,.3)!important;background:rgba(255,140,26,.08)!important}
-.pd-dl-chat{color:#7dd3fc!important;border-color:rgba(56,189,248,.28)!important;background:rgba(56,189,248,.08)!important}
+.pd-dl-chat{color:#fbbf24!important;border-color:rgba(251,191,36,.3)!important;background:rgba(251,191,36,.08)!important}
 .pd-dl-self{color:#c4b5fd!important;border-color:rgba(167,139,250,.3)!important;background:rgba(167,139,250,.08)!important}
 body.light-mode .pd-dl-fast{color:#c2410c!important}
-body.light-mode .pd-dl-chat{color:#0369a1!important}
+body.light-mode .pd-dl-chat{color:#b45309!important}
 body.light-mode .pd-dl-self{color:#6d28d9!important}
 
 /* ---------- 2b. ELAN AÇIQLAMASI ---------- */
@@ -12382,6 +12376,24 @@ window.openSellerProfileFromPd = function(){
   };
 })();
 </script>
+<style id="mobileFixes">
+/* ---- Mobil: dəstək düyməsi alt bar-ın üstünə düşməsin ---- */
+@media (max-width:900px){
+  #supportBtn{
+    bottom:calc(70px + env(safe-area-inset-bottom,0px))!important;
+    right:12px!important;
+    z-index:930!important;   /* .mobile-bottom-nav = 920 */
+  }
+  #supportPanel{
+    bottom:calc(70px + env(safe-area-inset-bottom,0px))!important;
+    right:10px!important;
+    left:10px!important;
+    width:auto!important;
+    max-height:calc(100vh - 150px - env(safe-area-inset-bottom,0px))!important;
+    z-index:1000030!important;
+  }
+}
+</style>
 <style id="sellerModalLayerFix">
 /* ---- Modal z-index yığını (üst-üstə düşməyə qarşı) ----
    .modal (default) ......... 9999
