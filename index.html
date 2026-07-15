@@ -11285,6 +11285,47 @@ window.spTab = function(btn){
   root.querySelectorAll(".sp-tab").forEach(x=>x.classList.toggle("active", x===btn));
   root.querySelectorAll(".sp-pane").forEach(x=>x.classList.toggle("sp-hide", x.dataset.sppane!==key));
 };
+window.spRenderGrid = function(){
+  const grid = document.getElementById("spGrid");
+  if(!grid) return;
+  const list = window.__spList || [];
+  const meta = window.__spMeta || {};
+  const q = (document.getElementById("spSearch")?.value || "").trim().toLowerCase();
+  const sort = document.getElementById("spSort")?.value || "new";
+
+  let out = list.filter(x => !q || (x.title+" "+x.game+" "+x.cat).toLowerCase().includes(q));
+  if(sort === "asc")  out.sort((a,b)=>a.priceNum-b.priceNum);
+  else if(sort === "desc") out.sort((a,b)=>b.priceNum-a.priceNum);
+  else out.sort((a,b)=>b.created-a.created);
+
+  if(!out.length){
+    grid.innerHTML = `<div class="sp-empty" style="grid-column:1/-1">
+      <div class="sp-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a4 4 0 018 0v2"/></svg></div>
+      <b>${q ? "Nəticə tapılmadı" : "Aktiv elan yoxdur"}</b>
+      <p>${q ? "Başqa açar söz yoxla." : "Bu satıcının hazırda satışda elanı yoxdur."}</p>
+    </div>`;
+    return;
+  }
+
+  const avaHtml = meta.avatar
+    ? '<img src="'+String(meta.avatar).replace(/"/g,'%22')+'" alt="" loading="lazy">'
+    : (meta.initial || "?");
+
+  grid.innerHTML = out.map(x => `<button type="button" class="sp-card" onclick="closeModal('sellerProfileModal');openProductDetail(window.__spAds['${x.key}'])">
+    <div class="sp-card-img">
+      ${x.iconHtml || '<span class="sp-card-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-4-4.5 4L9 13l-6 6"/></svg></span>'}
+      <span class="sp-card-seller"><i class="sp-card-ava">${avaHtml}</i>${meta.name || ""}</span>
+      ${x.cat ? `<span class="sp-card-cat">${x.cat}</span>` : ""}
+    </div>
+    <div class="sp-card-b">
+      <p class="sp-card-t">${x.title}</p>
+      <div class="sp-card-f">
+        <span class="sp-price">${x.priceText}</span>
+        ${meta.reviewCount ? `<span class="sp-card-rate"><svg viewBox="0 0 24 24" fill="#ff8c1a"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8L12 3z"/></svg>${meta.rating} <em>(${meta.reviewCount})</em></span>` : ""}
+      </div>
+    </div>
+  </button>`).join("");
+};
 window.spCopyLink = function(btn, url){
   const span = btn.querySelector("span");
   const done = ()=>{ if(!span) return; const old=span.textContent; span.textContent="Kopyalandı"; setTimeout(()=>{span.textContent=old;},1400); };
@@ -11338,7 +11379,7 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
     const _st = (typeof getSellerStatus === "function") ? getSellerStatus(sellerUid||"", sellerEmail||"") : null;
     const isOnline = !!(_st && _st.online);
     const avatarUrl = (typeof window.cldImg === "function")
-      ? window.cldImg(profile.photoURL || profile.avatarUrl || "", 200)
+      ? window.cldImg(profile.photoURL || profile.avatarUrl || "", 240)
       : (profile.photoURL || profile.avatarUrl || "");
 
     const spStars = (val) => {
@@ -11350,41 +11391,37 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
       return out + '</span>';
     };
 
+    // ---- Elanları hazırla (window.__spAds + siyahı) ----
     if(!window.__spAds) window.__spAds = {};
-    let _firstKey = "";
-    const adsHtml = ads.length ? ads.slice(0,8).map((a,i)=>{
+    const list = ads.map((a,i)=>{
       const key = String(a.id || i);
-      if(!_firstKey) _firstKey = key;
       const raw = (a.imageUrls && a.imageUrls[0]) || a.imageUrl || "";
-      const img = (typeof window.cldImg === "function") ? window.cldImg(raw, 200) : raw;
-      const iconHtml = img ? '<img src="'+String(img).replace(/"/g,'%22')+'" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy">' : "";
+      const img = (typeof window.cldImg === "function") ? window.cldImg(raw, 400) : raw;
+      const iconHtml = img ? '<img src="'+String(img).replace(/"/g,'%22')+'" alt="" loading="lazy">' : '';
       window.__spAds[key] = {
-        title:a.title||"", price:a.priceText||(String(a.price||"")+" ₼"), desc:a.desc||"",
-        category:a.category||"", platform:a.platform||"",
+        title:a.title||"", price:a.priceText||(Number(a.price||0).toFixed(2)+" ₼"), desc:a.desc||"",
+        rawDesc:a.desc||"", game:a.game||"", category:a.category||"", platform:a.platform||"",
+        region:a.region||"", server:a.server||"", rank:a.rank||"", level:a.level||"",
         seller:displayName, sellerUid:a.sellerUid||sellerUid||"", sellerEmail:a.sellerEmail||sellerEmail||"",
         adId:a.id||"", adNumber:a.adNumber||"", views:a.views||0,
         imageUrls:a.imageUrls||[], stock:Number(a.stock||1), icon:iconHtml
       };
-      const chips = [a.category, a.platform, a.adNumber ? "#"+a.adNumber : ""]
-        .filter(Boolean).slice(0,3)
-        .map(t=>'<span class="sp-tag">'+esc(String(t))+'</span>').join("");
-      return `<button type="button" class="sp-ad" onclick="closeModal('sellerProfileModal');openProductDetail(window.__spAds['${esc(key)}'])">
-        <div class="sp-ad-img">${iconHtml}</div>
-        <div class="sp-ad-body">
-          <p class="sp-ad-title">${esc(a.title||"Elan")}</p>
-          <div class="sp-ad-meta">${chips}</div>
-        </div>
-        <div class="sp-ad-right">
-          <span class="sp-price">${esc(a.priceText || (Number(a.price||0).toFixed(2)+" ₼"))}</span>
-          <span class="sp-ad-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></span>
-        </div>
-      </button>`;
-    }).join("") : `<div class="sp-empty">
-        <div class="sp-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a4 4 0 018 0v2"/></svg></div>
-        <b>Aktiv elan yoxdur</b><p>Bu satıcının hazırda satışda elanı yoxdur.</p>
-      </div>`;
+      // Qeyd: sp-grid HTML kimi yığılır — dəyərlər burada bir dəfə escape olunur
+      return {
+        key: esc(key), iconHtml,
+        title: esc(a.title||"Elan"),
+        priceText: esc(a.priceText||(Number(a.price||0).toFixed(2)+" ₼")),
+        priceNum: Number(a.price||0),
+        cat: esc(a.category||""), game: esc(a.game||""),
+        created:(a.createdAt && a.createdAt.seconds) ? a.createdAt.seconds : 0
+      };
+    });
+    window.__spList = list;
+    window.__spMeta = { name:esc(displayName), avatar:avatarUrl, initial:esc(initial), verified:isVerified, rating:avgRating, reviewCount:reviewCount };
 
-    const revsHtml = reviews.length ? reviews.slice(0,10).map(r=>{
+    const _firstKey = list.length ? list[0].key : "";
+
+    const revsHtml = reviews.length ? reviews.slice(0,20).map(r=>{
       const nm = r.userName || (r.userEmail||"").split("@")[0] || "İstifadəçi";
       const dt = r.createdAt && r.createdAt.seconds ? new Date(r.createdAt.seconds*1000).toLocaleDateString("az-AZ",{day:"2-digit",month:"2-digit",year:"numeric"}) : "";
       return `<div class="sp-rev">
@@ -11407,60 +11444,83 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
     const profileLink = location.origin + "/#user/" + (sellerUid || "");
 
     el.innerHTML = `
-      <div class="sp-cover"></div>
-      <div class="sp-id">
+      <div class="sp-cover">
+        ${joinDate ? `<span class="sp-cover-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Qeydiyyat: ${esc(joinDate)}</span>` : ""}
+      </div>
+
+      <div class="sp-head">
         <div class="sp-av-wrap">
           <div class="sp-av">${avatarUrl ? '<img src="'+String(avatarUrl).replace(/"/g,'%22')+'" alt="" loading="lazy">' : esc(initial)}</div>
           ${isOnline ? '<span class="sp-dot" title="Onlayn"></span>' : ''}
         </div>
-        <div class="sp-id-body">
+
+        <div class="sp-head-main">
           <div class="sp-name-row">
             <h2 class="sp-name">${esc(displayName)}</h2>
             ${isVerified ? (typeof getSellerVerifiedBadgeHtml === "function" ? getSellerVerifiedBadgeHtml(18) : '') : ''}
             ${isOnline ? '<span class="sp-online">Onlayn</span>' : ''}
           </div>
-          <div class="sp-chips">
-            ${joinDate ? `<span class="sp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Üzv: ${esc(joinDate)}</span>` : ""}
+          <div class="sp-under">
+            <span class="sp-rating-pill">
+              <svg viewBox="0 0 24 24" fill="#ff8c1a"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8L12 3z"/></svg>
+              <b>${avgRating || "—"}</b><i>(${reviewCount})</i>
+            </span>
             <span class="sp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 4v5c0 4.5-3 8.3-7 9-4-.7-7-4.5-7-9V7l7-4z"/></svg> Escrow qorumalı</span>
           </div>
         </div>
-      </div>
 
-      <div class="sp-rail">
-        <div class="sp-rail-cell">
-          <div class="sp-rail-val">${ads.length}</div>
-          <div class="sp-rail-key">Aktiv elan</div>
+        <div class="sp-actions">
+          ${canMsg ? `<button type="button" class="sp-btn primary" onclick="closeModal('sellerProfileModal');window.openChatFromProduct(window.__spAds['${esc(_firstKey)}'])">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.5 8.5 0 01-3.9-.9L3 21l1.9-5a8.4 8.4 0 01-.9-3.9 8.5 8.5 0 018.4-9h.5a8.5 8.5 0 018.1 8.1v.3z"/></svg>
+            Mesaj göndər</button>` : ""}
+          <button type="button" class="sp-btn" onclick="window.spCopyLink(this,'${esc(profileLink)}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <span>Linki kopyala</span>
+          </button>
+          <button type="button" class="sp-btn icon danger" title="Satıcını şikayət et" aria-label="Satıcını şikayət et" onclick="openReportModal('seller','${esc(sellerUid||sellerEmail||"")}','${esc(displayName)}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4M4 4h11l-1.5 4L15 12H4"/></svg>
+          </button>
         </div>
-        <div class="sp-rail-cell">
-          <div class="sp-rail-val">${salesCount}</div>
-          <div class="sp-rail-key">Tamamlanan satış</div>
-        </div>
-        <div class="sp-rail-cell">
-          <div class="sp-rail-val">${avgRating || "—"}${reviewCount ? `<em>${reviewCount} rəy</em>` : `<em>rəy yoxdur</em>`}</div>
-          <div class="sp-rail-key">Reytinq</div>
-        </div>
-      </div>
-
-      <div class="sp-actions">
-        ${canMsg ? `<button type="button" class="sp-btn primary" onclick="closeModal('sellerProfileModal');window.openChatFromProduct(window.__spAds['${esc(_firstKey)}'])">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.5 8.5 0 01-3.9-.9L3 21l1.9-5a8.4 8.4 0 01-.9-3.9 8.5 8.5 0 018.4-9h.5a8.5 8.5 0 018.1 8.1v.3z"/></svg>
-          Mesaj yaz</button>` : ""}
-        <button type="button" class="sp-btn" onclick="window.spCopyLink(this,'${esc(profileLink)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          <span>Linki kopyala</span>
-        </button>
-        <button type="button" class="sp-btn icon danger" title="Satıcını şikayət et" aria-label="Satıcını şikayət et" onclick="openReportModal('seller','${esc(sellerUid||sellerEmail||"")}','${esc(displayName)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4M4 4h11l-1.5 4L15 12H4"/></svg>
-        </button>
       </div>
 
       <div class="sp-tabs">
-        <button type="button" class="sp-tab active" data-sppane="ads" onclick="window.spTab(this)">Elanlar <span>${ads.length}</span></button>
-        <button type="button" class="sp-tab" data-sppane="revs" onclick="window.spTab(this)">Rəylər <span>${reviewCount}</span></button>
+        <button type="button" class="sp-tab active" data-sppane="ads" onclick="window.spTab(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Elanlar <span>${ads.length}</span>
+        </button>
+        <button type="button" class="sp-tab" data-sppane="revs" onclick="window.spTab(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8L12 3z"/></svg>
+          Rəylər <span>${reviewCount}</span>
+        </button>
+        <button type="button" class="sp-tab" data-sppane="sales" onclick="window.spTab(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+          Satış <span>${salesCount}</span>
+        </button>
       </div>
-      <div class="sp-pane" data-sppane="ads">${adsHtml}</div>
+
+      <div class="sp-pane" data-sppane="ads">
+        ${ads.length ? `<div class="sp-filter">
+          <div class="sp-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="text" id="spSearch" placeholder="Bu satıcının elanlarında axtar..." oninput="window.spRenderGrid()">
+          </div>
+          <select id="spSort" onchange="window.spRenderGrid()">
+            <option value="new">Ən yenilər</option>
+            <option value="asc">Ucuzdan bahaya</option>
+            <option value="desc">Bahadan ucuza</option>
+          </select>
+        </div>` : ""}
+        <div class="sp-grid" id="spGrid"></div>
+      </div>
       <div class="sp-pane sp-hide" data-sppane="revs">${revsHtml}</div>
+      <div class="sp-pane sp-hide" data-sppane="sales">
+        <div class="sp-empty">
+          <div class="sp-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <b>${salesCount} tamamlanan satış</b><p>Satış tarixçəsi məxfilik səbəbindən açıq göstərilmir.</p>
+        </div>
+      </div>
     `;
+    window.spRenderGrid();
   }catch(e){
     console.error(e);
     el.innerHTML = '<p style="color:#ef4444;padding:20px">Profil yüklənmədi.</p>';
@@ -11733,17 +11793,18 @@ function toggleTheme(){
 }
 .ads .ad .user .seller-name-link:hover{color:var(--brand-1,#ff8c1a)}
 
-/* ---------- 2. SATICI MAĞAZASI (yeni dizayn) ---------- */
+/* ---------- 2. SATICI MAĞAZASI (səhifə tipli) ---------- */
 #sellerProfileModal .modal-box{
-  max-width:600px!important;padding:0!important;overflow:hidden!important;
+  max-width:940px!important;padding:0!important;
+  max-height:90vh!important;overflow-y:auto!important;
   background:linear-gradient(180deg,#12161e,#0a0c11)!important;
-  border:1px solid #202839!important;border-radius:20px!important;
+  border:1px solid #202839!important;border-radius:18px!important;
   box-shadow:0 40px 90px -40px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.05) inset;
 }
 #sellerProfileModal .modal-close{
   position:absolute;top:12px;right:12px;z-index:5;
   width:32px;height:32px;border-radius:50%;
-  background:rgba(8,10,14,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  background:rgba(8,10,14,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,.14);color:#cbd5e1;
   display:grid;place-items:center;cursor:pointer;font-size:14px;line-height:1;padding:0;
   transition:.16s ease;
@@ -11751,35 +11812,51 @@ function toggleTheme(){
 #sellerProfileModal .modal-close:hover{background:#1a212e;color:#fff;transform:rotate(90deg)}
 #sellerProfileContent{position:relative}
 
+/* Cover */
 .sp-cover{
-  position:relative;height:104px;
+  position:relative;height:132px;
   background:
-    radial-gradient(120% 200% at 15% 0%,rgba(255,140,26,.28),transparent 62%),
+    radial-gradient(90% 180% at 12% 0%,rgba(255,140,26,.26),transparent 62%),
     linear-gradient(160deg,#1a212e,#0b0e13);
   border-bottom:1px solid #1a1f2b;
 }
 .sp-cover::before{
   content:"";position:absolute;inset:0;
-  background-image:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1px);
-  background-size:15px 15px;
+  background-image:
+    repeating-linear-gradient(115deg,transparent 0 22px,rgba(255,255,255,.022) 22px 24px),
+    radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:auto,16px 16px;
 }
-.sp-id{display:flex;gap:16px;padding:0 22px 18px;margin-top:-38px;position:relative;z-index:2}
+.sp-cover-chip{
+  position:absolute;right:56px;bottom:12px;z-index:2;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11.5px;font-weight:700;color:#cbd5e1;
+  background:rgba(8,10,14,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.12);padding:5px 11px;border-radius:8px;
+}
+.sp-cover-chip svg{width:13px;height:13px;opacity:.7}
+
+/* Header */
+.sp-head{
+  display:flex;align-items:flex-start;gap:18px;
+  padding:0 24px 18px;margin-top:-44px;position:relative;z-index:2;
+}
 .sp-av-wrap{position:relative;flex:none}
 .sp-av{
-  width:84px;height:84px;border-radius:22px;overflow:hidden;
+  width:104px;height:104px;border-radius:18px;overflow:hidden;
   background:linear-gradient(140deg,var(--brand-1,#ff8c1a),var(--brand-2,#f5670a));
   display:grid;place-items:center;
-  font-family:'Barlow Condensed',Arial,sans-serif;font-size:40px;font-weight:900;color:#fff;
-  border:3px solid #0d1117;
-  box-shadow:0 16px 34px -14px rgba(245,103,10,.9);
+  font-family:'Barlow Condensed',Arial,sans-serif;font-size:46px;font-weight:900;color:#fff;
+  border:4px solid #0d1117;
+  box-shadow:0 18px 38px -14px rgba(245,103,10,.9);
 }
 .sp-av img{width:100%;height:100%;object-fit:cover;display:block}
-.sp-dot{position:absolute;right:2px;bottom:2px;width:16px;height:16px;border-radius:50%;background:#22c55e;border:3px solid #0d1117}
-.sp-id-body{flex:1;min-width:0;padding-top:46px}
+.sp-dot{position:absolute;right:4px;bottom:4px;width:17px;height:17px;border-radius:50%;background:#22c55e;border:3px solid #0d1117}
+.sp-head-main{flex:1;min-width:0;padding-top:52px}
 .sp-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sp-name{
   font-family:'Barlow Condensed',Arial,sans-serif;
-  font-size:23px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;
+  font-size:26px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;
   line-height:1;margin:0;color:#fff;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
@@ -11788,34 +11865,27 @@ function toggleTheme(){
   background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.22);
   padding:3px 9px;border-radius:20px;
 }
-.sp-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.sp-under{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}
+.sp-rating-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,140,26,.1);border:1px solid rgba(255,140,26,.24);
+  padding:4px 10px;border-radius:8px;
+}
+.sp-rating-pill svg{width:13px;height:13px}
+.sp-rating-pill b{font-family:'Space Grotesk',monospace;font-size:13px;font-weight:700;color:#ffb066}
+.sp-rating-pill i{font-style:normal;font-size:11px;color:#8792a5}
 .sp-chip{
   display:inline-flex;align-items:center;gap:5px;
   font-size:11.5px;font-weight:600;color:#8792a5;
   background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);
-  padding:4px 9px;border-radius:7px;
+  padding:5px 10px;border-radius:8px;
 }
 .sp-chip svg{width:12px;height:12px;opacity:.75;flex:none}
 
-.sp-rail{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  border-top:1px solid #1a1f2b;border-bottom:1px solid #1a1f2b;
-  background:rgba(255,255,255,.012);
-}
-.sp-rail-cell{padding:14px 18px;position:relative;min-width:0}
-.sp-rail-cell + .sp-rail-cell::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:1px;background:#1a1f2b}
-.sp-rail-val{
-  font-family:'Space Grotesk',monospace;font-size:26px;font-weight:700;
-  letter-spacing:-1px;line-height:1;color:#fff;display:flex;align-items:baseline;gap:5px;min-width:0;
-}
-.sp-rail-val em{font-style:normal;font-size:12px;color:#5b6678;font-family:'DM Sans',Arial,sans-serif;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sp-rail-key{margin-top:6px;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#5b6678}
-.sp-stars{display:inline-flex;gap:1px;vertical-align:1px}
-.sp-stars svg{width:11px;height:11px}
-
-.sp-actions{display:flex;gap:8px;padding:14px 22px}
+/* Actions */
+.sp-actions{display:flex;gap:8px;padding-top:52px;flex:none}
 .sp-btn{
-  flex:1;height:38px;border-radius:10px;cursor:pointer;
+  height:40px;padding:0 16px;border-radius:10px;cursor:pointer;white-space:nowrap;
   font-family:'DM Sans',Arial,sans-serif;font-size:13px;font-weight:700;
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   border:1px solid #202839;background:#11151d;color:#cbd5e1;transition:.16s ease;
@@ -11827,85 +11897,151 @@ function toggleTheme(){
   border-color:transparent;color:#fff;box-shadow:0 8px 20px -8px rgba(245,103,10,.8);
 }
 .sp-btn.primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px -8px rgba(245,103,10,.95)}
-.sp-btn.icon{flex:none;width:38px;padding:0}
+.sp-btn.icon{width:40px;padding:0}
 .sp-btn.danger:hover{background:#1c0f0f;border-color:#5a2323;color:#ff9d9d}
 
-.sp-tabs{display:flex;padding:0 22px;border-bottom:1px solid #1a1f2b}
+/* Tabs */
+.sp-tabs{display:flex;gap:6px;padding:0 24px;border-bottom:1px solid #1a1f2b;flex-wrap:wrap}
 .sp-tab{
-  background:0;border:0;cursor:pointer;position:relative;padding:11px 2px;margin-right:20px;
-  font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:800;
-  letter-spacing:.07em;text-transform:uppercase;color:#5b6678;transition:color .15s;
+  background:0;border:0;cursor:pointer;position:relative;
+  display:inline-flex;align-items:center;gap:8px;padding:12px 14px;
+  font-family:'DM Sans',Arial,sans-serif;font-size:12.5px;font-weight:700;
+  letter-spacing:.03em;color:#5b6678;transition:color .15s,background .15s;
+  border-radius:10px 10px 0 0;
 }
-.sp-tab:hover{color:#8792a5}
-.sp-tab.active{color:#fff}
-.sp-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--brand-1,#ff8c1a),var(--brand-2,#f5670a));border-radius:2px 2px 0 0}
-.sp-tab span{font-family:'Space Grotesk',monospace;font-size:11px;color:#5b6678;margin-left:5px;font-weight:600}
+.sp-tab svg{width:15px;height:15px;opacity:.8}
+.sp-tab:hover{color:#8792a5;background:rgba(255,255,255,.02)}
+.sp-tab.active{color:#fff;background:rgba(255,255,255,.03)}
+.sp-tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--brand-1,#ff8c1a),var(--brand-2,#f5670a));border-radius:2px 2px 0 0}
+.sp-tab span{
+  font-family:'Space Grotesk',monospace;font-size:11px;font-weight:600;color:#94a3b8;
+  background:rgba(255,255,255,.05);border-radius:20px;padding:1px 7px;
+}
+.sp-tab.active span{background:rgba(255,140,26,.16);color:#ffb066}
 
-.sp-pane{padding:14px 22px 20px;max-height:330px;overflow-y:auto}
-.sp-pane::-webkit-scrollbar{width:6px}
-.sp-pane::-webkit-scrollbar-thumb{background:#232b3a;border-radius:3px}
+/* Filter bar */
+.sp-pane{padding:16px 24px 22px}
 .sp-hide{display:none!important}
+.sp-filter{display:flex;gap:9px;margin-bottom:14px}
+.sp-search{position:relative;flex:1;min-width:0}
+.sp-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#5b6678;pointer-events:none}
+.sp-search input{
+  width:100%;height:40px;padding:0 12px 0 35px;margin:0!important;
+  background:#0d1117;border:1px solid #202839;border-radius:10px;color:#e2e8f0;
+  font-family:'DM Sans',Arial,sans-serif;font-size:13px;outline:0;transition:border-color .15s;
+}
+.sp-search input::placeholder{color:#4c586b}
+.sp-search input:focus{border-color:rgba(255,140,26,.45)}
+.sp-filter select{
+  height:40px;margin:0!important;width:auto;min-width:150px;
+  background:#0d1117;border:1px solid #202839;border-radius:10px;color:#cbd5e1;
+  font-family:'DM Sans',Arial,sans-serif;font-size:13px;font-weight:600;padding:0 10px;outline:0;cursor:pointer;
+}
 
-.sp-ad{
-  display:grid;grid-template-columns:76px 1fr auto;gap:13px;align-items:center;
-  background:#11151d;border:1px solid #202839;border-radius:14px;
-  padding:10px;margin-bottom:9px;cursor:pointer;text-align:left;width:100%;
-  transition:transform .18s cubic-bezier(.2,.7,.3,1),border-color .18s,box-shadow .18s;
+/* Ad grid */
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px}
+.sp-card{
+  display:flex;flex-direction:column;text-align:left;padding:0;cursor:pointer;overflow:hidden;
+  background:linear-gradient(180deg,#141821,#0b0d12);
+  border:1px solid #1e2532;border-radius:14px;
+  transition:transform .2s cubic-bezier(.2,.7,.3,1),border-color .2s,box-shadow .2s;
 }
-.sp-ad:last-child{margin-bottom:0}
-.sp-ad:hover{
-  transform:translateY(-2px);border-color:rgba(255,140,26,.42);
-  box-shadow:0 14px 30px -18px rgba(0,0,0,.95),0 8px 24px -18px rgba(245,103,10,.75);
+.sp-card:hover{
+  transform:translateY(-3px);border-color:rgba(255,140,26,.4);
+  box-shadow:0 18px 38px -22px rgba(0,0,0,.95),0 10px 28px -20px rgba(245,103,10,.7);
 }
-.sp-ad-img{width:76px;height:58px;border-radius:9px;overflow:hidden;flex:none;background:linear-gradient(150deg,#1b2230,#0d1117);display:grid;place-items:center}
-.sp-ad-img img,.sp-ad-img svg{width:100%;height:100%;object-fit:cover;display:block}
-.sp-ad-body{min-width:0}
-.sp-ad-title{font-size:13.5px;font-weight:700;color:#e9eef6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 5px}
-.sp-ad-meta{display:flex;gap:5px;flex-wrap:wrap}
-.sp-tag{
-  font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8792a5;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);padding:2px 7px;border-radius:5px;
+.sp-card-img{
+  position:relative;aspect-ratio:16/10;overflow:hidden;
+  background:linear-gradient(150deg,#1b2230,#0d1117);display:grid;place-items:center;
 }
-.sp-ad-right{display:flex;align-items:center;gap:9px;flex:none}
+.sp-card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.2,.7,.3,1)}
+.sp-card:hover .sp-card-img img{transform:scale(1.06)}
+.sp-card-ph{color:#2f3949}
+.sp-card-ph svg{width:30px;height:30px}
+.sp-card-img::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:52%;
+  background:linear-gradient(to top,rgba(9,11,15,.94),transparent);pointer-events:none;
+}
+.sp-card-seller{
+  position:absolute;left:7px;bottom:7px;z-index:2;
+  display:inline-flex;align-items:center;gap:5px;max-width:calc(100% - 14px);
+  font-size:10.5px;font-weight:700;color:#e2e8f0;
+  background:rgba(8,10,14,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);padding:3px 8px 3px 3px;border-radius:20px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sp-card-ava{
+  width:16px;height:16px;border-radius:50%;flex:none;overflow:hidden;
+  display:grid;place-items:center;font-style:normal;font-size:9px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,var(--brand-1,#ff8c1a),var(--brand-2,#f5670a));
+}
+.sp-card-ava img{width:100%;height:100%;object-fit:cover}
+.sp-card-cat{
+  position:absolute;right:7px;top:7px;z-index:2;
+  font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#cbd5e1;
+  background:rgba(8,10,14,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);padding:3px 8px;border-radius:6px;
+}
+.sp-card-b{padding:10px 11px 11px;display:flex;flex-direction:column;gap:8px;flex:1}
+.sp-card-t{
+  margin:0;font-size:12.5px;font-weight:700;color:#e9eef6;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sp-card-f{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
 .sp-price{
-  font-family:'Space Grotesk',monospace;font-size:16px;font-weight:700;letter-spacing:-.4px;
+  font-family:'Space Grotesk',monospace;font-size:15px;font-weight:700;letter-spacing:-.4px;
   background:linear-gradient(135deg,#ffb066,var(--brand-2,#f5670a));
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
-.sp-ad-arrow{color:#2f3949;transition:.16s ease}
-.sp-ad:hover .sp-ad-arrow{color:var(--brand-1,#ff8c1a);transform:translateX(2px)}
-.sp-ad-arrow svg{width:16px;height:16px;display:block}
+.sp-card-rate{
+  display:inline-flex;align-items:center;gap:3px;flex:none;
+  font-family:'Space Grotesk',monospace;font-size:10.5px;font-weight:600;color:#cbd5e1;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+  padding:2px 6px;border-radius:6px;
+}
+.sp-card-rate svg{width:9px;height:9px}
+.sp-card-rate em{font-style:normal;color:#5b6678}
 
-.sp-rev{padding:12px 0;border-bottom:1px solid #1a1f2b;display:flex;gap:11px}
+/* Reviews */
+.sp-rev{padding:13px 0;border-bottom:1px solid #1a1f2b;display:flex;gap:11px}
 .sp-rev:last-child{border-bottom:0}
 .sp-rev-av{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;background:#1b2230;color:#94a3b8;font-weight:800;font-size:13px}
 .sp-rev-head{display:flex;align-items:center;gap:8px;margin-bottom:3px}
 .sp-rev-name{font-size:13px;font-weight:700;color:#e9eef6}
 .sp-rev-date{font-size:11px;color:#5b6678;margin-left:auto;font-family:'Space Grotesk',monospace}
 .sp-rev-text{margin:0;font-size:12.5px;color:#9aa5b6;line-height:1.55;word-break:break-word}
+.sp-stars{display:inline-flex;gap:1px}
+.sp-stars svg{width:11px;height:11px}
 
-.sp-empty{text-align:center;padding:36px 18px}
-.sp-empty-icon{width:46px;height:46px;border-radius:14px;margin:0 auto 12px;background:#11151d;border:1px solid #202839;display:grid;place-items:center;color:#3a4456}
+/* Empty */
+.sp-empty{text-align:center;padding:44px 18px}
+.sp-empty-icon{width:48px;height:48px;border-radius:14px;margin:0 auto 12px;background:#11151d;border:1px solid #202839;display:grid;place-items:center;color:#3a4456}
 .sp-empty-icon svg{width:22px;height:22px}
 .sp-empty b{display:block;font-size:14px;color:#cbd5e1;margin-bottom:4px}
 .sp-empty p{margin:0;font-size:12.5px;color:#5b6678}
 
+@media(max-width:820px){
+  .sp-head{flex-wrap:wrap;gap:14px}
+  .sp-actions{padding-top:0;width:100%}
+  .sp-btn{flex:1}
+}
 @media(max-width:700px){
-  #sellerProfileModal .modal-box{border-radius:18px 18px 0 0!important;max-height:92vh!important;overflow-y:auto!important}
-  .sp-cover{height:88px}
-  .sp-id{padding:0 14px 14px;gap:12px;margin-top:-32px}
-  .sp-av{width:66px;height:66px;border-radius:18px;font-size:31px}
-  .sp-id-body{padding-top:36px}
-  .sp-name{font-size:20px}
-  .sp-rail-cell{padding:12px 12px}
-  .sp-rail-val{font-size:21px}
-  .sp-rail-val em{display:none}
-  .sp-actions{padding:12px 14px}
-  .sp-tabs{padding:0 14px}
-  .sp-pane{padding:12px 14px 18px;max-height:none}
-  .sp-ad{grid-template-columns:60px 1fr auto;gap:10px}
-  .sp-ad-img{width:60px;height:48px}
-  .sp-ad:hover{transform:none}
+  #sellerProfileModal .modal-box{border-radius:16px 16px 0 0!important;max-height:93vh!important}
+  .sp-cover{height:104px}
+  .sp-cover-chip{right:52px;bottom:10px;font-size:10.5px}
+  .sp-head{padding:0 14px 14px;margin-top:-36px}
+  .sp-av{width:78px;height:78px;border-radius:16px;font-size:35px;border-width:3px}
+  .sp-head-main{padding-top:40px}
+  .sp-name{font-size:21px}
+  .sp-tabs{padding:0 8px;gap:2px}
+  .sp-tab{padding:11px 9px;font-size:11.5px}
+  .sp-tab svg{display:none}
+  .sp-pane{padding:14px 14px 18px}
+  .sp-filter{flex-direction:column}
+  .sp-filter select{width:100%;min-width:0}
+  .sp-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .sp-card:hover{transform:none}
+  .sp-card-t{font-size:11.5px}
 }
 
 /* ---------- 2b. ELAN HAQQINDA — oyun / xüsusiyyətlər / qeyd ---------- */
@@ -11981,23 +12117,30 @@ body.light-mode #sellerProfileModal .modal-box{
   background:linear-gradient(180deg,#ffffff,#f6f8fb)!important;border:1px solid #e3e8ef!important;
 }
 body.light-mode .sp-cover{
-  background:radial-gradient(120% 200% at 15% 0%,rgba(245,103,10,.16),transparent 62%),linear-gradient(160deg,#eef2f7,#e3e9f1);
+  background:radial-gradient(90% 180% at 12% 0%,rgba(245,103,10,.16),transparent 62%),linear-gradient(160deg,#eef2f7,#e2e8f0);
   border-bottom:1px solid #e3e8ef;
 }
-body.light-mode .sp-cover::before{background-image:radial-gradient(rgba(15,23,42,.06) 1px,transparent 1px)}
+body.light-mode .sp-cover::before{
+  background-image:repeating-linear-gradient(115deg,transparent 0 22px,rgba(15,23,42,.03) 22px 24px),radial-gradient(rgba(15,23,42,.06) 1px,transparent 1px);
+}
+body.light-mode .sp-cover-chip{background:rgba(255,255,255,.85);border-color:#dde1e7;color:#334155}
 body.light-mode .sp-av,body.light-mode .sp-dot{border-color:#fff}
 body.light-mode .sp-name{color:#0f172a}
 body.light-mode .sp-chip{background:#fff;border:1px solid #e3e8ef;color:#4a5568}
-body.light-mode .sp-rail,body.light-mode .sp-tabs{border-color:#e8ecf2}
-body.light-mode .sp-rail-cell + .sp-rail-cell::before{background:#e8ecf2}
-body.light-mode .sp-rail-val{color:#0f172a}
-body.light-mode .sp-tab.active{color:#0f172a}
+body.light-mode .sp-rating-pill b{color:#c2410c}
+body.light-mode .sp-tabs{border-color:#e8ecf2}
+body.light-mode .sp-tab.active{color:#0f172a;background:#f4f6f9}
+body.light-mode .sp-tab span{background:#eef1f6;color:#475569}
 body.light-mode .sp-btn{background:#fff;border-color:#dde1e7;color:#4a5568}
 body.light-mode .sp-btn:hover{background:#f4f6f9;color:#0f172a}
 body.light-mode .sp-btn.primary{color:#fff}
-body.light-mode .sp-ad{background:#fff!important;border-color:#e3e8ef!important}
-body.light-mode .sp-ad-title{color:#0f172a}
-body.light-mode .sp-tag{background:#f4f6f9;border-color:#e3e8ef;color:#5a6272}
+body.light-mode .sp-search input,body.light-mode .sp-filter select{background:#fff;border-color:#dde1e7;color:#0f172a}
+body.light-mode .sp-card{background:linear-gradient(180deg,#ffffff,#f7f9fc);border-color:#e3e8ef}
+body.light-mode .sp-card-img::after{background:linear-gradient(to top,rgba(255,255,255,.92),transparent)}
+body.light-mode .sp-card-seller{background:rgba(255,255,255,.85);border-color:#dde1e7;color:#0f172a}
+body.light-mode .sp-card-cat{background:rgba(255,255,255,.85);border-color:#dde1e7;color:#475569}
+body.light-mode .sp-card-t{color:#0f172a}
+body.light-mode .sp-card-rate{background:#f4f6f9;border-color:#e3e8ef;color:#334155}
 body.light-mode .sp-rev{border-color:#eef1f6}
 body.light-mode .sp-rev-name{color:#0f172a}
 body.light-mode .sp-rev-text{color:#5a6272}
