@@ -4023,9 +4023,9 @@ button,input,select,textarea{max-width:100%}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a1 1 0 00-1 1v3a2 2 0 010 4v3a1 1 0 001 1h16a1 1 0 001-1v-3a2 2 0 010-4V8a1 1 0 00-1-1z"/></svg>
             <span id="pdStockText">Stokda var</span>
           </span>
-          <span class="badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-            Dərhal çatdırılma
+          <span class="badge" id="pdDeliveryBadge">
+            <span id="pdDeliveryIcon"></span>
+            <span id="pdDeliveryText">Dərhal çatdırılma</span>
           </span>
         </div>
 
@@ -4480,6 +4480,42 @@ window.pdTab = function(btn){
 };
 
 /* "Elan açıqlaması" — YALNIZ satıcının elan yerləşdirərkən yazdığı mətn. */
+/* Çatdırılma/satış üsulu badge-i — qiymətin üstündə */
+function renderPdDeliveryBadge(P){
+  P = P || {};
+  const box  = document.getElementById("pdDeliveryBadge");
+  const icon = document.getElementById("pdDeliveryIcon");
+  const txt  = document.getElementById("pdDeliveryText");
+  if(!box || !txt) return;
+
+  const BOLT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
+  const CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.5 8.5 0 01-3.9-.9L3 21l1.9-5a8.4 8.4 0 01-.9-3.9 8.5 8.5 0 018.4-9h.5a8.5 8.5 0 018.1 8.1v.3z"/></svg>';
+  const PHONE= '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8.1 9.7a16 16 0 006 6l1.2-1.1a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.9 2.2z"/></svg>';
+
+  box.classList.remove("pd-dl-fast","pd-dl-chat","pd-dl-self");
+
+  if(P.contactMode === "direct_contact"){
+    box.classList.add("pd-dl-self");
+    if(icon) icon.innerHTML = PHONE;
+    txt.textContent = "Satıcı özü satır";
+    box.title = "Ödəniş saytdan keçmir — alıcı satıcı ilə birbaşa əlaqə saxlayır.";
+    return;
+  }
+
+  const mode = P.deliveryMode || (P.hasCredentials ? "direct" : "chat");
+  if(mode === "direct"){
+    box.classList.add("pd-dl-fast");
+    if(icon) icon.innerHTML = BOLT;
+    txt.textContent = "Dərhal çatdırılma";
+    box.title = "Hesab məlumatları əvvəlcədən yazılıb — ödənişdən dərhal sonra avtomatik çatdırılır.";
+  } else {
+    box.classList.add("pd-dl-chat");
+    if(icon) icon.innerHTML = CHAT;
+    txt.textContent = "Chat vasitəsilə çatdırılma";
+    box.title = "Ödənişdən sonra satıcıya sorğu gedir, məlumatları chat-də göndərir.";
+  }
+}
+
 function renderPdAbout(P){
   P = P || {};
   const descEl = document.getElementById("pdDesc");
@@ -4896,6 +4932,7 @@ window.renderMarketAds = function renderMarketAds(){
     sellerVerified: !!a.sellerVerified,
     imageUrls: a.imageUrls || [],
     contactMode: a.contactMode || "platform",
+    deliveryMode: a.deliveryMode || (a.hasCredentials ? "direct" : "chat"),
     directPhone: a.directPhone || "",
     directWhatsapp: a.directWhatsapp || "",
     stock: Number(a.stock || 1),
@@ -4957,6 +4994,7 @@ window.renderMarketAds = function renderMarketAds(){
       originalPrice: Number(btn.dataset.originalprice||0),
       contact: btn.dataset.contact,
       contactMode: btn.dataset.contactmode || "platform",
+      deliveryMode: btn.dataset.deliverymode || "",
       directPhone: btn.dataset.directphone || "",
       directWhatsapp: btn.dataset.directwhatsapp || "",
       tags: tags,
@@ -5013,6 +5051,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-originalprice="'+Number(a.originalPrice||0)+'" '
         + 'data-contact="'+attr(a.contact)+'" '
         + 'data-contactmode="'+attr(a.contactMode||"platform")+'" '
+        + 'data-deliverymode="'+attr(a.deliveryMode||"")+'" '
         + 'data-directphone="'+attr(a.directPhone||"")+'" '
         + 'data-directwhatsapp="'+attr(a.directWhatsapp||"")+'" '
         + 'data-tags="'+tagsB64+'" '
@@ -5257,6 +5296,7 @@ function openProductDetail(p){
   }
   // Satış üsuluna görə düymələr
   const isDirect  = currentDetailProduct.contactMode === "direct_contact";
+  renderPdDeliveryBadge(currentDetailProduct);
   const _addCart  = document.getElementById("pdAddCart");
   const callBtn   = document.getElementById("pdCallBtn");
   const dirPhone  = (currentDetailProduct.directPhone || "").trim();
@@ -11353,7 +11393,6 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
       const uSnap = await getDoc(doc(db,"users",sellerUid)).catch(()=>null);
       if(uSnap && uSnap.exists()) profile = uSnap.data();
     }
-    const joinDate = profile.createdAt ? new Date(profile.createdAt.seconds*1000).toLocaleDateString("az-AZ",{year:"numeric",month:"long"}) : "";
     const isVerified = !!profile.sellerVerified;
 
     // presence/{uid} — hamı üçün oxunandır, userName saxlayır
@@ -11380,6 +11419,18 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
     const _presenceName = (_pre && _pre.userName) ? _pre.userName : "";
     const displayName = profile.userId || _adUserId || _pdName || _presenceName || "Satıcı";
     const initial = displayName.charAt(0).toUpperCase();
+
+    // Qeydiyyat tarixi. users/{uid} yalnız sahibi/admin üçün oxunandır; kənar istifadəçi üçün
+    // usernames/{userId} sənədindən götürülür (allow read: if true, createdAt qeydiyyat anıdır).
+    let _joinTs = (profile.createdAt && profile.createdAt.seconds) ? profile.createdAt.seconds : 0;
+    if(!_joinTs && displayName && displayName !== "Satıcı"){
+      const nSnap = await getDoc(doc(db,"usernames",displayName)).catch(()=>null);
+      const nd = (nSnap && nSnap.exists()) ? (nSnap.data()||{}) : {};
+      if(nd.createdAt && nd.createdAt.seconds) _joinTs = nd.createdAt.seconds;
+    }
+    const joinDate = _joinTs
+      ? new Date(_joinTs*1000).toLocaleDateString("az-AZ",{day:"2-digit",month:"2-digit",year:"numeric"})
+      : "";
 
     // Satış sayını tap
     const salesKey = sellerEmail || "";
@@ -11489,7 +11540,6 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
               <svg viewBox="0 0 24 24" fill="#ff8c1a"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8L12 3z"/></svg>
               <b>${avgRating || "—"}</b><i>(${reviewCount})</i>
             </span>
-            <span class="sp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 4v5c0 4.5-3 8.3-7 9-4-.7-7-4.5-7-9V7l7-4z"/></svg> Escrow qorumalı</span>
           </div>
         </div>
 
@@ -12147,6 +12197,17 @@ body.light-mode .pd-rev-avg{color:#c2410c}
   .pd-tab{padding:10px 11px;font-size:12px}
   .pd-tabpane{padding:15px}
 }
+
+/* ---------- 2c. Çatdırılma/satış üsulu badge-i ---------- */
+#pdDeliveryBadge{transition:color .15s,border-color .15s,background .15s}
+#pdDeliveryBadge #pdDeliveryIcon{display:inline-flex}
+#pdDeliveryBadge svg{width:12px;height:12px;flex:none}
+.pd-dl-fast{color:#ffb066!important;border-color:rgba(255,140,26,.3)!important;background:rgba(255,140,26,.08)!important}
+.pd-dl-chat{color:#7dd3fc!important;border-color:rgba(56,189,248,.28)!important;background:rgba(56,189,248,.08)!important}
+.pd-dl-self{color:#c4b5fd!important;border-color:rgba(167,139,250,.3)!important;background:rgba(167,139,250,.08)!important}
+body.light-mode .pd-dl-fast{color:#c2410c!important}
+body.light-mode .pd-dl-chat{color:#0369a1!important}
+body.light-mode .pd-dl-self{color:#6d28d9!important}
 
 /* ---------- 2b. ELAN AÇIQLAMASI ---------- */
 #pdDesc{margin:0}
