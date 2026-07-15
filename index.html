@@ -4107,12 +4107,7 @@ button,input,select,textarea{max-width:100%}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
         Elan Açıqlaması
       </h4>
-      <div class="pd-game-line" id="pdGameLine" style="display:none"></div>
-      <div class="pd-specs" id="pdSpecs"></div>
-      <div class="pd-desc-block" id="pdDescBlock">
-        <span class="pd-desc-label">Satıcının qeydi</span>
-        <p id="pdDesc" style="margin:0;color:#c8ccd0;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;">Məhsul haqqında məlumat.</p>
-      </div>
+      <p id="pdDesc" style="margin:0;color:#c8ccd0;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;">Məhsul haqqında məlumat.</p>
     </div>
     <div class="pd-tabpane pd-tabhide" data-pdpane="revs">
       <h4 class="pd-pane-title">
@@ -4484,17 +4479,16 @@ window.pdTab = function(btn){
   sec.querySelectorAll(".pd-tabpane").forEach(x=>x.classList.toggle("pd-tabhide", x.dataset.pdpane!==key));
 };
 
+/* "Elan açıqlaması" — YALNIZ satıcının elan yerləşdirərkən yazdığı mətn. */
 function renderPdAbout(P){
   P = P || {};
   const descEl = document.getElementById("pdDesc");
-  const specEl = document.getElementById("pdSpecs");
-  const gameEl = document.getElementById("pdGameLine");
-  const blockEl = document.getElementById("pdDescBlock");
   if(!descEl) return;
 
+  // Yeni elanlarda rawDesc var. Köhnə elanlarda desc birləşdirilmiş formadadır
+  // ("Oyun • Platforma: X • Rank: Y • mətn") — meta hissələr təmizlənir.
   const META_RE = /^\s*(Platforma|Region|Server|Rank|Level)\s*:/i;
   const game = String(P.game || "").trim();
-
   let body = String(P.rawDesc || "").trim();
   if(!body){
     body = String(P.desc || "")
@@ -4504,33 +4498,8 @@ function renderPdAbout(P){
       .join(" \u2022 ");
   }
 
-  if(gameEl){
-    if(game){
-      gameEl.style.display = "";
-      gameEl.innerHTML = '<span class="pd-game-key">Oyun</span><span class="pd-game-val">'+esc(game)+'</span>';
-    } else {
-      gameEl.style.display = "none";
-      gameEl.innerHTML = "";
-    }
-  }
-
-  if(specEl){
-    const rows = [
-      ["Kateqoriya", P.category],
-      ["Platforma", P.platform],
-      ["Region", P.region],
-      ["Server", P.server],
-      ["Rank", P.rank],
-      ["Level", P.level]
-    ].filter(r => String(r[1]||"").trim());
-    specEl.innerHTML = rows.length
-      ? rows.map(r=>'<div class="pd-spec"><span class="pd-spec-key">'+esc(r[0])+'</span><span class="pd-spec-val">'+esc(String(r[1]))+'</span></div>').join("")
-      : "";
-    specEl.style.display = rows.length ? "" : "none";
-  }
-
-  descEl.textContent = body || "Satıcı əlavə qeyd yazmayıb.";
-  if(blockEl) blockEl.classList.toggle("pd-desc-empty", !body);
+  descEl.textContent = body || "Satıcı açıqlama yazmayıb.";
+  descEl.classList.toggle("pd-desc-none", !body);
 }
 
 function renderPdPlatformBadge(product){
@@ -12179,51 +12148,9 @@ body.light-mode .pd-rev-avg{color:#c2410c}
   .pd-tabpane{padding:15px}
 }
 
-/* ---------- 2b. ELAN HAQQINDA — oyun / xüsusiyyətlər / qeyd ---------- */
-#pdDescBox{display:flex;flex-direction:column;gap:14px}
-.pd-game-line{
-  display:flex;align-items:baseline;gap:10px;
-  padding:11px 14px;border-radius:12px;
-  background:linear-gradient(135deg,rgba(255,140,26,.10),rgba(255,140,26,.02));
-  border:1px solid rgba(255,140,26,.20);
-}
-.pd-game-key{
-  font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-  color:#b0741f;flex:none;
-}
-.pd-game-val{
-  font-family:'Barlow Condensed',Arial,sans-serif;
-  font-size:21px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
-  line-height:1;color:#ffb066;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.pd-specs{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:1px;background:#1a2029;border:1px solid #1a2029;border-radius:12px;overflow:hidden;
-}
-.pd-spec{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:10px 13px;background:#0d1117;min-width:0;
-}
-.pd-spec-key{
-  font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
-  color:#5b6678;flex:none;
-}
-.pd-spec-val{
-  font-family:'Space Grotesk',monospace;font-size:13px;font-weight:600;
-  color:#e2e8f0;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.pd-desc-block{
-  border-left:2px solid #232b3a;padding-left:13px;border-radius:0;
-}
-.pd-desc-label{
-  display:block;margin-bottom:6px;
-  font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#5b6678;
-}
-.pd-desc-empty #pdDesc{color:#5b6678;font-style:italic}
-@media(max-width:700px){
-  .pd-specs{grid-template-columns:1fr}
-  .pd-game-val{font-size:18px}
-}
+/* ---------- 2b. ELAN AÇIQLAMASI ---------- */
+#pdDesc{margin:0}
+.pd-desc-none{color:#5b6678!important;font-style:italic}
 
 /* ---------- 3. LIGHT MODE ---------- */
 body.light-mode .ads .ad{
@@ -12241,13 +12168,6 @@ body.light-mode .ad-banner::after{
 body.light-mode .ad-seller-row b{color:#0f172a}
 body.light-mode .ad-footer-row{border-top:1px solid #eef1f6!important}
 body.light-mode .ad-views{color:#64748b!important}
-body.light-mode .pd-game-line{background:linear-gradient(135deg,rgba(245,103,10,.10),rgba(245,103,10,.02));border-color:rgba(245,103,10,.22)}
-body.light-mode .pd-game-key{color:#b45309}
-body.light-mode .pd-game-val{color:#c2410c}
-body.light-mode .pd-specs{background:#e8ecf2;border-color:#e3e8ef}
-body.light-mode .pd-spec{background:#fff}
-body.light-mode .pd-spec-val{color:#0f172a}
-body.light-mode .pd-desc-block{border-left-color:#e3e8ef}
 body.light-mode #sellerProfileModal .modal-box{
   background:linear-gradient(180deg,#ffffff,#f6f8fb)!important;border:1px solid #e3e8ef!important;
 }
