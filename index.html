@@ -4390,7 +4390,7 @@ function renderPdThumbs(product){
   let html = "";
   imgs.slice(0, maxShow).forEach(function(url, i){
     html += '<button type="button" class="pd-thumb'+(i===0?' active':'')+'" data-idx="'+i+'" onclick="setPdMainImage('+i+')">'
-      + '<img src="'+String(url).replace(/"/g,'%22')+'" alt="" loading="lazy">'
+      + '<img src="'+String(window.cldImg(url,120)).replace(/"/g,'%22')+'" alt="" loading="lazy">'
       + '</button>';
   });
   if(imgs.length > maxShow){
@@ -4447,7 +4447,7 @@ window.setPdMainImage = function(idx){
   const pdImg = document.getElementById("pdImage");
   if(!pdImg) return;
   const catLabel = (currentDetailProduct && currentDetailProduct.category) || "";
-  pdImg.innerHTML = '<img src="'+String(url).replace(/"/g,'%22')+'" alt="" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1" loading="lazy">'
+  pdImg.innerHTML = '<img src="'+String(window.cldImg(url,800)).replace(/"/g,'%22')+'" alt="" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1" loading="lazy">'
     + (catLabel ? '<div class="pd-img-cat-label">'+esc(catLabel)+'</div>' : '');
   renderPdPlatformBadge(currentDetailProduct || {});
   _pdAddNavArrows();
@@ -4808,6 +4808,17 @@ window.autoGameAdIcon = function(a){
   return null;
 };
 
+/* Cloudinary optimallasdirma: f_auto (WEBP/AVIF) + q_auto + olcu limiti. */
+window.cldImg = function(url, w){
+  try{
+    var u = String(url || "");
+    if(u.indexOf("res.cloudinary.com") === -1) return u;
+    if(u.indexOf("/upload/f_auto") !== -1) return u;
+    if(u.indexOf("/upload/") === -1) return u;
+    return u.replace("/upload/", "/upload/f_auto,q_auto:good,c_limit,w_" + (w || 800) + "/");
+  }catch(e){ return url; }
+};
+
 window.renderMarketAds = function renderMarketAds(){
   const adsEl=document.getElementById("ads");
   if(!adsEl) return;
@@ -4815,7 +4826,7 @@ window.renderMarketAds = function renderMarketAds(){
   const approved = (window.approvedFirestoreAds || [])
     .filter(a => !a.sold)
     .map(a => ({
-    icon: (()=>{ try{ const imgSrc=(a.imageUrls&&a.imageUrls.length)?a.imageUrls[0]:a.imageUrl; if(imgSrc) return '<img src="'+String(imgSrc).replace(/"/g,'%22')+'" alt="'+safeText(a.title)+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">'; } catch(e){} try{ const auto=window.autoGameAdIcon&&window.autoGameAdIcon(a); if(auto) return auto; }catch(e){} return getCategoryDefaultIcon(a.category||"",a.platform||""); })(),
+    icon: (()=>{ try{ const imgSrc=window.cldImg((a.imageUrls&&a.imageUrls.length)?a.imageUrls[0]:a.imageUrl, 800); if(imgSrc) return '<img src="'+String(imgSrc).replace(/"/g,'%22')+'" alt="'+safeText(a.title)+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">'; } catch(e){} try{ const auto=window.autoGameAdIcon&&window.autoGameAdIcon(a); if(auto) return auto; }catch(e){} return getCategoryDefaultIcon(a.category||"",a.platform||""); })(),
     title:safeText(a.title),
     desc:safeText(adFullDesc(a)),
     price: Number(a.price || 0).toFixed(2) + " ₼",
@@ -5009,7 +5020,7 @@ function openProductDetail(p){
   try{
     const _t = currentDetailProduct.title || "Hesablar.net";
     const _d = (currentDetailProduct.desc||"").slice(0,155) || "Azərbaycanda etibarlı oyun marketplace-i.";
-    const _img = (currentDetailProduct.imageUrls && currentDetailProduct.imageUrls[0]) || currentDetailProduct.imageUrl || "https://hesablar.net/og-image.png";
+    const _img = window.cldImg((currentDetailProduct.imageUrls && currentDetailProduct.imageUrls[0]) || currentDetailProduct.imageUrl || "https://hesablar.net/og-image.png", 1200);
     const _adNo = (currentDetailProduct.adNumber ? String(currentDetailProduct.adNumber) : "").replace(/[^0-9]/g,"");
     const _url = "https://hesablar.net/" + (_adNo ? "?ad=" + _adNo : "");
     document.title = _t + " — " + (currentDetailProduct.category || "Elan") + " | Hesablar.net";
