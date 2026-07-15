@@ -620,6 +620,13 @@ body.light-mode .admin-support-name{color:#1a1d23}
 .cart-panel.show{display:block}
 .cart-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #292b2b;padding:10px 0;font-size:13px;align-items:center}
 .cart-item:last-child{border-bottom:0}
+.cart-qty{display:flex;align-items:center;gap:6px;margin-top:5px}
+.cart-qty-btn{width:24px;height:24px;flex:none;display:grid;place-items:center;background:#1c1f24;border:1px solid #33373d;color:#e5e7eb;border-radius:6px;cursor:pointer;font-size:15px;font-weight:800;line-height:1;padding:0;transition:.15s}
+.cart-qty-btn:hover:not(:disabled){background:#ff5100;border-color:#ff5100;color:#fff}
+.cart-qty-btn:disabled{opacity:.35;cursor:not-allowed}
+.cart-qty-num{min-width:20px;text-align:center;font-weight:800;font-size:13px;color:#fff}
+body.light-mode .cart-qty-btn{background:#f1f3f7;border-color:#d9dee7;color:#333}
+body.light-mode .cart-qty-num{color:#111}
 .cart-total{display:flex;justify-content:space-between;font-weight:900;margin:14px 0}
 
 #cabinetBtn{align-items:center!important;justify-content:center!important;border:1px solid #ff5100!important}
@@ -3248,7 +3255,7 @@ button,input,select,textarea{max-width:100%}
     function syncMobCart(){
       var badge=document.getElementById('mobCartBadge'); if(!badge) return;
       var n = 0;
-      if(Array.isArray(window.cart)) n = window.cart.length;
+      if(Array.isArray(window.cart)) n = window.cart.reduce(function(a,b){ return a + Number(b.qty||1); },0);
       else{
         var src=document.querySelector('#cartBadge, .cart-badge, #cartCount, [data-cart-count]');
         n = src ? (parseInt((src.textContent||'').replace(/\D/g,''),10) || 0) : 0;
@@ -5150,6 +5157,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-rank="'+attr(a.rank)+'" '
         + 'data-level="'+attr(a.level)+'" '
         + 'data-views="'+Number(a.views||0)+'" '
+        + 'data-stock="'+Number(a.stock == null ? 1 : a.stock)+'" '
         + 'data-originalprice="'+Number(a.originalPrice||0)+'" '
         + 'data-contact="'+attr(a.contact)+'" '
         + 'data-contactmode="'+attr(a.contactMode||"platform")+'" '
@@ -5315,8 +5323,11 @@ function openProductDetail(p){
   const stockText  = document.getElementById("pdStockText");
   if(stockBadge && stockText){
     const st = Number(currentDetailProduct.stock || 1);
-    if(st > 1){ stockText.textContent = "Stok: " + st + " ədəd"; }
-    else { stockText.textContent = "Stokda var"; }
+    // 10-dan çox olanda dəqiq rəqəm yerinə "10+" göstərilir
+    if(st > 10)     { stockText.textContent = "Stok: 10+ ədəd"; }
+    else if(st > 1) { stockText.textContent = "Stok: " + st + " ədəd"; }
+    else if(st === 1){ stockText.textContent = "Son 1 ədəd"; }
+    else            { stockText.textContent = "Stokda yoxdur"; }
     stockBadge.style.opacity = st > 0 ? "1" : "0.45";
   }
 
@@ -5339,7 +5350,7 @@ function openProductDetail(p){
   if(chatBtn) chatBtn.style.display = "";
 
   document.getElementById("pdAddCart").onclick = function(){
-    addToCart(currentDetailProduct.title || "Məhsul", currentDetailProduct.price || "0.00 ₼", currentDetailProduct.adId || "", currentDetailProduct.sellerUid || "", currentDetailProduct.sellerEmail || "");
+    addToCart(currentDetailProduct.title || "Məhsul", currentDetailProduct.price || "0.00 ₼", currentDetailProduct.adId || "", currentDetailProduct.sellerUid || "", currentDetailProduct.sellerEmail || "", currentDetailProduct.stock);
     closeModal("productModal");
   };
   // Yadda saxla düyməsinin vəziyyətini yoxla
@@ -5455,7 +5466,7 @@ window.quickAddToCart = function(el){
     else showToast(msg);
     return;
   }
-  addToCart(btn.dataset.title||"Məhsul", btn.dataset.price||"0.00 ₼", btn.dataset.adid||"", btn.dataset.selleruid||"", btn.dataset.selleremail||"");
+  addToCart(btn.dataset.title||"Məhsul", btn.dataset.price||"0.00 ₼", btn.dataset.adid||"", btn.dataset.selleruid||"", btn.dataset.selleremail||"", btn.dataset.stock);
 };
 
 // Özüm satıram — kartdan birbaşa zəng
@@ -5687,7 +5698,7 @@ window.goToPage = function(page){
   document.getElementById("ads")?.scrollIntoView({behavior:"smooth", block:"start"});
 };
 
-function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
+function addToCart(name, price, adId="", sellerUid="", sellerEmail="", stock=null){
   // Telefon təsdiqi qoruyucusu. QEYD: currentUser modul skriptindədir və burada
   // görünmür — window üzərindən yoxlayırıq ki, ReferenceError çökməsi olmasın.
   const _cu = window.currentUser;
@@ -5707,10 +5718,28 @@ function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
     return;
   }
   if(adId && cart.some(x=>x.adId===adId)){
-    showToast("Bu məhsul artıq səbətdədir");
+    // Artıq səbətdədirsə — miqdarı artır (stok limiti daxilində)
+    const _line = cart.find(x=>x.adId===adId);
+    // Köhnə səbətlərdə stock sahəsi olmaya bilər — təzə məlumatla yenilə
+    const _fresh = stock != null ? Number(stock)
+                 : (sameProduct && p.stock != null ? Number(p.stock) : null);
+    if(_fresh != null && _fresh > 0) _line.stock = _fresh;
+    const _max  = Number(_line.stock == null ? 1 : _line.stock);
+    const _cur  = Number(_line.qty || 1);
+    if(_cur >= _max){
+      showToast("Stokda yalnız " + _max + " ədəd var");
+      return;
+    }
+    _line.qty = _cur + 1;
+    localStorage.setItem("gs_cart", JSON.stringify(cart));
+    updateCart();
+    showToast(name + " — " + _line.qty + " ədəd");
     return;
   }
-  cart.push({name, price, adId, sellerUid, sellerEmail});
+  // Stok məlumatını səbətdə saxlayırıq ki, +/- limitini bilək
+  const _stk = stock != null ? Number(stock)
+             : (sameProduct ? Number(p.stock == null ? 1 : p.stock) : 1);
+  cart.push({name, price, adId, sellerUid, sellerEmail, qty:1, stock:Math.max(1,_stk||1)});
   localStorage.setItem("gs_cart", JSON.stringify(cart));
   updateCart();
   showToast(name + " səbətə əlavə edildi");
@@ -5718,7 +5747,8 @@ function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
 
 function updateCart(){
   const count=document.getElementById("cartBadge");
-  if(count) count.textContent=cart.length;
+  const _units = cart.reduce((a,b)=>a+Number(b.qty||1),0);
+  if(count) count.textContent=_units;
   window.cart = cart;                                   // mobil bar sayğacı üçün
   if(window.syncMobCart) window.syncMobCart();
   
@@ -5729,14 +5759,29 @@ function updateCart(){
   if(cart.length===0) {
     list.innerHTML='<p style="color:#bbb;font-size:13px">Səbət boşdur.</p>';
   } else {
-    list.innerHTML=cart.map((x,i)=>`
+    list.innerHTML=cart.map((x,i)=>{
+      const q   = Number(x.qty||1);
+      const max = Number(x.stock==null?1:x.stock);
+      const line = moneyToNumber(x.price) * q;
+      // Stok 1-dirsə miqdar seçimi mənasızdır — göstərmirik
+      const qtyHtml = max > 1 ? `
+          <div class="cart-qty">
+            <button class="cart-qty-btn" onclick="cartQty(${i},-1)" ${q<=1?"disabled":""} aria-label="Azalt">−</button>
+            <span class="cart-qty-num">${q}</span>
+            <button class="cart-qty-btn" onclick="cartQty(${i},1)" ${q>=max?"disabled":""} aria-label="Artır">+</button>
+            <small style="color:#64748b;margin-left:4px">${max>10?"10+ ədəd":"max "+max}</small>
+          </div>` : "";
+      return `
       <div class="cart-item">
-        <span>${safeText(x.name)}</span>
-        <b>${safeText(x.price)}</b>
+        <div style="flex:1;min-width:0">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safeText(x.name)}</div>${qtyHtml}
+        </div>
+        <b style="white-space:nowrap">${line.toFixed(2)} ₼</b>
         <button class="hbtn" style="height:28px;padding:0 8px" onclick="removeCart(${i})">Sil</button>
-      </div>`).join("");
+      </div>`;
+    }).join("");
   }
-  const sum=cart.reduce((a,b)=>a+moneyToNumber(b.price),0);
+  const sum=cart.reduce((a,b)=>a+moneyToNumber(b.price)*Number(b.qty||1),0);
   const discount = window.getCouponDiscount ? window.getCouponDiscount(sum) : 0;
   const finalSum = Math.max(0, sum - discount);
   if(discount > 0){
@@ -5745,6 +5790,19 @@ function updateCart(){
     total.textContent = sum.toFixed(2) + " ₼";
   }
 }
+
+function cartQty(i, delta){
+  const x = cart[i];
+  if(!x) return;
+  const max = Number(x.stock==null?1:x.stock);
+  const next = Number(x.qty||1) + delta;
+  if(next < 1) return;
+  if(next > max){ showToast("Stokda yalnız " + max + " ədəd var"); return; }
+  x.qty = next;
+  localStorage.setItem("gs_cart", JSON.stringify(cart));
+  updateCart();
+}
+window.cartQty = cartQty;
 
 function removeCart(i){
   cart.splice(i,1); 
@@ -5760,7 +5818,10 @@ async function checkoutCart(){
   const termsAccepted = await showBuyerTermsModal();
   if(!termsAccepted){ toast("Alış üçün şərtləri qəbul etməlisən."); return; }
 
-  const itemList = cart.map(x=>`• ${x.name} — ${x.price}`).join("\n");
+  const itemList = cart.map(x=>{
+    const q = Number(x.qty||1);
+    return `• ${x.name} — ${x.price}${q>1 ? ` × ${q} = ${(moneyToNumber(x.price)*q).toFixed(2)} ₼` : ""}`;
+  }).join("\n");
   const confirmed = await (window.showConfirm||window.confirm)(`Sifarişi tamamlamaq istədiyinizdən əminsiniz?\n\n${itemList}\n\nTamamla düyməsini basdıqdan sonra pul balansınızdan çıxılacaq.`, "🛒");
   if(!confirmed) return;
   if(typeof window.createOrdersFromCart === "function"){
@@ -8371,7 +8432,7 @@ window.editMyAd = async function(id,arr){
   if(document.getElementById("adOriginalPrice")) document.getElementById("adOriginalPrice").value=a.originalPrice ? Number(a.originalPrice).toFixed(2) : "";
   if(document.getElementById("adTags"))    document.getElementById("adTags").value=(a.tags||[]).join(", ");
   if(document.getElementById("adContact")) document.getElementById("adContact").value=a.contact || "";
-  if(document.getElementById("adStock"))   document.getElementById("adStock").value=a.stock || "1";
+  if(document.getElementById("adStock"))   document.getElementById("adStock").value = (a.stock == null ? "1" : String(a.stock));
   if(document.getElementById("adVideo"))   document.getElementById("adVideo").value=a.video || "";
   document.getElementById("adDesc").value=a.desc || "";
   // Satış üsulu / çatdırılma rejimi / müddət bərpası
@@ -8503,6 +8564,8 @@ window.submitAd = async function(){
       price: moneyToNumber(price),
       originalPrice: originalPrice ? moneyToNumber(originalPrice) : 0,
       tags, contact, stock, video, desc, imageUrl, imageUrls,
+      // Satıcı stoku yenidən doldurursa, elan "satılmış" vəziyyətindən çıxsın
+      ...(stock > 0 ? { sold: false } : {}),
       status: "Gözləmədə",
       sellerUid: currentUser.uid,
       sellerEmail: currentUser.email,
@@ -8627,7 +8690,7 @@ window.createOrdersFromCart = async function(items){
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
 
-  const total = items.reduce((s,item)=>s+moneyToNumber(item.price),0);
+  const total = items.reduce((s,item)=>s+moneyToNumber(item.price)*Number(item.qty||1),0);
   const buyerRef = doc(db,"wallets",currentUser.uid);
 
   try{
@@ -8657,6 +8720,14 @@ window.createOrdersFromCart = async function(items){
       const bal = Number(w.balance||0);
       if(bal < total) throw new Error("INSUFFICIENT_BALANCE");
 
+      // Səbətdə eyni elan birdən çox sətirdə ola bilər (qty sahəsi yoxdur,
+      // hər sətir = 1 ədəd). Stok yoxlaması üçün elan üzrə cəmləyirik.
+      const _wantByAd = {};
+      for(const {item} of adEntries){
+        if(!item.adId) continue;
+        _wantByAd[item.adId] = (_wantByAd[item.adId] || 0) + Number(item.qty || 1);
+      }
+
       for(const {item, snap} of adEntries){
         if(!snap) continue;
         if(!snap.exists())                                      throw new Error("AD_GONE::"+(item.name||item.adId));
@@ -8664,6 +8735,10 @@ window.createOrdersFromCart = async function(items){
         if(a.sold)                                              throw new Error("AD_SOLD::"+(item.name||""));
         if(a.sellerUid === currentUser.uid)                     throw new Error("SELF_BUY::"+(item.name||""));
         if(Number(a.price||0) !== moneyToNumber(item.price))    throw new Error("PRICE_CHANGED::"+(item.name||""));
+        // Stok yoxlaması
+        const _have = Number(a.stock == null ? 1 : a.stock);
+        const _want = _wantByAd[item.adId] || 1;
+        if(_have < _want)                                       throw new Error("OUT_OF_STOCK::"+(item.name||""));
       }
 
       // ── 3) YAZMALAR
@@ -8674,6 +8749,9 @@ window.createOrdersFromCart = async function(items){
         totalSpent: Number(w.totalSpent||0)+total,
         updatedAt: serverTimestamp()
       },{merge:true});
+
+      // Elan üzrə stokun yalnız bir dəfə yazılması üçün izləyici
+      const _stockWritten = {};
 
       for(const {item, snap} of adEntries){
         const adData = (snap && snap.exists()) ? (snap.data()||{}) : null;
@@ -8713,8 +8791,13 @@ window.createOrdersFromCart = async function(items){
 
         const orderPayload = {
           productTitle: item.name||"Məhsul",
-          price: moneyToNumber(item.price),
+          // QEYD: payout, refund, komissiya və statistika hamısı `price`-ı
+          // ödəniləcək məbləğ kimi oxuyur — ona görə burada SƏTRİN CƏMİ yazılır.
+          // Vahid qiymət ayrıca `unitPrice`-dadır.
+          price: moneyToNumber(item.price) * Number(item.qty||1),
+          unitPrice: moneyToNumber(item.price),
           priceText: item.price||"",
+          qty: Number(item.qty||1),
           adId: item.adId||"",
           category: adData?.category || item.category || "",
           deliveryType: _deliveryType,
@@ -8743,12 +8826,24 @@ window.createOrdersFromCart = async function(items){
         // Elanı satılmış kimi işarələ — eyni transaction daxilində.
         // Beləliklə iki alıcı eyni anda ala bilməz: ikinci transaction
         // sold=true görüb "AD_SOLD" ilə dayanacaq.
-        if(item.adId){
+        // Stoku azalt — elan yalnız stok bitəndə "satılmış" olur.
+        // Beləliklə 11 ədədlik elan 1 satışdan sonra silinmir, 10 qalır.
+        // QEYD: eyni elan səbətdə bir neçə sətirdə ola bilər — ona görə
+        // hər sətirdə deyil, elan üzrə YALNIZ BİR DƏFƏ (cəmlənmiş sayla) yazırıq.
+        if(item.adId && !_stockWritten[item.adId]){
+          _stockWritten[item.adId] = true;
+          const _a0    = (snap && snap.exists()) ? (snap.data()||{}) : {};
+          const _have0 = Number(_a0.stock == null ? 1 : _a0.stock);
+          const _left  = Math.max(0, _have0 - (_wantByAd[item.adId] || 1));
           tx.update(doc(db,"ads",item.adId),{
-            sold: true,
-            soldAt: serverTimestamp(),
-            buyerUid: currentUser.uid,
-            orderId: orderRef.id,
+            stock: _left,
+            ...( _left <= 0 ? {
+              sold: true,
+              soldAt: serverTimestamp(),
+              buyerUid: currentUser.uid,
+              orderId: orderRef.id
+            } : {} ),
+            lastSoldAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
         }
@@ -8911,6 +9006,10 @@ window.createOrdersFromCart = async function(items){
       return;
     }
     if(msg.startsWith("SELF_BUY::")){ toast("❌ Öz elanını ala bilməzsən: " + msg.split("::")[1]); return; }
+    if(msg.startsWith("OUT_OF_STOCK::")){
+      toast("❌ Stok kifayət etmir: " + msg.split("::")[1] + ". Səbətdəki sayı azalt.");
+      return;
+    }
     if(msg.startsWith("PRICE_CHANGED::")){
       toast("❌ Elan qiyməti dəyişib. Səbəti təzələ: " + msg.split("::")[1]);
       return;
@@ -10098,11 +10197,14 @@ async function adminRefundOrder(orderId){
       const bSnap = await tx.get(bRef);
       const b = bSnap.exists() ? (bSnap.data()||{}) : {balance:0};
       adId = o.adId || "";
+
       tx.update(oRef,{escrowStatus:"Alıcıya qaytarıldı",refundedAt:serverTimestamp(),updatedAt:serverTimestamp()});
       tx.set(bRef,{balance:Number(b.balance||0)+Number(o.price||0),updatedAt:serverTimestamp()},{merge:true});
       if(adId){
         tx.update(doc(db,"ads",adId),{
           status:"Təsdiqləndi", sold:false, soldAt:null, orderId:"",
+          // Stoku geri qaytar — atomik increment (əlavə oxu tələb etmir)
+          stock: increment(Number(o.qty || 1)),
           buyerUid:"", buyerEmail:"", updatedAt:serverTimestamp()
         });
       }
@@ -10463,7 +10565,7 @@ function renderAllAdsAdmin(arr){
   document.getElementById("adminAllAdsRefresh")?.addEventListener("click",_fetchAllAdsAdmin);
   el.querySelectorAll("[data-all-approve]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.allApprove,"Təsdiqləndi");_fetchPendingAds();_fetchAllAdsAdmin();});
   el.querySelectorAll("[data-all-reject]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.allReject,"Rədd edildi");_fetchPendingAds();_fetchAllAdsAdmin();});
-  el.querySelectorAll("[data-all-sold]").forEach(b=>b.onclick=async()=>{try{await updateDoc(doc(db,"ads",b.dataset.allSold),{sold:true,soldAt:serverTimestamp(),updatedAt:serverTimestamp()});toast("Elan satılmış kimi işarələndi");_fetchAllAdsAdmin();}catch(e){toast("Əməliyyat alınmadı: "+(e.message||""));}});
+  el.querySelectorAll("[data-all-sold]").forEach(b=>b.onclick=async()=>{try{await updateDoc(doc(db,"ads",b.dataset.allSold),{sold:true,stock:0,soldAt:serverTimestamp(),updatedAt:serverTimestamp()});toast("Elan satılmış kimi işarələndi");_fetchAllAdsAdmin();}catch(e){toast("Əməliyyat alınmadı: "+(e.message||""));}});
   el.querySelectorAll("[data-all-delete]").forEach(b=>b.onclick=async()=>{if(!await showConfirm("Bu elan silinsin?","🗑️"))return;await deleteDoc(doc(db,"ads",b.dataset.allDelete));toast("Elan silindi");_fetchPendingAds();_fetchAllAdsAdmin();});
 }
 
@@ -10522,7 +10624,7 @@ function drawSavedItems(items){
   el.querySelectorAll("[data-cart-saved]").forEach(b=>b.onclick=()=>{
     const item=uniq[Number(b.dataset.cartSaved)];
     if(typeof window.addToCart === "function"){
-      window.addToCart(item.title||"Məhsul",item.price||"0.00 ₼",item.adId||"",item.sellerUid||"",item.sellerEmail||"");
+      window.addToCart(item.title||"Məhsul",item.price||"0.00 ₼",item.adId||"",item.sellerUid||"",item.sellerEmail||"",item.stock);
     }
   });
   el.querySelectorAll("[data-remove-saved]").forEach(b=>b.onclick=()=>removeSavedItem(b.dataset.removeSaved));
@@ -10704,6 +10806,9 @@ async function cancelOrder(id){
     if(o.adId) await updateDoc(doc(db,"ads",o.adId),{
       status:"Təsdiqləndi",
       sold:false, soldAt:null, orderId:"",
+      // Stoku geri qaytar — atomik increment (oxu-yaz yarışı olmasın).
+      // Köhnə sifarişlərdə qty sahəsi yoxdursa 1 sayılır.
+      stock: increment(Number(o.qty || 1)),
       buyerUid:"", buyerEmail:"",
       updatedAt:serverTimestamp()
     }).catch(err=>{
