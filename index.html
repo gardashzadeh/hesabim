@@ -8564,8 +8564,6 @@ window.submitAd = async function(){
       price: moneyToNumber(price),
       originalPrice: originalPrice ? moneyToNumber(originalPrice) : 0,
       tags, contact, stock, video, desc, imageUrl, imageUrls,
-      // Satıcı stoku yenidən doldurursa, elan "satılmış" vəziyyətindən çıxsın
-      ...(stock > 0 ? { sold: false } : {}),
       status: "Gözləmədə",
       sellerUid: currentUser.uid,
       sellerEmail: currentUser.email,
@@ -8582,7 +8580,13 @@ window.submitAd = async function(){
 
     let savedAdId = editingId;
     if(editingId){
-      await updateDoc(doc(db,"ads",editingId), adPayload);
+      // Satıcı stoku yenidən doldurursa, elan "satılmış" vəziyyətindən çıxsın.
+      // QEYD: bu yalnız REDAKTƏ-də göndərilir — yeni elan yaradılanda Firestore
+      // Rules icazə verilən sahələri yoxlayır və artıq sahə "permissions" xətası verir.
+      await updateDoc(doc(db,"ads",editingId), {
+        ...adPayload,
+        ...(stock > 0 ? { sold: false } : {})
+      });
     } else {
       // Elan müddəti: 30 gün (1 ay)
       const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
