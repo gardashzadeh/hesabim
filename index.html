@@ -273,7 +273,7 @@ input,select,textarea{font-family:inherit}
 .hero-title p{margin:0;color:#d8d8d8;font-size:14px;line-height:1.5}
 .hero-features{position:absolute;right:95px;top:31px;width:270px;z-index:2}
 .feature{display:grid;grid-template-columns:35px 1fr;gap:12px;margin-bottom:20px}
-.feature i{font-style:normal;color:#ff5100;font-size:24px;line-height:1;display:flex;align-items:center}
+.feature i{font-style:normal;color:#ff5100;font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;flex:none}
 .feature b{font-size:13px}.feature small{display:block;color:#c4c4c4;margin-top:4px;font-size:12px}
 .side{display:grid;gap:12px;align-content:flex-start}
 .box{background:linear-gradient(180deg,#181919,#111212);border:1px solid #2b2d2d;border-radius:9px;padding:18px}
@@ -2293,7 +2293,12 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   border-radius:10px;
   color:#ff5100;
   box-shadow:0 0 0 1px rgba(255,81,0,.18), 0 6px 16px -4px rgba(255,81,0,.25);
+  display:grid;
+  place-items:center;   /* ikon qutunun tam mərkəzində */
+  padding:0;
+  flex:none;
 }
+.feature i svg{display:block;width:18px;height:18px}
 .feature b{font-size:13px;font-weight:800;letter-spacing:.3px;color:#f1f5f9}
 .feature small{font-size:12px;color:#7a8699;margin-top:3px}
 
