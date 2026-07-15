@@ -611,6 +611,7 @@ body.light-mode .admin-support-name{color:#1a1d23}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#111212;border:1px solid #333636;color:#fff;padding:12px 16px;border-radius:999px;z-index:9999999;display:none;box-shadow:0 8px 35px #000}
 .toast.show{display:block}
 .is-hidden{display:none!important}
+.mode-hidden{display:none!important}
 .cart-panel{display:none;position:fixed;right:18px;top:95px;width:360px;max-width:calc(100vw - 36px);background:#121313;border:1px solid #333636;border-radius:10px;z-index:9998;color:#fff;box-shadow:0 18px 60px #000;padding:14px}
 .cart-panel.show{display:block}
 .cart-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #292b2b;padding:10px 0;font-size:13px;align-items:center}
@@ -3415,6 +3416,14 @@ button,input,select,textarea{max-width:100%}
           <option value="price_desc">Qiymət: bahadan ucuza</option>
         </select>
       </div>
+      <div class="sort-control">
+        <label for="marketSaleMode" class="sort-control-label">Kateqoriya</label>
+        <select id="marketSaleMode" class="sort-select" onchange="setSaleMode(this.value)">
+          <option value="all" selected>Bütün elanlar</option>
+          <option value="platform">Sayt zəmanəti</option>
+          <option value="direct">Şəxsi elan</option>
+        </select>
+      </div>
       <button onclick="filterCategory('Hamısı')">Bütün Elanlar</button>
     </div>
   </div>
@@ -5456,7 +5465,7 @@ function updateEmptyState(){
   const adsEl = document.getElementById("ads");
   if(!adsEl) return;
   let emptyEl = document.getElementById("adsEmptyState");
-  const visible = adsEl.querySelectorAll(".ad:not(.is-hidden)").length;
+  const visible = adsEl.querySelectorAll(".ad:not(.is-hidden):not(.mode-hidden)").length;
   if(visible === 0){
     if(!emptyEl){
       emptyEl = document.createElement("div");
@@ -5511,11 +5520,34 @@ function filterCategory(cat){
 // ===== PAGİNATİON (ayrı mexanizm — pagination-hidden class) =====
 const ADS_PER_PAGE = 12;
 let currentPage = 1;
+let currentSaleMode = "all"; // all | platform | direct
+
+function setSaleMode(mode){
+  currentSaleMode = mode || "all";
+  currentPage = 1;
+  const sel = document.getElementById("marketSaleMode");
+  if(sel && sel.value !== currentSaleMode) sel.value = currentSaleMode;
+  paginateVisible();
+  if(typeof updateEmptyState === "function") updateEmptyState();
+}
+
+function applySaleModeFilter(){
+  document.querySelectorAll("#ads button.ad").forEach(el=>{
+    const cm = el.dataset.contactmode || "platform";
+    const isDirect = cm === "direct_contact";
+    let show = true;
+    if(currentSaleMode === "platform") show = !isDirect;
+    if(currentSaleMode === "direct")   show = isDirect;
+    el.classList.toggle("mode-hidden", !show);
+  });
+}
 
 function paginateVisible(){
-  // Yalnız #ads içindəki, is-hidden olmayan elanları al
+  // Əvvəlcə satış tipi filtrini tətbiq et (render-dən sonra da işləsin deyə burada)
+  applySaleModeFilter();
+  // Yalnız #ads içindəki, is-hidden və mode-hidden olmayan elanları al
   const allAds = Array.from(document.querySelectorAll("#ads button.ad"));
-  const visible = allAds.filter(el => !el.classList.contains("is-hidden"));
+  const visible = allAds.filter(el => !el.classList.contains("is-hidden") && !el.classList.contains("mode-hidden"));
 
   const totalPages = Math.ceil(visible.length / ADS_PER_PAGE);
   if(currentPage > totalPages) currentPage = Math.max(1, totalPages);
@@ -5572,7 +5604,7 @@ function renderPagination(totalPages){
 
 window.goToPage = function(page){
   const allAds = Array.from(document.querySelectorAll("#ads button.ad"));
-  const visible = allAds.filter(el => !el.classList.contains("is-hidden"));
+  const visible = allAds.filter(el => !el.classList.contains("is-hidden") && !el.classList.contains("mode-hidden"));
   const totalPages = Math.ceil(visible.length / ADS_PER_PAGE);
   if(page < 1 || page > totalPages) return;
   currentPage = page;
@@ -5716,9 +5748,16 @@ function goHome(e){
   if(e) e.preventDefault();
   const q = document.getElementById("q");
   if(q) q.value="";
+  currentSaleMode = "all";
+  const _sm = document.getElementById("marketSaleMode");
+  if(_sm) _sm.value = "all";
   filterCategory("Hamısı");
   document.querySelectorAll(".modal").forEach(m=>m.classList.remove("show"));
   document.getElementById("cartPanel")?.classList.remove("show");
+  // Scroll kilidini tam aç — pd-open qalanda səhifə yuxarı qalxa bilmirdi
+  document.body.classList.remove("pd-open");
+  document.body.style.overflow="";
+  document.documentElement.style.overflow="";
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -5727,6 +5766,7 @@ document.addEventListener("keydown",function(e){
     document.querySelectorAll(".modal").forEach(m=>m.classList.remove("show"));
     document.getElementById("cartPanel")?.classList.remove("show");
     document.getElementById("cabinetModal")?.classList.remove("show"); document.body.style.overflow="";
+    document.body.classList.remove("pd-open");
   }
 });
 
