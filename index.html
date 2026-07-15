@@ -4059,7 +4059,7 @@ button,input,select,textarea{max-width:100%}
         </div>
       </div>
       <div class="pd-seller-col">
-        <div class="seller-card" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
+        <div class="seller-card" onclick="event.stopPropagation();window.openSellerProfileFromPd()">
           <div style="position:relative;flex:none;">
             <div class="seller-card-icon" id="pdSellerIcon">G</div>
             <span id="pdSellerOnline" style="display:none;position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #0d1118;box-shadow:0 0 0 1px #22c55e44;"></span>
@@ -4076,7 +4076,7 @@ button,input,select,textarea{max-width:100%}
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
         </div>
-        <button class="pd-action-btn" type="button" id="pdSellerProfile" onclick="closeModal('productModal');openSellerProfile(currentDetailProduct?.sellerUid||'',currentDetailProduct?.sellerEmail||'')">
+        <button class="pd-action-btn" type="button" id="pdSellerProfile" onclick="event.stopPropagation();window.openSellerProfileFromPd()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Satıcı profili
         </button>
@@ -4492,12 +4492,8 @@ const epins=[
   [SVGS.roblox,"Roblox Gift Card","10.00 ₼","12.00 ₼"]
 ];
 
-const baseAds=[
-  [SVGS.pubg,"PUBG Mobile Hesab","Səviyyə 65 | 120 Destanlı","250.00 ₼","qwerty00","Hesab"],
-  [SVGS.valorant,"Valorant Hesab","Vandal | Yağmaçı","175.00 ₼","LikeUn3","Hesab"],
-  [SVGS.lol,"LoL Hesab","120 Kostyum | Elmas","325.00 ₼","TheHunter","Hesab"],
-  [SVGS.csgo,"Counter-Strike 2 Skin","Karambit | Fade","575.00 ₼","SkinLord","Skin"]
-];
+// Statik demo ("bot") elanlar silindi — yalnız Firestore-dan gələn real elanlar göstərilir.
+const baseAds=[];
 
 const sellers=[
   [`<svg viewBox="0 0 24 24" style="width:24px" fill="#ffa04c"><circle cx="12" cy="12" r="10"/></svg>`,"Hesablar.net","100%","0 satış"],
@@ -5467,7 +5463,7 @@ function addToCart(name, price, adId="", sellerUid="", sellerEmail=""){
   // Telefon təsdiqi qoruyucusu. QEYD: currentUser modul skriptindədir və burada
   // görünmür — window üzərindən yoxlayırıq ki, ReferenceError çökməsi olmasın.
   const _cu = window.currentUser;
-  if(_cu && !_cu.phoneNumber){ if(window.requirePhoneVerified) window.requirePhoneVerified(); return; }
+  if(window.PHONE_VERIFY_ENABLED && _cu && !_cu.phoneNumber){ if(window.requirePhoneVerified) window.requirePhoneVerified(); return; }
   // Özüm satıram elanı — səbətə əlavə oluna bilməz.
   // DÜZƏLİŞ: currentDetailProduct köhnə (əvvəl açılmış) elan ola bilər —
   // yoxlama yalnız ƏLAVƏ OLUNAN elanın özünə aid olduqda aparılır.
@@ -6198,8 +6194,14 @@ window.openCabinetModal = function(){
   if(m){ m.classList.add("show"); document.body.style.overflow="hidden"; }
 };
 // ── MƏCBURİ NÖMRƏ TƏSDİQİ ──────────────────────────────────
+// FEATURE FLAG: nömrə təsdiqi sistemi müvəqqəti DEAKTİVDİR.
+// Yenidən aktivləşdirmək üçün: true et. Kod silinməyib, olduğu kimi qalır.
+window.PHONE_VERIFY_ENABLED = false;
 // Auth token-dəki phoneNumber saxtalaşdırıla bilməz — yoxlama ona əsaslanır.
-window.isPhoneVerified = function(){ return !!(currentUser && currentUser.phoneNumber); };
+window.isPhoneVerified = function(){
+  if(!window.PHONE_VERIFY_ENABLED) return true;
+  return !!(currentUser && currentUser.phoneNumber);
+};
 // TAM KİLİD: nömrə təsdiqlənməyənə qədər saytın BÜTÜN funksiyaları bağlıdır.
 window.syncPhoneLock = function(){
   // window.currentUser-i sinxron saxla — qeyri-modul skriptlər (addToCart və s.)
@@ -6208,7 +6210,7 @@ window.syncPhoneLock = function(){
   // DÜZƏLİŞ: əvvəl yalnız emailVerified olanda kilidlənirdi — köhnə/persist
   // sessiyalar (email təsdiqsiz qalanlar) kiliddən yayınırdı. İndi giriş etmiş
   // və nömrəsi olmayan HƏR KƏS kilidlənir.
-  const locked = !!(currentUser && !currentUser.phoneNumber);
+  const locked = !!window.PHONE_VERIFY_ENABLED && !!(currentUser && !currentUser.phoneNumber);
   document.body.classList.toggle("phone-locked", locked);
   const closeBtn = document.getElementById("pvCloseBtn");
   if(closeBtn) closeBtn.textContent = locked ? "Çıxış et" : "Bağla";
@@ -6280,11 +6282,13 @@ setInterval(function(){
 
 window.requirePhoneVerified = function(){
   if(!currentUser){ openModal("loginModal"); return false; }
+  if(!window.PHONE_VERIFY_ENABLED) return true;
   if(currentUser.phoneNumber) return true;
   openPhoneVerifyModal();
   return false;
 };
 window.openPhoneVerifyModal = function(){
+  if(!window.PHONE_VERIFY_ENABLED) return;
   document.getElementById("pvStep1").style.display="";
   document.getElementById("pvStep2").style.display="none";
   document.getElementById("pvStatus").textContent="";
@@ -8332,7 +8336,7 @@ window.addEventListener("unhandledrejection", (ev)=>{
 
 window.createOrdersFromCart = async function(items){
   // MƏCBURİ NÖMRƏ TƏSDİQİ — checkout keçilsə belə burada dayanır
-  if(!currentUser || !currentUser.phoneNumber){
+  if(window.PHONE_VERIFY_ENABLED && (!currentUser || !currentUser.phoneNumber)){
     toast("Alış üçün əvvəlcə nömrənizi təsdiqləyin.");
     try{ openPhoneVerifyModal(); }catch(e){}
     return;
@@ -11466,6 +11470,278 @@ function toggleTheme(){
   new MutationObserver(syncThemeColor).observe(document.body,{attributes:true,attributeFilter:['class']});
 })();
 </script>
+<style id="premiumSkin">
+/* ===========================================================
+   PREMIUM SKIN — Elan kartları + Satıcı mağazası
+   Yalnız CSS. HTML/JS strukturuna toxunulmayıb.
+=========================================================== */
+
+/* ---------- 1. ELAN KARTI ---------- */
+.ads{gap:16px}
+.ads .ad{
+  position:relative;
+  background:linear-gradient(180deg,#141821 0%,#0e1117 55%,#0b0d12 100%)!important;
+  border:1px solid #1e2532!important;
+  border-radius:18px!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.045) inset, 0 10px 30px -18px rgba(0,0,0,.9);
+  transition:transform .22s cubic-bezier(.2,.7,.3,1), border-color .22s ease, box-shadow .22s ease;
+  isolation:isolate;
+}
+.ads .ad::after{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,140,26,.16),transparent 42%,rgba(255,140,26,.09));
+  -webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  padding:1px;opacity:0;transition:opacity .22s ease;z-index:3;
+}
+.ads .ad:hover{
+  transform:translateY(-4px);
+  border-color:rgba(255,140,26,.34)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 22px 44px -22px rgba(0,0,0,.95), 0 0 0 1px rgba(255,140,26,.08), 0 12px 40px -24px rgba(255,140,26,.55);
+}
+.ads .ad:hover::after{opacity:1}
+.ads .ad:active{transform:translateY(-1px)}
+
+/* Banner */
+.ad-banner{overflow:hidden;border-radius:18px 18px 0 0}
+.ad-banner::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:58%;
+  background:linear-gradient(to top,rgba(11,13,18,.96),rgba(11,13,18,.45) 45%,transparent);
+  pointer-events:none;z-index:1;
+}
+.ad-banner .ad-img img,.ad-banner .ad-img svg{
+  transition:transform .5s cubic-bezier(.2,.7,.3,1),filter .3s ease;
+}
+.ads .ad:hover .ad-banner .ad-img img,
+.ads .ad:hover .ad-banner .ad-img svg{transform:scale(1.07)}
+
+/* Badge-lər — şüşə effekti */
+.ad-number-badge,.ad-fav-btn{
+  background:rgba(10,12,17,.55)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(140%);
+  backdrop-filter:blur(10px) saturate(140%);
+  border:1px solid rgba(255,255,255,.14)!important;
+  box-shadow:0 4px 14px -6px rgba(0,0,0,.8);
+}
+.ad-number-badge{color:#e2e8f0;font-weight:800}
+.ad-fav-btn{transition:transform .18s ease,border-color .18s ease,background .18s ease,color .18s ease}
+.ad-fav-btn:hover{transform:scale(1.1)}
+.ad-fav-btn.active{background:rgba(239,68,68,.22)!important;box-shadow:0 0 0 1px rgba(239,68,68,.35),0 6px 18px -8px rgba(239,68,68,.8)}
+
+/* Gövdə */
+.ad-body{padding:13px 14px 12px!important}
+.ad-seller-row b{font-weight:800;letter-spacing:-.2px;color:#f1f5f9}
+.ad-seller-avatar{
+  box-shadow:0 0 0 2px rgba(255,140,26,.18),0 6px 14px -6px rgba(255,140,26,.6);
+}
+.ads .ad .aprice{
+  background:linear-gradient(135deg,#ffb066,var(--brand-2,#f5670a));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font-weight:900;letter-spacing:-.4px;
+}
+.ad-cart-btn{
+  border-radius:11px!important;
+  box-shadow:0 6px 18px -6px rgba(245,103,10,.65),0 0 0 1px rgba(255,255,255,.06) inset!important;
+}
+.ad-cart-btn:hover{transform:translateY(-2px) scale(1.04)}
+.ad-footer-row{
+  border-top:1px solid rgba(255,255,255,.055)!important;
+  margin-top:10px!important;padding-top:10px!important;
+}
+.ad-views{color:#7d8798!important;font-weight:600}
+.ads .ad .user .seller-name-link{
+  font-weight:700;color:#94a3b8;transition:color .18s ease;
+}
+.ads .ad .user .seller-name-link:hover{color:var(--brand-1,#ff8c1a)}
+
+/* ---------- 2. SATICI MAĞAZASI ---------- */
+#sellerProfileModal .modal-box{
+  background:linear-gradient(180deg,#12161e,#0a0c11)!important;
+  border:1px solid #1e2532!important;
+  border-radius:20px!important;
+  box-shadow:0 40px 90px -40px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.05) inset;
+}
+.seller-profile-header{
+  position:relative;overflow:hidden;
+  padding:26px 22px!important;
+  border-radius:16px!important;
+  background:
+    radial-gradient(120% 160% at 12% 0%,rgba(255,140,26,.20),transparent 60%),
+    linear-gradient(160deg,#171c26,#0c0f15)!important;
+  border:1px solid #232b3a;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset;
+}
+.seller-profile-header::before{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:16px 16px;opacity:.5;pointer-events:none;
+}
+.seller-profile-avatar{
+  width:70px!important;height:70px!important;
+  background:linear-gradient(135deg,var(--brand-1,#ff8c1a),var(--brand-2,#f5670a))!important;
+  box-shadow:0 0 0 3px rgba(255,140,26,.16),0 14px 32px -12px rgba(245,103,10,.85);
+  position:relative;z-index:1;
+}
+.seller-profile-info{position:relative;z-index:1;min-width:0}
+.seller-profile-info h2{
+  font-size:20px!important;font-weight:900;letter-spacing:-.4px;color:#f8fafc;
+}
+.seller-profile-info .meta span{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.07);
+  padding:4px 10px;border-radius:999px;
+  font-size:12px;color:#a7b1c2;font-weight:600;
+}
+
+/* Statistika */
+.seller-profile-stats{gap:10px!important}
+.sp-stat{
+  position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#131822,#0b0e14)!important;
+  border:1px solid #202839!important;
+  border-radius:14px!important;padding:14px 10px!important;
+  transition:border-color .2s ease,transform .2s ease;
+}
+.sp-stat::before{
+  content:"";position:absolute;top:0;left:12%;right:12%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,140,26,.55),transparent);
+}
+.sp-stat:hover{border-color:rgba(255,140,26,.35)!important;transform:translateY(-2px)}
+.sp-stat b{
+  font-size:23px!important;font-weight:900;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#ffb066,var(--brand-2,#f5670a));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.sp-stat span{
+  font-size:10.5px!important;color:#6b7789!important;
+  text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+}
+
+/* Mağaza elanları */
+.seller-ads-grid{gap:10px!important}
+.seller-ad-card{
+  position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#131822,#0b0e14)!important;
+  border:1px solid #202839!important;
+  border-radius:14px!important;
+  padding:13px!important;
+  transition:transform .2s cubic-bezier(.2,.7,.3,1),border-color .2s ease,box-shadow .2s ease;
+}
+.seller-ad-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,var(--brand-1,#ff8c1a),var(--brand-2,#f5670a));
+  opacity:0;transition:opacity .2s ease;
+}
+.seller-ad-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,140,26,.4)!important;
+  box-shadow:0 16px 34px -20px rgba(0,0,0,.95),0 8px 26px -18px rgba(245,103,10,.7);
+}
+.seller-ad-card:hover::before{opacity:1}
+.seller-ad-card .ad-price{
+  font-size:16px!important;font-weight:900;letter-spacing:-.3px;
+  background:linear-gradient(135deg,#ffb066,var(--brand-2,#f5670a));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+#sellerProfileContent h4{
+  font-weight:800!important;letter-spacing:.08em!important;color:#8792a5!important;
+  display:flex;align-items:center;gap:10px;
+}
+#sellerProfileContent h4::after{
+  content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.09),transparent);
+}
+#sellerProfileContent .report-btn{
+  width:100%;padding:9px!important;border-radius:10px!important;
+  font-size:12px!important;font-weight:700;
+  background:rgba(255,255,255,.02)!important;border:1px solid #232b3a!important;
+}
+
+/* ---------- 3. LIGHT MODE ---------- */
+body.light-mode .ads .ad{
+  background:linear-gradient(180deg,#ffffff,#f7f9fc)!important;
+  border:1px solid #e3e8ef!important;
+  box-shadow:0 1px 0 #fff inset,0 10px 26px -20px rgba(15,23,42,.35);
+}
+body.light-mode .ads .ad:hover{
+  border-color:rgba(245,103,10,.4)!important;
+  box-shadow:0 18px 38px -22px rgba(15,23,42,.4),0 10px 30px -22px rgba(245,103,10,.5);
+}
+body.light-mode .ad-banner::after{
+  background:linear-gradient(to top,rgba(255,255,255,.9),rgba(255,255,255,.25) 50%,transparent);
+}
+body.light-mode .ad-seller-row b{color:#0f172a}
+body.light-mode .ad-footer-row{border-top:1px solid #eef1f6!important}
+body.light-mode .ad-views{color:#64748b!important}
+body.light-mode #sellerProfileModal .modal-box{
+  background:linear-gradient(180deg,#ffffff,#f6f8fb)!important;border:1px solid #e3e8ef!important;
+}
+body.light-mode .seller-profile-header{
+  background:radial-gradient(120% 160% at 12% 0%,rgba(245,103,10,.14),transparent 60%),linear-gradient(160deg,#ffffff,#f2f5f9)!important;
+  border:1px solid #e3e8ef;
+}
+body.light-mode .seller-profile-header::before{
+  background-image:radial-gradient(rgba(15,23,42,.06) 1px,transparent 1px);
+}
+body.light-mode .seller-profile-info h2{color:#0f172a}
+body.light-mode .seller-profile-info .meta span{
+  background:#fff;border:1px solid #e3e8ef;color:#4a5568;
+}
+body.light-mode .sp-stat,
+body.light-mode .seller-ad-card{
+  background:linear-gradient(180deg,#ffffff,#f7f9fc)!important;border:1px solid #e3e8ef!important;
+}
+body.light-mode .seller-ad-card > div:first-child{color:#0f172a}
+
+/* ---------- 4. MOBİL ---------- */
+@media(max-width:700px){
+  .ads{gap:12px}
+  .ads .ad{border-radius:16px!important}
+  .ad-banner{border-radius:16px 16px 0 0}
+  .ads .ad:hover{transform:none}
+  .seller-profile-header{padding:18px 14px!important;gap:12px!important}
+  .seller-profile-avatar{width:56px!important;height:56px!important;font-size:21px!important}
+  .seller-profile-info h2{font-size:17px!important}
+  .sp-stat b{font-size:19px!important}
+  .seller-ads-grid{grid-template-columns:1fr!important}
+}
+</style>
+
+<script>
+/* FIX: satıcı profili açılanda ana səhifəyə atmasın.
+   productModal bağlanmır — satıcı modalı onun üstündə açılır. */
+window.openSellerProfileFromPd = function(){
+  var p = window.currentDetailProduct || {};
+  var uid = p.sellerUid || "", em = p.sellerEmail || "";
+  if(!uid && !em){
+    if(window.showToast) window.showToast("Bu elan üçün satıcı profili mövcud deyil.");
+    return;
+  }
+  if(typeof window.openSellerProfile !== "function"){
+    if(window.showToast) window.showToast("Satıcı profili yüklənmədi, yenidən cəhd edin.");
+    return;
+  }
+  window.openSellerProfile(uid, em);
+};
+/* Satıcı modalı bağlananda elan modalı açıq qalırsa scroll kilidi qalsın */
+(function(){
+  var _cm = window.closeModal;
+  if(typeof _cm !== "function") return;
+  window.closeModal = function(id){
+    _cm(id);
+    if(id === "sellerProfileModal"){
+      var pm = document.getElementById("productModal");
+      if(pm && pm.classList.contains("show")) document.body.classList.add("pd-open");
+    }
+  };
+})();
+</script>
+<style id="sellerModalLayerFix">
+#sellerProfileModal{z-index:1000005!important}
+#sellerProfileModal .modal-box{z-index:1000006!important;position:relative}
+#reportModal{z-index:1000007!important}
+</style>
 </body>
 </html>
 <!-- build:1783383769-h9to33xehz-perf-optimized -->
