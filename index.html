@@ -5008,7 +5008,10 @@ window.renderMarketAds = function renderMarketAds(){
   if(!adsEl) return;
 
   const approved = (window.approvedFirestoreAds || [])
-    .filter(a => !a.sold)
+    // Elan bazarda görünsün: satılmayıb VƏ YA satıcı stoku yenidən doldurub.
+    // (Redaktədə `sold` sahəsi Firestore Rules səbəbindən göndərilmir — ona görə
+    //  stok > 0 olan elan satılmış sayılmır.)
+    .filter(a => !a.sold || Number(a.stock || 0) > 0)
     .map(a => ({
     icon: (()=>{ try{ const imgSrc=window.cldImg((a.imageUrls&&a.imageUrls.length)?a.imageUrls[0]:a.imageUrl, 800); if(imgSrc) return '<img src="'+String(imgSrc).replace(/"/g,'%22')+'" alt="'+safeText(a.title)+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">'; } catch(e){} try{ const auto=window.autoGameAdIcon&&window.autoGameAdIcon(a); if(auto) return auto; }catch(e){} return getCategoryDefaultIcon(a.category||"",a.platform||""); })(),
     title:safeText(a.title),
@@ -5096,6 +5099,7 @@ window.renderMarketAds = function renderMarketAds(){
       rank: btn.dataset.rank,
       level: btn.dataset.level,
       views: Number(btn.dataset.views||0),
+      stock: (btn.dataset.stock === undefined || btn.dataset.stock === "") ? 1 : Number(btn.dataset.stock),
       originalPrice: Number(btn.dataset.originalprice||0),
       contact: btn.dataset.contact,
       contactMode: btn.dataset.contactmode || "platform",
@@ -8580,13 +8584,11 @@ window.submitAd = async function(){
 
     let savedAdId = editingId;
     if(editingId){
-      // Satıcı stoku yenidən doldurursa, elan "satılmış" vəziyyətindən çıxsın.
-      // QEYD: bu yalnız REDAKTƏ-də göndərilir — yeni elan yaradılanda Firestore
-      // Rules icazə verilən sahələri yoxlayır və artıq sahə "permissions" xətası verir.
-      await updateDoc(doc(db,"ads",editingId), {
-        ...adPayload,
-        ...(stock > 0 ? { sold: false } : {})
-      });
+      // QEYD: burada `sold` sahəsi GÖNDƏRİLMİR — Firestore Rules elan sənədinə
+      // icazə verilən sahələri yoxlayır və artıq sahə bütün əməliyyatı rədd edir
+      // ("Missing or insufficient permissions"). Stok > 0 olanda elanın bazara
+      // qayıtması `sold` yerinə `stock` üzərindən həll olunur (aşağıdakı filtrlərə bax).
+      await updateDoc(doc(db,"ads",editingId), adPayload);
     } else {
       // Elan müddəti: 30 gün (1 ay)
       const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
@@ -8694,7 +8696,21 @@ window.createOrdersFromCart = async function(items){
   if(await blockGuard("Alış")) return;
   if(!items || !items.length){ toast("Səbət boşdur"); return; }
 
-  const total = items.reduce((s,item)=>s+moneyToNumber(item.price)*Number(item.qty||1),0);
+  // ── MİQDARI AÇ: hər ədəd üçün AYRICA sifariş yaradılır.
+  // Səbəb: Firestore Rules `order.price == ads.price` tələb edir (vahid qiymət),
+  // həmçinin order sənədində `qty` sahəsinə icazə vermir (hasOnly siyahısı).
+  // Hər ədəd ayrı sifariş olanda payout/refund/komissiya məntiqi toxunulmadan düz işləyir.
+  const _origLines = items;
+  items = [];
+  for(const line of _origLines){
+    const n = Math.max(1, Number(line.qty || 1));
+    for(let k=0; k<n; k++){
+      const {qty, stock, ...rest} = line;   // qty/stock sifariş sənədinə getmir
+      items.push(rest);
+    }
+  }
+
+  const total = items.reduce((s,item)=>s+moneyToNumber(item.price),0);
   const buyerRef = doc(db,"wallets",currentUser.uid);
 
   try{
@@ -8724,19 +8740,19 @@ window.createOrdersFromCart = async function(items){
       const bal = Number(w.balance||0);
       if(bal < total) throw new Error("INSUFFICIENT_BALANCE");
 
-      // Səbətdə eyni elan birdən çox sətirdə ola bilər (qty sahəsi yoxdur,
-      // hər sətir = 1 ədəd). Stok yoxlaması üçün elan üzrə cəmləyirik.
+      // Miqdar artıq açılıb — hər sətir 1 ədəddir. Elan üzrə cəmləyirik.
       const _wantByAd = {};
       for(const {item} of adEntries){
         if(!item.adId) continue;
-        _wantByAd[item.adId] = (_wantByAd[item.adId] || 0) + Number(item.qty || 1);
+        _wantByAd[item.adId] = (_wantByAd[item.adId] || 0) + 1;
       }
 
       for(const {item, snap} of adEntries){
         if(!snap) continue;
         if(!snap.exists())                                      throw new Error("AD_GONE::"+(item.name||item.adId));
         const a = snap.data()||{};
-        if(a.sold)                                              throw new Error("AD_SOLD::"+(item.name||""));
+        // "Satılıb" yalnız stok da bitibsə — satıcı stoku doldurubsa alına bilər
+        if(a.sold && Number(a.stock || 0) <= 0)                  throw new Error("AD_SOLD::"+(item.name||""));
         if(a.sellerUid === currentUser.uid)                     throw new Error("SELF_BUY::"+(item.name||""));
         if(Number(a.price||0) !== moneyToNumber(item.price))    throw new Error("PRICE_CHANGED::"+(item.name||""));
         // Stok yoxlaması
@@ -8795,13 +8811,12 @@ window.createOrdersFromCart = async function(items){
 
         const orderPayload = {
           productTitle: item.name||"Məhsul",
-          // QEYD: payout, refund, komissiya və statistika hamısı `price`-ı
-          // ödəniləcək məbləğ kimi oxuyur — ona görə burada SƏTRİN CƏMİ yazılır.
-          // Vahid qiymət ayrıca `unitPrice`-dadır.
-          price: moneyToNumber(item.price) * Number(item.qty||1),
-          unitPrice: moneyToNumber(item.price),
+          // QEYD: hər sifariş 1 ədəddir (miqdar yuxarıda açılıb), ona görə `price`
+          // VAHİD qiymətdir. Firestore Rules bunu tələb edir:
+          //   get(ads/$(adId)).data.price == request.resource.data.price
+          // `qty`/`unitPrice` sahələri Rules-un hasOnly siyahısında yoxdur — göndərilmir.
+          price: moneyToNumber(item.price),
           priceText: item.price||"",
-          qty: Number(item.qty||1),
           adId: item.adId||"",
           category: adData?.category || item.category || "",
           deliveryType: _deliveryType,
@@ -8847,7 +8862,6 @@ window.createOrdersFromCart = async function(items){
               buyerUid: currentUser.uid,
               orderId: orderRef.id
             } : {} ),
-            lastSoldAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
         }
@@ -10207,8 +10221,8 @@ async function adminRefundOrder(orderId){
       if(adId){
         tx.update(doc(db,"ads",adId),{
           status:"Təsdiqləndi", sold:false, soldAt:null, orderId:"",
-          // Stoku geri qaytar — atomik increment (əlavə oxu tələb etmir)
-          stock: increment(Number(o.qty || 1)),
+          // Hər sifariş 1 ədəddir — stoku 1 artır (atomik increment)
+          stock: increment(1),
           buyerUid:"", buyerEmail:"", updatedAt:serverTimestamp()
         });
       }
@@ -10810,9 +10824,8 @@ async function cancelOrder(id){
     if(o.adId) await updateDoc(doc(db,"ads",o.adId),{
       status:"Təsdiqləndi",
       sold:false, soldAt:null, orderId:"",
-      // Stoku geri qaytar — atomik increment (oxu-yaz yarışı olmasın).
-      // Köhnə sifarişlərdə qty sahəsi yoxdursa 1 sayılır.
-      stock: increment(Number(o.qty || 1)),
+      // Hər sifariş 1 ədəddir — stoku 1 artır (atomik increment).
+      stock: increment(1),
       buyerUid:"", buyerEmail:"",
       updatedAt:serverTimestamp()
     }).catch(err=>{
@@ -11485,7 +11498,7 @@ function listenPublicAds(){
     const arr=[];
     snap.forEach(d=>{
       const data = {id:d.id,...d.data()};
-      if(!isAdExpired(data) && !data.sold) arr.push(data);
+      if(!isAdExpired(data) && (!data.sold || Number(data.stock || 0) > 0)) arr.push(data);
     });
     window.approvedFirestoreAds=arr;
     if(window.renderMarketAds) window.renderMarketAds();
