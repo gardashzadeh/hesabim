@@ -8186,7 +8186,8 @@ window.submitAd = async function(){
     const imageUrl  = imageUrls[0] || "";
     const tags = tagsRaw ? tagsRaw.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
     const sellerProfileSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
-    const sellerVerified = !!(sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.sellerVerified);
+    // QEYD: sellerVerified ARTIQ elan sənədinə yazılmır — Firestore rules onu qadağan edir
+    // (etibar-siqnalı saxtalaşdırma qorunması). Badge presence/users-dən oxunur.
     const sellerUserId = (sellerProfileSnap && sellerProfileSnap.exists() && sellerProfileSnap.data()?.userId) || "";
 
     // Satış üsulu: platform (sayt vasitəsilə) və ya direct_contact (özüm satıram)
@@ -8238,7 +8239,6 @@ window.submitAd = async function(){
       sellerUid: currentUser.uid,
       sellerEmail: currentUser.email,
       sellerUserId,
-      sellerVerified,
       hasCredentials: !!accountCredentials,
       contactMode,
       directPhone,
