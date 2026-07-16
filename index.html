@@ -9390,6 +9390,9 @@ function listenHeaderNotifications(){
     const arr=[];
     snap.forEach(d=>{
       const c=d.data()||{};
+      // İstifadəçi bu yazışmanı silibsə (öz tərəfindən gizlədibsə) bildirişdə göstərmə
+      if(side==="buyer"  && c.hiddenBuyer)  return;
+      if(side==="seller" && c.hiddenSeller) return;
       const t=(c.updatedAt&&c.updatedAt.toMillis)?c.updatedAt.toMillis():((c.createdAt&&c.createdAt.toMillis)?c.createdAt.toMillis():0);
       arr.push({
         type:"chat", id:d.id,
@@ -9404,13 +9407,13 @@ function listenHeaderNotifications(){
   };
   headerNotifUnsubs.push(onSnapshot(qb,s=>{
     buyerUnread=0;
-    s.forEach(d=>{ buyerUnread+=Number((d.data()||{}).unreadBuyer||0); });
+    s.forEach(d=>{ const c=d.data()||{}; if(c.hiddenBuyer) return; buyerUnread+=Number(c.unreadBuyer||0); });
     collectChatItems(s,"buyer");
     draw();
   },retry));
   headerNotifUnsubs.push(onSnapshot(qs,s=>{
     sellerUnread=0;
-    s.forEach(d=>{ sellerUnread+=Number((d.data()||{}).unreadSeller||0); });
+    s.forEach(d=>{ const c=d.data()||{}; if(c.hiddenSeller) return; sellerUnread+=Number(c.unreadSeller||0); });
     collectChatItems(s,"seller");
     draw();
   },retry));
