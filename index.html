@@ -3794,15 +3794,15 @@ button,input,select,textarea{max-width:100%}
                         Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşan kimi <b style="color:#94a3b8">avtomatik alıcıya çatdırılır</b>.
                       </p>
 
-                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları</div>
-                      <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com)" autocomplete="off" style="margin-bottom:8px">
-                      <input id="adMailPassword" type="text" placeholder="Mail şifrəsi" autocomplete="off" style="margin-bottom:12px">
+                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları <span style="color:#ef4444">*</span></div>
+                      <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com) *" autocomplete="off" style="margin-bottom:8px">
+                      <input id="adMailPassword" type="text" placeholder="Mail şifrəsi *" autocomplete="off" style="margin-bottom:12px">
 
-                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları</div>
-                      <input id="adAccountLogin" placeholder="Login / İstifadəçi adı" autocomplete="off" style="margin-bottom:8px">
-                      <input id="adAccountPassword" type="text" placeholder="Şifrə / Parol" autocomplete="off" style="margin-bottom:12px">
+                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları <span style="color:#ef4444">*</span></div>
+                      <input id="adAccountLogin" placeholder="Login / İstifadəçi adı *" autocomplete="off" style="margin-bottom:8px">
+                      <input id="adAccountPassword" type="text" placeholder="Şifrə / Parol *" autocomplete="off" style="margin-bottom:12px">
 
-                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər)</span></div>
+                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📝 Əlavə məlumatlar <span style="font-weight:400;color:#475569">(wallet, digər — isteğe bağlı)</span></div>
                       <textarea id="adExtraInfo" placeholder="Məs: Wallet balansı: 50$, Bağlı kart: yoxdur, İkili təsdiqləmə: söndürülüb..." rows="3" style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:10px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
                     </div>
                   </div>
@@ -8602,8 +8602,20 @@ window.submitAd = async function(){
       const accLogin     = (document.getElementById("adAccountLogin")?.value || "").trim();
       const accPassword  = (document.getElementById("adAccountPassword")?.value || "").trim();
       const extraInfo    = (document.getElementById("adExtraInfo")?.value    || "").trim();
-      if(!accLogin && !accPassword && !mailEmail && !mailPassword && !extraInfo){
-        authStatus("Birbaşa çatdırılma üçün ən azı hesab login/şifrə məlumatlarını yaz.");
+      // Birbaşa çatdırılmada ödəniş anında məlumat AVTOMATİK gedir — yarımçıq
+      // məlumat = alıcı hesaba girə bilmir. Ona görə 4 sahə MƏCBURİDİR.
+      // "Əlavə məlumatlar" isteğe bağlıdır.
+      const _missing = [];
+      if(!mailEmail)    _missing.push("Mail ünvanı");
+      if(!mailPassword) _missing.push("Mail şifrəsi");
+      if(!accLogin)     _missing.push("Login / İstifadəçi adı");
+      if(!accPassword)  _missing.push("Şifrə / Parol");
+      if(_missing.length){
+        authStatus("Birbaşa çatdırılma üçün bu sahələr məcburidir: " + _missing.join(", "));
+        const _first = { "Mail ünvanı":"adMailEmail", "Mail şifrəsi":"adMailPassword",
+                         "Login / İstifadəçi adı":"adAccountLogin", "Şifrə / Parol":"adAccountPassword" }[_missing[0]];
+        const _el = document.getElementById(_first);
+        if(_el){ _el.focus(); _el.style.borderColor = "#ef4444"; }
         if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
         return;
       }
@@ -9386,12 +9398,18 @@ function listenHeaderNotifications(){
   if(currentUserRole === "admin"){
     const qa=query(collection(db,"adminNotifications"),where("status","==","Admin təsdiqi gözləyir"));
     headerNotifUnsubs.push(onSnapshot(qa,s=>{
-      adminUnread=s.size;
+      // DÜZƏLİŞ: əvvəl `adminUnread = s.size` idi — yəni sayğac "gözləyən
+      // bildiriş sayı"nı göstərirdi. Bildirişi açmaq onu azaltmırdı; rəqəm
+      // yalnız admin sifarişi tam emal edəndə (status → "Göndərildi") düşürdü.
+      // İndi oxunmuş bildirişlər (`readByAdmin`) sayılmır.
+      adminUnread=0;
       const arr=[];
       s.forEach(d=>{
         const n=d.data()||{};
         const t=(n.createdAt&&n.createdAt.toMillis)?n.createdAt.toMillis():0;
-        arr.push({type:"admin", id:d.id, title:(n.title||"Admin təsdiqi"), text:(n.text||n.productTitle||""), time:t, unread:1});
+        const _unread = n.readByAdmin === true ? 0 : 1;
+        adminUnread += _unread;
+        arr.push({type:"admin", id:d.id, title:(n.title||"Admin təsdiqi"), text:(n.text||n.productTitle||""), time:t, unread:_unread});
       });
       _notifItems.admin=arr;
       renderNotifDropdown();
@@ -9452,17 +9470,35 @@ window.notifItemClick=function(type,id){
   hideNotifDropdown();
   if(!currentUser){ openModal("loginModal"); return; }
   if(type==="admin"){
+    // Oxunmuş kimi işarələ — sayğac dərhal düşsün
+    updateDoc(doc(db,"adminNotifications",id),{readByAdmin:true,updatedAt:serverTimestamp()}).catch(()=>{});
     openCabinetModal();
     if(typeof window.showTab==="function") window.showTab("admin");
   }else{
+    // openChat() onsuz da sıfırlayır, amma o, chat sənədini yenidən oxuyur və
+    // fail ola bilər (səssiz catch). Sayğac dərhal düşsün deyə burada da yazırıq.
+    markChatRead(id);
     openCabinetModal();
     if(typeof window.showTab==="function") window.showTab("messages");
     try{ openChat(id); }catch(e){ console.warn("notif chat open:",e); }
   }
 };
+// Yazışmanı oxunmuş et — cari istifadəçi alıcıdırsa unreadBuyer, satıcıdırsa unreadSeller
+function markChatRead(chatId){
+  if(!currentUser || !chatId) return;
+  const all = [..._notifItems.buyer, ..._notifItems.seller];
+  const isBuyer = _notifItems.buyer.some(x=>x.id===chatId);
+  updateDoc(doc(db,"chats",chatId), isBuyer?{unreadBuyer:0}:{unreadSeller:0}).catch(()=>{});
+}
 window.notifSeeAll=function(){
   hideNotifDropdown();
   if(!currentUser){ openModal("loginModal"); return; }
+  // Siyahını açan kimi hamısı oxunmuş sayılır — badge asılı qalmasın
+  try{
+    (_notifItems.admin||[]).forEach(x=>{
+      if(x.unread) updateDoc(doc(db,"adminNotifications",x.id),{readByAdmin:true,updatedAt:serverTimestamp()}).catch(()=>{});
+    });
+  }catch(e){}
   openCabinetModal();
   if(typeof window.showTab==="function") window.showTab(currentUserRole==="admin"?"admin":"messages");
 };
@@ -10941,11 +10977,11 @@ function listenSales(){
               <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;line-height:1.5">
                 Alıcı ödənişi tamamladı. Aşağıdakı sahələri doldurub təsdiqlə — məlumatlar birbaşa alıcıya göndəriləcək.
               </div>
-              <input id="credLogin-${o.id}" placeholder="Login / İstifadəçi adı" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
-              <input id="credPassword-${o.id}" placeholder="Şifrə" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
-              <input id="credMail-${o.id}" placeholder="Mail (istəyə görə)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
-              <input id="credMailPass-${o.id}" placeholder="Mail şifrəsi (istəyə görə)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
-              <textarea id="credExtra-${o.id}" placeholder="Əlavə qeyd (istəyə görə)" rows="2" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:8px;box-sizing:border-box;resize:vertical"></textarea>
+              <input id="credLogin-${o.id}" placeholder="Login / İstifadəçi adı *" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <input id="credPassword-${o.id}" placeholder="Şifrə *" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <input id="credMail-${o.id}" placeholder="Mail ünvanı *" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <input id="credMailPass-${o.id}" placeholder="Mail şifrəsi *" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:6px;box-sizing:border-box">
+              <textarea id="credExtra-${o.id}" placeholder="Əlavə qeyd (isteğe bağlı)" rows="2" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px;margin-bottom:8px;box-sizing:border-box;resize:vertical"></textarea>
               <button class="approve-btn" data-cred-send="${o.id}" style="width:100%">✓ Təsdiqlə və alıcıya göndər</button>
             </div>`;
         } else if(o.credentialsStatus === "Alıcıya göndərildi"){
@@ -10982,8 +11018,17 @@ async function sellerSendCredentials(orderId){
   const mail     = (document.getElementById("credMail-"+orderId)?.value     || "").trim();
   const mailPass = (document.getElementById("credMailPass-"+orderId)?.value || "").trim();
   const extra    = (document.getElementById("credExtra-"+orderId)?.value    || "").trim();
-  if(!login && !password && !mail){
-    toast("Ən azı login və ya şifrə və ya mail yaz.");
+  // Birbaşa çatdırılma ilə eyni tələb: 4 sahə məcburi, "Əlavə" isteğe bağlı.
+  const _miss = [];
+  if(!mail)     _miss.push("Mail ünvanı");
+  if(!mailPass) _miss.push("Mail şifrəsi");
+  if(!login)    _miss.push("Login");
+  if(!password) _miss.push("Şifrə");
+  if(_miss.length){
+    toast("Bu sahələr məcburidir: " + _miss.join(", "));
+    const _ids = { "Mail ünvanı":"credMail-", "Mail şifrəsi":"credMailPass-", "Login":"credLogin-", "Şifrə":"credPassword-" };
+    const _el = document.getElementById(_ids[_miss[0]] + orderId);
+    if(_el){ _el.focus(); _el.style.borderColor = "#ef4444"; }
     return;
   }
   if(!await showConfirm("Hesab məlumatlarını təsdiqləyib alıcıya göndərirsən? Göndərdikdən sonra bu məlumatlar alıcıya çatacaq.", "✅")) return;
