@@ -8902,18 +8902,6 @@ window.createOrdersFromCart = async function(items){
         const orderRef = doc(collection(db,"orders")); // yeni sənəd ref-i (id dərhal hazırdır)
         tx.set(orderRef, orderPayload);
 
-        // [FIX-15] Alıcı markeri — ads/{adId}/buyers/{uid}.
-        // Bu marker olmadan alıcı ads/{adId}/secure/creds sənədini OXUYA BİLMİR
-        // (stok qalan elanda `sold` false olduğuna görə köhnə şərt işləmirdi) və
-        // "Dərhal çatdırılma" chat rejiminə düşürdü.
-        // Rules markeri getAfter() ilə real sifarişə bağlayır — saxta yaradıla bilməz.
-        if(item.adId){
-          tx.set(doc(db,"ads",item.adId,"buyers",currentUser.uid),{
-            uid: currentUser.uid,
-            orderId: orderRef.id,
-            createdAt: serverTimestamp()
-          });
-        }
 
         // Elanı satılmış kimi işarələ — eyni transaction daxilində.
         // Beləliklə iki alıcı eyni anda ala bilməz: ikinci transaction
@@ -8989,6 +8977,21 @@ window.createOrdersFromCart = async function(items){
           }
 
           if(_adDeliveryMode === "direct" && adHasCreds){
+            // [FIX-15] Alıcı markeri — ads/{adId}/buyers/{uid}.
+            // Bu marker olmadan alıcı ads/{adId}/secure/creds-i oxuya bilmir
+            // (stok qalan elanda `sold:false` olur → köhnə rules şərti tutmurdu).
+            // QEYD: TRANSACTION-dan KƏNARDA yaradılır! Transaction daxilində
+            // olanda, rules köhnə versiyada qalsa, bütün alış permission-denied
+            // alırdı. Burada fail olsa yalnız çatdırılma chat rejiminə düşür,
+            // pul və sifariş toxunulmaz qalır.
+            try{
+              await setDoc(doc(db,"ads",item.adId,"buyers",currentUser.uid),{
+                uid: currentUser.uid,
+                orderId: orderRef.id,
+                createdAt: serverTimestamp()
+              });
+            }catch(e){ console.warn("[creds] alıcı markeri yaradılmadı:", e?.code||e); }
+
             // 1) BİRBAŞA MODEL — KİLİDLİ ÇATDIRILMA
             // Kredensiallar chat-ə açıq mətn kimi GETMİR. Şifrəli blob
             // sifariş sənədinə yazılır; alıcı "Alışlarım"da qaydaları
