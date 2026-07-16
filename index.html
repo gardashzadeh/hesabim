@@ -8890,6 +8890,19 @@ window.createOrdersFromCart = async function(items){
         const orderRef = doc(collection(db,"orders")); // yeni sənəd ref-i (id dərhal hazırdır)
         tx.set(orderRef, orderPayload);
 
+        // [FIX-15] Alıcı markeri — ads/{adId}/buyers/{uid}.
+        // Bu marker olmadan alıcı ads/{adId}/secure/creds sənədini OXUYA BİLMİR
+        // (stok qalan elanda `sold` false olduğuna görə köhnə şərt işləmirdi) və
+        // "Dərhal çatdırılma" chat rejiminə düşürdü.
+        // Rules markeri getAfter() ilə real sifarişə bağlayır — saxta yaradıla bilməz.
+        if(item.adId){
+          tx.set(doc(db,"ads",item.adId,"buyers",currentUser.uid),{
+            uid: currentUser.uid,
+            orderId: orderRef.id,
+            createdAt: serverTimestamp()
+          });
+        }
+
         // Elanı satılmış kimi işarələ — eyni transaction daxilində.
         // Beləliklə iki alıcı eyni anda ala bilməz: ikinci transaction
         // sold=true görüb "AD_SOLD" ilə dayanacaq.
