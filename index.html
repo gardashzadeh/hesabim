@@ -8644,11 +8644,18 @@ window.submitAd = async function(){
 
     let savedAdId = editingId;
     if(editingId){
-      // QEYD: burada `sold` sahəsi GÖNDƏRİLMİR — Firestore Rules elan sənədinə
-      // icazə verilən sahələri yoxlayır və artıq sahə bütün əməliyyatı rədd edir
-      // ("Missing or insufficient permissions"). Stok > 0 olanda elanın bazara
-      // qayıtması `sold` yerinə `stock` üzərindən həll olunur (aşağıdakı filtrlərə bax).
-      await updateDoc(doc(db,"ads",editingId), adPayload);
+      // ⚠️ Firestore Rules satıcı redaktəsində `sellerUid` sahəsinə TOXUNMAĞI
+      // qadağan edir (affectedKeys eyni dəyər yazılsa belə sahəni "dəyişmiş"
+      // sayır). adPayload isə sellerUid/sellerEmail-i həmişə göndərirdi →
+      // hər redaktə səssiz "permission-denied" alırdı və elan yenilənmirdi.
+      // Redaktədə bu sahələr çıxarılır — onsuz da dəyişmir.
+      const editPayload = {...adPayload};
+      delete editPayload.sellerUid;
+      delete editPayload.sellerEmail;
+      delete editPayload.sellerUserId;
+      // Redaktədən sonra elan yenidən moderasiyaya düşür — Rules satıcıya
+      // yalnız "Gözləmədə"/"Satıldı" statusuna icazə verir, bu uyğundur.
+      await updateDoc(doc(db,"ads",editingId), editPayload);
     } else {
       // Elan müddəti: 30 gün (1 ay)
       const expiresAt = new Date(Date.now() + 30*24*60*60*1000);
@@ -9904,8 +9911,17 @@ async function openChat(chatId,adminMode=false){
   activeChatId=chatId; if(adminMode) adminActiveChatId=chatId;
   window._currentChatId = chatId;
   const isBuyer=currentUser&&c.buyerUid===currentUser.uid;
+  // ⚠️ credentialsViewedAt "yazılıb-qurtardı" sahəsidir — satıcının ödəniş
+  // tələbi üçün 24 saatlıq geri sayım məhz bu andan başlayır. Chat hər
+  // açılanda yenidən yazılsaydı, geri sayım sonsuz təzələnərdi.
+  // Yalnız BİR DƏFƏ, həm də real çatdırılma varsa yazılır.
   if(!adminMode && isBuyer && c.orderId){
-    updateDoc(doc(db,"orders",c.orderId),{credentialsViewedAt:serverTimestamp(),updatedAt:serverTimestamp()}).catch(()=>{});
+    getDoc(doc(db,"orders",c.orderId)).then(_s=>{
+      const _o = _s.exists() ? (_s.data()||{}) : null;
+      if(!_o || _o.credentialsViewedAt) return;
+      if(!_o.deliveredCredentials || !_o.deliveredCredentials.data) return;
+      updateDoc(doc(db,"orders",c.orderId),{credentialsViewedAt:serverTimestamp(),updatedAt:serverTimestamp()}).catch(()=>{});
+    }).catch(()=>{});
   }
   const canWrite=!adminMode && currentUser && (c.buyerUid===currentUser.uid || c.sellerUid===currentUser.uid || isAdmin());
   if(!adminMode && currentUser){ await updateDoc(ref,isBuyer?{unreadBuyer:0}:{unreadSeller:0}).catch(()=>{}); }
@@ -9922,6 +9938,17 @@ function drawMessages(msgs,adminMode=false){
   if(!msgs.length){ el.innerHTML='<div class="cabinet-empty">Hələ mesaj yoxdur.</div>'; return; }
   el.innerHTML=msgs.map(m=>{
     const isMe = currentUser && m.senderId===currentUser.uid;
+    // "YENİ SİFARİŞ" bildirişi SATICIYA ünvanlanır. Texniki səbəbdən onu alıcının
+    // sessiyası yazır (Rules: senderId == auth.uid), buna görə alıcının öz
+    // chat-ində də görünürdü. Alıcıya tam mətn əvəzinə qısa sistem qeydi göstər.
+    const isOrderRequest = String(m.text||"").indexOf("YENİ SİFARİŞ — Hesab məlumatları tələb olunur") > -1;
+    if(isOrderRequest && isMe && !adminMode){
+      return `<div style="text-align:center;margin:10px 0">
+        <small style="color:#64748b;background:#0d1117;border:1px solid #1c2330;border-radius:20px;padding:5px 14px;display:inline-block">
+          📨 Satıcıya yeni sifariş bildirişi göndərildi — hesab məlumatları gözlənilir
+        </small>
+      </div>`;
+    }
     const isCredMsg = m.type==="credentials_admin";
     const sendBtn = (isCredMsg && isAdmin())
       ? `<button onclick="sendCredsToBuyer('${esc(m.orderId||"")}','${esc(m.buyerUid||"")}','${esc(m.buyerEmail||"")}')"
@@ -10954,11 +10981,27 @@ async function disputeOrder(id){
   }catch(e){ console.error(e); toast("Mübahisə açılmadı."); }
 }
 
+let _salesTicker = null;
 function listenSales(){
   const el=document.getElementById("cabSales"); if(!el || !currentUser) return;
   const q=query(collection(db,"orders"),where("sellerUid","==",currentUser.uid));
+  let _lastSales = [];
+  // Geri sayım mətnini canlı saxla: Firestore-da dəyişiklik olmasa da hər
+  // dəqiqə yenidən çəkilir, 24 saat dolanda düymə özü aktivləşir.
+  if(_salesTicker) clearInterval(_salesTicker);
+  _salesTicker = setInterval(()=>{
+    if(!document.getElementById("cabSales")) return;
+    if(_lastSales.length) _renderSales(_lastSales);
+  }, 60000);
   onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    _lastSales = arr;
+    _renderSales(arr);
+  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
+}
+function _renderSales(arr){
+  const el=document.getElementById("cabSales"); if(!el) return;
+  {
     if(!arr.length){ el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Hələ satış yoxdur.</div>'; return; }
     el.innerHTML='<h3>Satışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
       const both = o.buyerConfirmed && o.sellerConfirmed;
@@ -10992,7 +11035,22 @@ function listenSales(){
         }
         if(!o.sellerConfirmed) btns += `<button class="approve-btn" data-seller-confirm="${o.id}">✓ Təhvil verdim</button>`;
         else btns += `<span style="color:#22c55e;font-size:12px">✓ Təhvil verdin</span>`;
-        if(both && !o.payoutRequested) btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+        // Ödəniş tələbi YALNIZ alıcının təsdiqinə bağlıdır (Rules eynisini tələb
+        // edir). Əvvəl `both` şərti idi — satıcı "Təhvil verdim" basmayanda
+        // düymə görünmürdü, basanda isə status "Aktiv" qaldığı üçün
+        // permission-denied alırdı.
+        if(!o.payoutRequested){
+          const _left = payoutHoldLeftText(o);
+          if(!o.buyerConfirmed){
+            btns += ` <small style="color:#64748b;display:block;margin-top:4px">⏳ Alıcının təsdiqi gözlənilir (24 saatdan sonra avtomatik)</small>`;
+          } else if(!o.credentialsViewedAt){
+            btns += ` <small style="color:#64748b;display:block;margin-top:4px">⏳ Alıcı məlumatları hələ açmayıb — geri sayım açandan sonra başlayır</small>`;
+          } else if(_left){
+            btns += ` <small style="color:#fbbf24;display:block;margin-top:4px">🔒 Ödəniş tələbinə <b>${_left}</b> qalıb (alıcı məlumatları açandan 24 saat)</small>`;
+          } else {
+            btns += ` <button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+          }
+        }
         if(o.payoutRequested && !o.payoutDone) btns += ` <span style="color:#ff5100;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
         if(o.payoutDone) btns += ` <span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
         // Sosial media hold məlumatı
@@ -11000,7 +11058,17 @@ function listenSales(){
           btns += ` <small style="color:#64748b;display:block;margin-top:4px">🔒 Ödəniş ${o.holdDays} gün sonra açılır.</small>`;
         }
       } else if(o.status==="Tamamlandı"){
-        if(!o.payoutRequested) btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+        if(!o.payoutRequested){
+          // Eyni 24 saatlıq qayda tamamlanmış sifarişlərə də tətbiq olunur
+          const _left2 = payoutHoldLeftText(o);
+          if(!o.credentialsViewedAt){
+            btns += `<small style="color:#64748b">⏳ Alıcı məlumatları açmayıb — geri sayım başlamayıb</small>`;
+          } else if(_left2){
+            btns += `<small style="color:#fbbf24">🔒 Ödəniş tələbinə <b>${_left2}</b> qalıb</small>`;
+          } else {
+            btns += `<button class="complete-btn" data-payout-req="${o.id}">💰 Ödəniş tələb et</button>`;
+          }
+        }
         else if(o.payoutDone) btns += `<span style="color:#22c55e;font-size:12px">✅ Ödəniş edildi</span>`;
         else btns += `<span style="color:#ff5100;font-size:12px">⏳ Ödəniş gözlənilir</span>`;
       }
@@ -11010,7 +11078,7 @@ function listenSales(){
     el.querySelectorAll("[data-seller-confirm]").forEach(b=>b.onclick=()=>sellerConfirmOrder(b.dataset.sellerConfirm));
     el.querySelectorAll("[data-payout-req]").forEach(b=>b.onclick=()=>requestPayout(b.dataset.payoutReq));
     el.querySelectorAll("[data-cred-send]").forEach(b=>b.onclick=()=>sellerSendCredentials(b.dataset.credSend));
-  },err=>{ console.error(err); el.innerHTML='<h3>Satışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
+  }
 }
 
 // Satıcı: chat modelində hesab məlumatlarını doldurub alıcıya göndərir
@@ -11410,7 +11478,10 @@ async function buyerConfirmOrder(id, isAuto){
     const o = oSnap.data();
     if(o.buyerUid !== currentUser.uid){ if(!isAuto) toast("İcazə yoxdur."); return; }
     if(o.buyerConfirmed) return;
-    const newData = {buyerConfirmed:true, buyerConfirmedAt:serverTimestamp(), credentialsViewedAt:serverTimestamp(), updatedAt:serverTimestamp()};
+    // credentialsViewedAt-i BURADA təzələmirik: satıcının ödəniş geri sayımı
+    // ondan başlayır. Yalnız hələ yazılmayıbsa (məs. trade modeli) təyin edilir.
+    const newData = {buyerConfirmed:true, buyerConfirmedAt:serverTimestamp(), updatedAt:serverTimestamp()};
+    if(!o.credentialsViewedAt) newData.credentialsViewedAt = serverTimestamp();
     if(isAuto){ newData.autoConfirmed = true; newData.autoConfirmedAt = serverTimestamp(); }
     await updateDoc(oRef, newData);
     // Qiymətləndirmə: avtomatik axında satıcıya 5 ulduz, əl ilə təsdiqdə modal
@@ -11481,6 +11552,25 @@ async function sellerConfirmOrder(id){
 }
 
 // Satıcı: "Ödəniş tələb et" — admin görəcək
+// ============ ÖDƏNİŞ TƏLƏBİ ÜÇÜN 24 SAATLIQ GÖZLƏMƏ ============
+// Geri sayım alıcının məhsulu ALDIĞI andan yox, satıcının göndərdiyi
+// məlumatları AÇIB GÖRDÜYÜ andan (credentialsViewedAt) başlayır.
+// Bu, alıcıya problemi aşkarlayıb mübahisə açmaq üçün vaxt verir.
+const PAYOUT_HOLD_MS = 24*60*60*1000;
+
+function payoutUnlockAt(o){
+  const t = o.credentialsViewedAt;
+  return (t && t.seconds) ? t.seconds*1000 + PAYOUT_HOLD_MS : 0;
+}
+// Qalan vaxtı "5 saat 12 dəq" formatında qaytarır
+function payoutHoldLeftText(o){
+  const left = payoutUnlockAt(o) - Date.now();
+  if(left <= 0) return "";
+  const h = Math.floor(left/3600000), m = Math.floor((left%3600000)/60000);
+  return h > 0 ? `${h} saat ${m} dəq` : `${m} dəq`;
+}
+window.payoutHoldLeftText = payoutHoldLeftText;
+
 async function requestPayout(id){
   if(!currentUser) return;
   if(!await showConfirm("Ödəniş tələb etmək istəyirsiniz? Admin 5% komissiya tutub qalan məbləği göndərəcək.", "💰")) return;
@@ -11498,8 +11588,22 @@ async function requestPayout(id){
       const o = oSnap.data();
       if(o.sellerUid !== currentUser.uid) throw new Error("NO_PERMISSION");
       if(o.payoutRequested) throw new Error("ALREADY_REQUESTED");
+      if(o.status === "Mübahisə") throw new Error("DISPUTED");
+      if(o.status === "Ləğv edildi") throw new Error("CANCELLED");
+      // ⚠️ ƏSAS DÜZƏLİŞ: Rules həm orders.payoutRequested, həm də
+      // payoutRequests sənədi üçün status == 'Tamamlandı' tələb edir.
+      // Escrow Worker əlçatan olmayanda status "Aktiv" qalırdı və düymə
+      // səssiz permission-denied alırdı. Satıcı budağı statusu "Tamamlandı"
+      // etməyə yalnız buyerConfirmed==true olanda icazə verir — buna görə
+      // status dəyişikliyi payout tələbi ilə EYNİ transaction-da yazılır.
+      if(!o.buyerConfirmed) throw new Error("NOT_CONFIRMED");
+      // 24 saatlıq gözləmə: alıcı məlumatları açandan bəri
+      if(!o.credentialsViewedAt) throw new Error("NOT_VIEWED");
+      if(Date.now() < payoutUnlockAt(o)) throw new Error("HOLD::" + payoutHoldLeftText(o));
       _o = o;
-      tx.update(oRef,{payoutRequested:true, payoutRequestedAt:serverTimestamp(), updatedAt:serverTimestamp()});
+      const _upd = {payoutRequested:true, payoutRequestedAt:serverTimestamp(), updatedAt:serverTimestamp()};
+      if(o.status !== "Tamamlandı") _upd.status = "Tamamlandı";
+      tx.update(oRef, _upd);
       tx.set(payoutRef,{
         orderId: id,
         productTitle: _o.productTitle||"",
@@ -11515,12 +11619,18 @@ async function requestPayout(id){
     });
     toast("Ödəniş tələbi göndərildi. Admin yaxın zamanda ödəyəcək.");
   }catch(e){
-    console.error(e);
+    console.error("[requestPayout]", e.code, e.message, e);
     if(e.message==="ALREADY_REQUESTED") toast("Artıq tələb edilib.");
     else if(e.message==="NO_PERMISSION") toast("İcazə yoxdur.");
     else if(e.message==="ORDER_GONE") toast("Sifariş tapılmadı.");
+    else if(e.message==="DISPUTED") toast("Mübahisəli sifariş üçün ödəniş tələb edilə bilməz — admin araşdırır.");
+    else if(e.message==="CANCELLED") toast("Ləğv edilmiş sifariş üçün ödəniş tələb edilə bilməz.");
+    else if(e.message==="NOT_CONFIRMED") toast("⏳ Alıcı hələ təsdiqləməyib. 24 saat keçəndən sonra sifariş avtomatik təsdiqlənəcək.");
+    else if(e.message==="NOT_VIEWED") toast("⏳ Alıcı hesab məlumatlarını hələ açmayıb — 24 saatlıq geri sayım açandan sonra başlayır.");
+    else if(String(e.message||"").startsWith("HOLD::")) toast("⏳ Ödəniş tələbinə hələ " + e.message.split("::")[1] + " qalıb.");
+    else if(e.code==="permission-denied") toast("İcazə yoxdur — sifariş statusu uyğun deyil. Dəstəyə yazın.");
     else if(isQuotaErr(e)) toast("⏳ Sistem limitə çatıb — bir azdan yenidən cəhd et.");
-    else toast("Xəta baş verdi.");
+    else toast("Xəta: " + (e.code || e.message || "baş verdi"));
   }
 }
 
