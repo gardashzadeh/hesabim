@@ -9483,6 +9483,10 @@ function renderNotifDropdown(){
         + '</button>';
     }).join("");
   }
+  const _anyUnread = items.some(x=>x.unread>0);
+  if(_anyUnread){
+    html+='<button type="button" class="notif-dd-all" style="color:#38bdf8" onclick="window.markAllNotifsRead()">✓ Hamısını oxunmuş et</button>';
+  }
   html+='<button type="button" class="notif-dd-all" onclick="notifSeeAll()">Hamısına bax →</button>';
   panel.innerHTML=html;
 }
@@ -9510,15 +9514,27 @@ function markChatRead(chatId){
   const isBuyer = _notifItems.buyer.some(x=>x.id===chatId);
   updateDoc(doc(db,"chats",chatId), isBuyer?{unreadBuyer:0}:{unreadSeller:0}).catch(()=>{});
 }
+// Bütün bildirişləri (chat + admin) oxunmuş kimi işarələ — badge sıfırlansın
+function markAllNotifsRead(){
+  if(!currentUser) return;
+  (_notifItems.buyer||[]).forEach(x=>{
+    if(x.unread) updateDoc(doc(db,"chats",x.id),{unreadBuyer:0}).catch(()=>{});
+  });
+  (_notifItems.seller||[]).forEach(x=>{
+    if(x.unread) updateDoc(doc(db,"chats",x.id),{unreadSeller:0}).catch(()=>{});
+  });
+  (_notifItems.admin||[]).forEach(x=>{
+    if(x.unread) updateDoc(doc(db,"adminNotifications",x.id),{readByAdmin:true,updatedAt:serverTimestamp()}).catch(()=>{});
+  });
+  setHeaderNotificationCount(0);
+}
+window.markAllNotifsRead=function(){ markAllNotifsRead(); renderNotifDropdown(); toast("✓ Bütün bildirişlər oxunmuş kimi işarələndi."); };
+
 window.notifSeeAll=function(){
   hideNotifDropdown();
   if(!currentUser){ openModal("loginModal"); return; }
   // Siyahını açan kimi hamısı oxunmuş sayılır — badge asılı qalmasın
-  try{
-    (_notifItems.admin||[]).forEach(x=>{
-      if(x.unread) updateDoc(doc(db,"adminNotifications",x.id),{readByAdmin:true,updatedAt:serverTimestamp()}).catch(()=>{});
-    });
-  }catch(e){}
+  try{ markAllNotifsRead(); }catch(e){}
   openCabinetModal();
   if(typeof window.showTab==="function") window.showTab(currentUserRole==="admin"?"admin":"messages");
 };
@@ -10663,7 +10679,7 @@ window.showAdDetailModal = async function(adId){
 
     const m = document.createElement("div");
     m.id = "adDetailModal";
-    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:grid;place-items:center;padding:16px;overflow:auto";
+    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000002;display:grid;place-items:center;padding:16px;overflow:auto";
     m.innerHTML = `
       <div style="background:#0e1117;border:1px solid #1c2330;border-radius:14px;max-width:640px;width:100%;padding:22px;max-height:90vh;overflow:auto">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px">
@@ -11564,7 +11580,7 @@ function showSellerRatingModal(o, orderId){
   if(document.getElementById("sellerRateModal")) return;
   const m = document.createElement("div");
   m.id = "sellerRateModal";
-  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;display:grid;place-items:center;padding:16px";
+  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000002;display:grid;place-items:center;padding:16px";
   m.innerHTML = `
     <div style="background:#0e1117;border:1px solid #1c2330;border-radius:14px;max-width:380px;width:100%;padding:24px;text-align:center">
       <div style="font-size:34px;margin-bottom:8px">⭐</div>
@@ -12630,7 +12646,7 @@ function toggleTheme(){
   border-top:1px solid rgba(255,255,255,.055)!important;
   margin-top:10px!important;padding-top:10px!important;
 }
-.ad-views{color:#7d8798!important;font-weight:600}
+.ad-views{color:#38bdf8!important;font-weight:600}
 .ads .ad .user .seller-name-link{
   font-weight:700;color:#94a3b8;transition:color .18s ease;
 }
@@ -13013,7 +13029,7 @@ body.light-mode .ad-banner::after{
 }
 body.light-mode .ad-seller-row b{color:#0f172a}
 body.light-mode .ad-footer-row{border-top:1px solid #eef1f6!important}
-body.light-mode .ad-views{color:#64748b!important}
+body.light-mode .ad-views{color:#0284c7!important}
 body.light-mode #sellerProfileModal .modal-box{
   background:linear-gradient(180deg,#ffffff,#f6f8fb)!important;border:1px solid #e3e8ef!important;
 }
