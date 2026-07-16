@@ -348,7 +348,7 @@ input,select,textarea{font-family:inherit}
 .game-img img,.epin-img img,.ad-img img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
 .brand-logo{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
 .logo-fallback{font-size:18px;font-weight:900;color:#fff;letter-spacing:.5px}
-.ad b{font-size:13px}.ad p{font-size:12px;color:#d0d0d0;margin:5px 0}.ad .aprice{color:#ff5100;font-weight:700;font-size:13px;font-family:'Space Grotesk',monospace}
+.ad b{font-size:13px}.ad p{font-size:12px;color:#d0d0d0;margin:5px 0}.ad .aprice{color:#ff5100;font-weight:700;font-size:14.3px;font-family:'Space Grotesk',monospace}   /* +10% */
 .user{font-size:12px;color:#d0d0d0;margin-top:14px}.user span{color:#24c35a}
 .ad-views{display:inline-flex;align-items:center;gap:4px;margin-top:6px;color:#9ca3af;font-size:12px;font-weight:600}
 .pd-views{display:inline-flex;align-items:center;gap:5px;color:#cbd5e1}
@@ -2192,10 +2192,11 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
 .ad-body{padding:12px}
 .ad-seller-row{display:flex;align-items:center;gap:9px;margin-bottom:2px}
 .ad-seller-avatar{
-  flex:none;width:30px;height:30px;border-radius:50%;
+  /* −20%: 30px → 24px */
+  flex:none;width:24px;height:24px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg,var(--cat-color,#ff5100),#ff5100);
-  color:#fff;font-weight:800;font-size:13px;
+  color:#fff;font-weight:800;font-size:10.5px;   /* −20% */
   font-family:'DM Sans',Arial,sans-serif;
 }
 .ad-seller-row b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2469,7 +2470,8 @@ button.primary, .btn-primary,
   background:linear-gradient(135deg,var(--brand-1),var(--brand-2)) !important;
   color:#fff !important;
 }
-.ad-seller-avatar{background:linear-gradient(135deg,var(--brand-1),var(--brand-2)) !important}
+/* Ana səhifə elan kartı: satıcı ikonu təmiz narıncı (moruq tonu çıxarıldı) */
+.ad-seller-avatar{background:linear-gradient(135deg,#ffa040,#ff6a00) !important}
 .hero-title h1 span{color:var(--brand-solid) !important}
 
 /* 3) DÜYMƏ FORMASI — az yumru (10px) */
@@ -2751,7 +2753,7 @@ button,input,select,textarea{max-width:100%}
   .ad-img{width:92px!important;height:104px!important;border-radius:10px!important}
   .ad b{font-size:13px!important;line-height:1.35!important}
   .ad p{font-size:12px!important;line-height:1.45!important;max-height:38px;overflow:hidden}
-  .ad .aprice{font-size:14px!important}
+  .ad .aprice{font-size:15.4px!important}   /* +10% */
   .user{font-size:12px!important;margin-top:8px!important}
   .ad-views{font-size:11px!important}
 
@@ -12176,7 +12178,8 @@ function toggleTheme(){
   box-shadow:0 0 0 2px rgba(255,81,0,.18),0 6px 14px -6px rgba(255,81,0,.6);
 }
 .ads .ad .aprice{
-  background:linear-gradient(135deg,#ff9166,var(--brand-2,#ff005b));
+  /* Təmiz narıncı — əvvəl qradiyent #ff005b (moruq) ilə bitirdi */
+  background:linear-gradient(135deg,#ffb066,#ff7a10);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;
   font-weight:900;letter-spacing:-.4px;
@@ -12737,6 +12740,31 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
   .cabinet-modal.cab-fullscreen .cabinet-head{padding:0 14px;height:52px}
 }
 </style>
+<style id="navFill">
+/* ===========================================================
+   NAV: "BÜTÜN KATEQORİYALAR" düyməsi silindikdən sonra sətrin
+   sonunda boş yer qalırdı. Kateqoriya düymələri qalan eni
+   bölüşdürür (flex:1 1 auto — mətn kəsilmir, sadəcə genişlənir).
+   Yalnız desktop-da; mobildə üfüqi sürüşmə saxlanılır.
+=========================================================== */
+@media(min-width:901px){
+  .nav .shell{padding:0 6px}
+  .nav .shell > .nav-cat{
+    flex:1 1 auto;
+    justify-content:center;
+    padding:0 8px;
+    min-width:0;
+  }
+  .nav .shell > .nav-cat > span,
+  .nav .shell > .nav-cat{
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+@media(min-width:901px) and (max-width:1150px){
+  .nav .shell > .nav-cat{font-size:12px;gap:5px;padding:0 5px}
+}
+</style>
 <style id="mobileFixes">
 /* ---- Mobil: dəstək düyməsi alt bar-ın üstünə düşməsin ---- */
 @media (max-width:900px){
@@ -12800,7 +12828,7 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
 
   /* --- 3. Elan kartı: başlıq kəsilirdi, səbət düyməsi qiymətin üstünə düşürdü --- */
   .ad-seller-row{gap:7px!important;min-width:0!important}
-  .ad-seller-avatar{width:24px!important;height:24px!important;font-size:11px!important}
+  .ad-seller-avatar{width:19px!important;height:19px!important;font-size:9px!important}   /* −20% */
   .ad-seller-row b{
     font-size:12.5px!important;
     white-space:normal!important;      /* nowrap başlığı kəsirdi */
@@ -12808,7 +12836,7 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
     -webkit-line-clamp:2;-webkit-box-orient:vertical;
     overflow:hidden;min-width:0;line-height:1.3;
   }
-  .ads .ad .aprice{font-size:14px!important}
+  .ads .ad .aprice{font-size:15.4px!important}   /* +10% */
   .ad-cart-btn{width:30px!important;height:30px!important;border-radius:9px!important}
   .ad-cart-btn svg{width:14px!important;height:14px!important}
   /* qiymət + səbət sətri daşmasın */
