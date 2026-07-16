@@ -10446,14 +10446,20 @@ async function _fetchDealsAdmin(){
     }).join("");
 
     el.querySelectorAll("[data-view-ad]").forEach(b=>b.onclick=async()=>{
+      // ⚠️ DÜZƏLİŞ: əvvəl `window.open()` `await getDoc()`-dan SONRA çağırılırdı.
+      // await brauzerin "transient user activation" möhlətini bitirir → Chrome/Opera
+      // yeni tabı istifadəçi klikinə aid saymır və onu ARXA FONDA açır (bəzən tam
+      // bloklayır). Ona görə tab KLİK ANINDA, sinxron açılır; ünvan sonra yazılır.
+      const w = window.open("", "_blank");
+      if(!w){ toast("Brauzer yeni tabı blokladı — pop-up icazəsi ver."); return; }
       try{
         const adSnap = await getDoc(doc(db,"ads",b.dataset.viewAd));
-        if(!adSnap.exists()){ toast("Elan silinib."); return; }
+        if(!adSnap.exists()){ w.close(); toast("Elan silinib."); return; }
         const a = adSnap.data()||{};
         const num = a.adNumber || "";
-        if(num) window.open("/?ad="+encodeURIComponent(num), "_blank");
-        else toast("Elan nömrəsi yoxdur — ID: "+b.dataset.viewAd);
-      }catch(e){ console.error(e); toast("Elan açılmadı."); }
+        if(num){ w.location.href = "/?ad="+encodeURIComponent(num); w.focus(); }
+        else { w.close(); toast("Elan nömrəsi yoxdur — ID: "+b.dataset.viewAd); }
+      }catch(e){ try{ w.close(); }catch(_){}; console.error(e); toast("Elan açılmadı."); }
     });
   }catch(e){
     console.error("_fetchDealsAdmin:",e);
@@ -12449,14 +12455,74 @@ window.listenReportsAdmin = function(){
             <span style="color:#64748b">Hədəf: ${esc(r.targetTitle||r.targetId||"")}</span><br>
             ${r.desc?`<span style="color:#94a3b8">${esc(r.desc)}</span>`:""}
             <br><small style="color:#475569">Şikayətçi: ${esc(r.reporterEmail||"")}</small>
+            ${r.targetId?`<br><small style="color:#334155;font-family:'Space Grotesk',monospace">ID: ${esc(r.targetId)}</small>`:""}
           </div>
-          <button onclick="resolveReport('${r.id}')" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12px">Baxıldı ✓</button>
+          <div style="display:flex;flex-direction:column;gap:6px;flex:none">
+            <button onclick="openReportTarget('${esc(r.targetType||"ad")}','${esc(r.targetId||"")}')"
+              style="background:linear-gradient(90deg,#ff5100,#ff005b);border:0;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12px;font-weight:700">
+              ${r.targetType==="seller"?"Satıcıya bax":"Elana bax"}
+            </button>
+            <button onclick="resolveReport('${r.id}')" style="background:#1e2d45;border:1px solid #2a3d5a;color:#e2e8f0;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12px">Baxıldı ✓</button>
+          </div>
         </div>
       </div>`).join("");
   }, err=>{
     console.warn("Reports:", err);
     el.innerHTML = '<h3>Şikayətlər</h3><div class="cabinet-empty">Şikayətlər yüklənmədi: '+esc(err.message||"icazə xətası")+'. Firestore Rules-da "reports" kolleksiyasına admin oxuma icazəsini yoxla.</div>';
   });
+};
+
+/* Şikayət olunan hədəfi açır.
+   Elan üçün: sənədi oxuyub openProductDetail()-ə uyğun obyekt qurur.
+   Elan silinibsə xəbər verir (admin panelində "Elanlar" tabından da tapıla bilməz). */
+window.openReportTarget = async function(type, targetId){
+  if(!targetId){ toast("Hədəf ID-si yoxdur."); return; }
+
+  if(type === "seller"){
+    // targetId satıcının uid-i və ya emaili ola bilər
+    closeModal("cabinetModal");
+    const looksLikeEmail = targetId.indexOf("@") !== -1;
+    return window.openSellerProfile(looksLikeEmail ? "" : targetId, looksLikeEmail ? targetId : "");
+  }
+
+  try{
+    const snap = await getDoc(doc(db,"ads",targetId));
+    if(!snap.exists()){
+      toast("Elan silinib və ya tapılmadı.");
+      return;
+    }
+    const a = snap.data() || {};
+    const raw = (a.imageUrls && a.imageUrls[0]) || a.imageUrl || "";
+    const img = (typeof window.cldImg === "function") ? window.cldImg(raw, 800) : raw;
+    const iconHtml = img ? '<img src="'+String(img).replace(/"/g,'%22')+'" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy">' : "";
+
+    // Admin panel (.cabinet-modal, z-index 1000010) elan modalından yuxarıdadır —
+    // bağlamasaq elan arxa fonda açılır.
+    closeModal("cabinetModal");
+
+    window.openProductDetail({
+      title: a.title||"", price: a.priceText || (Number(a.price||0).toFixed(2)+" ₼"),
+      desc: a.desc||"", rawDesc: a.desc||"", game: a.game||"",
+      category: a.category||"", platform: a.platform||"", region: a.region||"",
+      server: a.server||"", rank: a.rank||"", level: a.level||"",
+      seller: a.sellerUserId || (a.sellerEmail||"").split("@")[0] || "Satıcı",
+      sellerUid: a.sellerUid||"", sellerEmail: a.sellerEmail||"",
+      adId: targetId, adNumber: a.adNumber||"", views: a.views||0,
+      imageUrls: a.imageUrls||[], stock: Number(a.stock||1),
+      contactMode: a.contactMode||"platform", deliveryMode: a.deliveryMode||"",
+      deliveryEta: Number(a.deliveryEta||0), icon: iconHtml
+    });
+    document.getElementById("productModal")?.classList.add("show");
+    document.body.classList.add("pd-open");
+
+    // Elanın statusunu admin görsün — bazarda görünmür, amma şikayət var
+    if(a.status && a.status !== "Təsdiqləndi"){
+      setTimeout(()=>toast("Diqqət: elanın statusu: " + a.status + " — bazarda görünmür."), 400);
+    }
+  }catch(e){
+    console.error("[report] elan açılmadı:", e);
+    toast("Elan açılmadı: " + (e.code || e.message || "naməlum xəta"));
+  }
 };
 
 window.resolveReport = async function(id){
