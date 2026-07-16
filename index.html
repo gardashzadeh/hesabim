@@ -11107,6 +11107,8 @@ function listenPurchases(){
   const q=query(collection(db,"orders"),where("buyerUid","==",currentUser.uid));
   onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    // 24 saatlıq avtomatik təsdiq yoxlaması
+    try{ autoConfirmStaleOrders(arr); }catch(e){ console.warn("[autoConfirm]", e); }
     if(!arr.length){ el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Hələ alış yoxdur.</div>'; return; }
     el.innerHTML='<h3>Alışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Satıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
       let btns = '';
@@ -11140,8 +11142,20 @@ function listenPurchases(){
         } else if(o.credentialsStatus === "Alıcıya göndərildi"){
           btns += `<small style="color:#22c55e;display:block;margin-bottom:6px">✅ Hesab məlumatları göndərildi — <b style="color:#38bdf8;cursor:pointer" onclick="showTab('messages')">Mesajlar</b> bölməsinə bax.</small>`;
         }
-        if(!o.buyerConfirmed) btns += `<button class="complete-btn" data-buyer-confirm="${o.id}">✓ Aldım, problem yox</button>`;
-        else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın</span>`;
+        if(!o.buyerConfirmed){
+          btns += `<button class="complete-btn" data-buyer-confirm="${o.id}">✓ Aldım, problem yox</button>`;
+          // 24 saatlıq avto-təsdiq geri sayımı
+          if(o.credentialsDeliveredAt || o.sellerConfirmedAt){
+            const _left = orderAutoConfirmBase(o) + AUTO_CONFIRM_MS - Date.now();
+            if(_left > 0){
+              const _h = Math.floor(_left/3600000), _m = Math.floor((_left%3600000)/60000);
+              btns += `<small style="color:#fbbf24;display:block;margin-top:4px">⏰ ${_h} saat ${_m} dəq sonra avtomatik təsdiqlənəcək (satıcı ★5 alacaq)</small>`;
+            } else {
+              btns += `<small style="color:#fbbf24;display:block;margin-top:4px">⏰ Avtomatik təsdiq icra olunur...</small>`;
+            }
+          }
+        }
+        else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın${o.autoConfirmed?' (avtomatik)':''}</span>`;
         btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
         // Sosial media — uzadılmış saxlama müddəti barədə məlumat
         if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
@@ -11302,23 +11316,144 @@ async function submitTradeInfo(id, tradeVal){
   }catch(e){ console.error(e); toast("Xəta baş verdi."); }
 }
 
+// ============ SATICI REYTİNQİ (5 ulduz) ============
+// Alıcı satışı təsdiqləyəndə satıcını qiymətləndirir. Rəy "reviews"
+// kolleksiyasına (satıcı profilində görünən eyni struktura) yazılır və
+// sifariş sənədində buyerRating kimi saxlanılır.
+async function submitSellerRating(o, orderId, rating, text, isAuto){
+  rating = Math.max(1, Math.min(5, Number(rating)||5));
+  // 1) Sifarişə yaz (alıcı öz sifarişini yeniləyə bilir)
+  try{
+    await updateDoc(doc(db,"orders",orderId),{
+      buyerRating: rating,
+      buyerRatingAt: serverTimestamp(),
+      buyerRatingAuto: !!isAuto,
+      updatedAt: serverTimestamp()
+    });
+  }catch(e){ console.warn("[rating] order yazılmadı:", e); }
+  // 2) Satıcı profilində görünən "reviews" sənədi (best-effort — Rules
+  //    tamamlanmış sifariş tələb edirsə və hələ tamamlanmayıbsa keçilir)
+  if(!o.sellerUid || o.sellerUid === currentUser?.uid) return;
+  try{
+    const userName = (typeof currentUserDisplayName === "function")
+      ? await currentUserDisplayName() : (currentUser?.email||"Alıcı");
+    const reviewId = (o.buyerUid || currentUser.uid) + "_" + o.sellerUid;
+    const revText = String(text || (isAuto ? "Avtomatik təsdiq (24 saat ərzində cavab verilmədi)" : "Alış təsdiqləndi")).slice(0,220);
+    try{
+      await setDoc(doc(db,"reviews",reviewId),{
+        userUid: o.buyerUid || currentUser.uid,
+        userName: String(userName||"").slice(0,100),
+        userEmail: currentUser?.email || o.buyerEmail || "",
+        sellerUid: o.sellerUid,
+        rating,
+        text: revText,
+        adId: o.adId || "",
+        orderId,
+        createdAt: serverTimestamp()
+      });
+    }catch(ce){
+      // Rəy sənədi artıq varsa (eyni satıcıdan əvvəlki alış) — Rules yalnız
+      // rating/text yeniləməsinə icazə verir.
+      await updateDoc(doc(db,"reviews",reviewId),{ rating, text: revText });
+    }
+  }catch(e){ console.warn("[rating] reviews yazılmadı:", e); }
+}
+window.submitSellerRating = submitSellerRating;
+
+// Təsdiqdən sonra açılan 5 ulduzluq qiymətləndirmə pəncərəsi
+function showSellerRatingModal(o, orderId){
+  if(document.getElementById("sellerRateModal")) return;
+  const m = document.createElement("div");
+  m.id = "sellerRateModal";
+  m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;display:grid;place-items:center;padding:16px";
+  m.innerHTML = `
+    <div style="background:#0e1117;border:1px solid #1c2330;border-radius:14px;max-width:380px;width:100%;padding:24px;text-align:center">
+      <div style="font-size:34px;margin-bottom:8px">⭐</div>
+      <h3 style="margin:0 0 6px;color:#f1f5f9;font-size:17px">Satıcını qiymətləndir</h3>
+      <p style="margin:0 0 14px;color:#94a3b8;font-size:13px;line-height:1.5">
+        ${esc(o.sellerEmail||"Satıcı")} ilə alış-verişin necə keçdi?
+      </p>
+      <div id="srStars" style="display:flex;justify-content:center;gap:6px;margin-bottom:12px">
+        ${[1,2,3,4,5].map(n=>`<button type="button" data-star="${n}" style="background:none;border:0;font-size:34px;cursor:pointer;color:#334155;line-height:1;padding:2px">★</button>`).join("")}
+      </div>
+      <textarea id="srText" maxlength="220" placeholder="Rəyiniz (istəyə bağlı)..." rows="2"
+        style="width:100%;background:#060810;border:1px solid #1c2330;border-radius:8px;color:#e2e8f0;padding:9px 10px;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box;margin-bottom:12px"></textarea>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="srSkip" style="flex:1;height:40px;background:#151a23;border:1px solid #1c2330;border-radius:8px;color:#94a3b8;font-weight:700;cursor:pointer">Keç</button>
+        <button type="button" id="srSend" style="flex:2;height:40px;background:linear-gradient(90deg,#ff5100,#ff005b);border:0;border-radius:8px;color:#fff;font-weight:700;cursor:pointer">Göndər</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  let sel = 5;
+  const paint = ()=> m.querySelectorAll("[data-star]").forEach(b=>{
+    b.style.color = Number(b.dataset.star) <= sel ? "#ffae00" : "#334155";
+  });
+  paint();
+  m.querySelectorAll("[data-star]").forEach(b=>b.onclick=()=>{ sel = Number(b.dataset.star); paint(); });
+  m.querySelector("#srSkip").onclick = ()=> m.remove();
+  m.querySelector("#srSend").onclick = async ()=>{
+    const txt = (m.querySelector("#srText")?.value||"").trim();
+    m.remove();
+    await submitSellerRating(o, orderId, sel, txt, false);
+    toast("⭐ Qiymətləndirmə üçün təşəkkürlər!");
+  };
+}
+
 // Alıcı: "Aldım, problem yox"
-async function buyerConfirmOrder(id){
+// isAuto=true — 24 saatlıq avtomatik təsdiq axını (modal açılmır, 5 ulduz avtomatik)
+async function buyerConfirmOrder(id, isAuto){
   if(!currentUser) return;
   try{
     const oRef = doc(db,"orders",id);
     const oSnap = await getDoc(oRef);
     if(!oSnap.exists()) return;
     const o = oSnap.data();
-    if(o.buyerUid !== currentUser.uid){ toast("İcazə yoxdur."); return; }
+    if(o.buyerUid !== currentUser.uid){ if(!isAuto) toast("İcazə yoxdur."); return; }
+    if(o.buyerConfirmed) return;
     const newData = {buyerConfirmed:true, buyerConfirmedAt:serverTimestamp(), credentialsViewedAt:serverTimestamp(), updatedAt:serverTimestamp()};
+    if(isAuto){ newData.autoConfirmed = true; newData.autoConfirmedAt = serverTimestamp(); }
     await updateDoc(oRef, newData);
+    // Qiymətləndirmə: avtomatik axında satıcıya 5 ulduz, əl ilə təsdiqdə modal
+    if(isAuto){
+      await submitSellerRating(o, id, 5, "", true);
+    } else {
+      showSellerRatingModal(o, id);
+    }
     // Hər iki tərəf təsdiqləyibsə — rəsmi tamamlama axını (escrow Worker ilə
     // pul köçürməsi) işə düşsün. Status birbaşa "Tamamlandı" YAZILMIR ki,
     // pulsuz "tamamlanma" yaranmasın.
-    if(o.sellerConfirmed){ toast("Hər iki tərəf təsdiqlədi — sifariş tamamlanır..."); return completeOrder(id); }
-    toast("Təsdiq edildi.");
-  }catch(e){ console.error(e); toast("Xəta baş verdi."); }
+    if(o.sellerConfirmed){ toast(isAuto ? "⏰ 24 saat keçdi — sifariş avtomatik təsdiqləndi." : "Hər iki tərəf təsdiqlədi — sifariş tamamlanır..."); return completeOrder(id); }
+    if(!isAuto) toast("Təsdiq edildi.");
+    else toast("⏰ 24 saat keçdi — sifariş avtomatik təsdiqləndi, satıcı 5 ulduzla qiymətləndirildi.");
+  }catch(e){ console.error(e); if(!isAuto) toast("Xəta baş verdi."); }
+}
+
+// ============ 24 SAATLIQ AVTOMATİK TƏSDİQ ============
+// Çatdırılmadan (credentialsDeliveredAt / sellerConfirmedAt) 24 saat keçibsə
+// və alıcı hələ təsdiqləməyibsə — avtomatik təsdiq + satıcıya 5 ulduz.
+// Qeyd: klient tərəfli işlədiyi üçün alıcı sayta girəndə işə düşür.
+const AUTO_CONFIRM_MS = 24*60*60*1000;
+const _autoConfirmInFlight = new Set();
+function orderAutoConfirmBase(o){
+  // Geri sayım hansı andan başlayır: məlumat çatdırılan an, yoxdursa
+  // satıcının "təhvil verdim" anı, o da yoxdursa sifarişin yaranma anı.
+  const t = o.credentialsDeliveredAt || o.sellerConfirmedAt || o.createdAt;
+  return (t && t.seconds) ? t.seconds*1000 : 0;
+}
+function autoConfirmStaleOrders(arr){
+  if(!currentUser) return;
+  arr.forEach(o=>{
+    if(o.status !== "Aktiv") return;
+    if(o.buyerConfirmed) return;
+    if(o.buyerUid !== currentUser.uid) return;
+    // Çatdırılma faktı olmadan (nə məlumat, nə satıcı təsdiqi) avto-təsdiq YOXDUR
+    if(!o.credentialsDeliveredAt && !o.sellerConfirmedAt) return;
+    const base = orderAutoConfirmBase(o);
+    if(!base || (Date.now() - base) < AUTO_CONFIRM_MS) return;
+    if(_autoConfirmInFlight.has(o.id)) return;
+    _autoConfirmInFlight.add(o.id);
+    buyerConfirmOrder(o.id, true).finally(()=>_autoConfirmInFlight.delete(o.id));
+  });
 }
 
 // Satıcı: "Təhvil verdim"
