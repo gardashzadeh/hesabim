@@ -12793,6 +12793,16 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
    #confirmModal ............ 1000020
    .toast ................... 9999999
 */
+/* ---- Dinamik yaradılan modallar ----
+   Bunlar JS-də `className = "modal"` ilə yaradılır → .modal-ın default
+   z-index-i 9999 olur. Kabinet (1000010) və elan modalı (1000000) onların
+   üstündə qalırdı — "şərtlər arxa fonda açılır" problemi məhz budur.
+   Bu modallar axının SONUNCU addımıdır, hər şeyin üstündə olmalıdır. */
+#buyerTermsModal,
+#credsRulesModal,
+#credsViewModal,
+#adminPromptModal{z-index:1000050!important}
+
 #sellerProfileModal{z-index:1000005!important}
 </style>
 
