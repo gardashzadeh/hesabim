@@ -5908,6 +5908,9 @@ document.addEventListener("keydown",function(e){
     document.getElementById("cartPanel")?.classList.remove("show");
     document.getElementById("cabinetModal")?.classList.remove("show"); document.body.style.overflow="";
     document.body.classList.remove("pd-open");
+    // DÜZƏLİŞ: admin tam ekran rejimi sıfırlanmırdı — body.admin-full{overflow:hidden}
+    // qalırdı və Escape-dən sonra səhifə sürüşmürdü (donmuş görünürdü).
+    if(window.setCabFullscreen) window.setCabFullscreen(false);
   }
 });
 
@@ -6900,13 +6903,15 @@ window.loadProductReviews = function(p){
   if(cached.length) renderReviews(cached);
   else renderReviews([]);
 
-  const qReviews = keys.length > 1
-    ? query(collection(db,"reviews"),where("productKey","in",keys))
-    : query(collection(db,"reviews"),where("productKey","==",activeReviewProductKey));
+  // DÜZƏLİŞ: rəy sənədləri artıq productKey saxlamır (Rules hasOnly() qadağan edir).
+  // Rəy satıcıya aiddir (reviewId = uid_sellerUid) — sellerUid üzrə oxunur.
+  const _sUid = product.sellerUid || "";
+  if(!_sUid){ renderReviews([]); return; }
+  const qReviews = query(collection(db,"reviews"), where("sellerUid","==",_sUid));
 
   unsubProductReviews=onSnapshot(qReviews,(snap)=>{
     const list=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-    list.sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0));
+    list.sort((a,b)=>((b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)));
     cacheReviews(keys,list);
     renderReviews(list);
   },(e)=>{
@@ -6922,39 +6927,54 @@ window.submitProductReview = async function(){
   if(!currentUser.emailVerified){ toast("Rəy yazmaq üçün emaili təsdiqlə."); return; }
   if(!requirePhoneVerified()){ toast("Rəy yazmaq üçün nömrənizi təsdiqləyin."); return; }
   if(!rateLimiter("submitReview", 120_000, "Rəy yazmaq üçün 2 dəqiqə gözləyin.")) return;
+
   const text=(document.getElementById("pdReviewText")?.value||"").trim();
   const rating=Number(document.getElementById("pdReviewStars")?.value||5);
   if(text.length<3){ toast("Rəy ən azı 3 simvol olmalıdır."); return; }
   if(text.length>220){ toast("Rəy maksimum 220 simvol olmalıdır."); return; }
-  const p=window.currentDetailProduct || {};
-  const keys=productReviewKeys(p);
-  const key=keys[0];
-  activeReviewProductKey = key;
-  const userName=await currentUserDisplayName();
-  const reviewData={
-    productKey:key,
-    productTitle:p.title||"Məhsul",
-    adId:p.adId||"",
-    sellerUid:p.sellerUid||"",
-    sellerEmail:p.sellerEmail||"",
-    rating:Math.max(1,Math.min(5,rating)),
-    text,
-    userUid:currentUser.uid,
-    userEmail:currentUser.email||"",
-    userName,
-    createdAtMs:Date.now(),
-    createdAt:serverTimestamp()
-  };
+
+  const p = window.currentDetailProduct || {};
+  const sellerUid = p.sellerUid || "";
+  if(!sellerUid){ toast("Bu elan üçün rəy yazmaq mümkün deyil."); return; }
+  if(sellerUid === currentUser.uid){ toast("Öz elanına rəy yaza bilməzsən."); return; }
+
+  // Rules tələbi: rəy YALNIZ bu satıcıdan tamamlanmış alışdan sonra.
+  let orderId = "";
   try{
-    const ref=await addDoc(collection(db,"reviews"),reviewData);
-    const localItem={...reviewData,id:ref.id,createdAt:null};
-    cacheReviews(keys,[localItem,...readCachedReviews(keys)]);
+    const oSnap = await getDocs(query(collection(db,"orders"), where("buyerUid","==",currentUser.uid)));
+    oSnap.forEach(d=>{
+      const o = d.data()||{};
+      if(!orderId && o.sellerUid === sellerUid && o.status === "Tamamlandı") orderId = d.id;
+    });
+  }catch(e){ console.warn("[review] sifariş axtarışı:", e); }
+  if(!orderId){
+    toast("Rəy yalnız bu satıcıdan tamamlanmış alışdan sonra yazıla bilər.");
+    return;
+  }
+
+  const userName = await currentUserDisplayName();
+  const reviewId = currentUser.uid + "_" + sellerUid;   // Rules: uid + '_' + sellerUid
+  const reviewData = {                                   // Rules: hasOnly([...]) — yalnız bunlar
+    userUid: currentUser.uid,
+    userName: String(userName||"").slice(0,100),
+    userEmail: currentUser.email||"",
+    sellerUid,
+    rating: Math.max(1,Math.min(5,rating)),
+    text,
+    adId: p.adId||"",
+    orderId,
+    createdAt: serverTimestamp()
+  };
+
+  try{
+    await setDoc(doc(db,"reviews",reviewId), reviewData);
     const inp=document.getElementById("pdReviewText");
     if(inp) inp.value="";
     toast("Rəy əlavə edildi.");
   }catch(e){
     console.error("Review write failed:", e);
-    toast("Rəy Firebase-ə yazılmadı. Rules və interneti yoxla.");
+    if(e.code === "permission-denied") toast("Rəy yalnız tamamlanmış alışdan sonra mümkündür.");
+    else toast("Rəy yazılmadı. İnterneti yoxla.");
   }
 };
 window.deleteProductReview = async function(id,userUid){
@@ -9104,19 +9124,15 @@ window.submitDepositRequest = async function(){
   if(!(amount>0)){ toast("Məbləği düzgün yaz."); return; }
   try{
     await ensureWallet(currentUser.uid,currentUser.email);
-    // Atomik: müraciət sənədi + pendingIn artımı bir transaction-da
-    const reqRef = doc(collection(db,"balanceRequests"));
-    const wRef = doc(db,"wallets",currentUser.uid);
-    await runTransaction(db, async (tx)=>{
-      const wSnap = await tx.get(wRef);
-      const w = wSnap.exists() ? (wSnap.data()||{}) : {};
-      tx.set(reqRef,{
-        type:"deposit",amount,method,receipt,
-        status:"Gözləmədə",
-        userUid:currentUser.uid,userEmail:currentUser.email,
-        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
-      });
-      tx.set(wRef,{pendingIn:Number(w.pendingIn||0)+amount,updatedAt:serverTimestamp()},{merge:true});
+    // DÜZƏLİŞ: əvvəl burada `pendingIn` artımı da yazılırdı. Rules-da owner üçün
+    // pendingIn yazmaq QADAĞANDIR (hasOnly: balance/totalSpent və balance/pendingOut) —
+    // buna görə BÜTÜN transaction permission-denied alırdı, heç kim balans artıra bilmirdi.
+    // İndi yalnız müraciət sənədi yaradılır; pendingIn/balance-ı admin təsdiqdə yazır.
+    await setDoc(doc(collection(db,"balanceRequests")),{
+      type:"deposit",amount,method,receipt,
+      status:"Gözləmədə",
+      userUid:currentUser.uid,userEmail:currentUser.email,
+      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     });
     toast("Balans artırma müraciəti göndərildi");
     tgNotify(`💰 <b>Balans müraciəti!</b>\n👤 ${currentUser.email}\n💵 Məbləğ: ${amount} ₼\n📋 Üsul: ${method}\n\nhesablar.net → Admin panel`);
@@ -10236,7 +10252,9 @@ async function adminRefundOrder(orderId){
           status:"Təsdiqləndi", sold:false, soldAt:null, orderId:"",
           // Hər sifariş 1 ədəddir — stoku 1 artır (atomik increment)
           stock: increment(1),
-          buyerUid:"", buyerEmail:"", updatedAt:serverTimestamp()
+          buyerUid:"", buyerEmail:"",
+          lastRefundOrderId: id,
+          updatedAt:serverTimestamp()
         });
       }
     });
@@ -10840,6 +10858,8 @@ async function cancelOrder(id){
       // Hər sifariş 1 ədəddir — stoku 1 artır (atomik increment).
       stock: increment(1),
       buyerUid:"", buyerEmail:"",
+      // Rules bu sahə ilə ləğvetməni sifarişə bağlayır (sahiblik sübutu)
+      lastRefundOrderId: id,
       updatedAt:serverTimestamp()
     }).catch(err=>{
       console.warn("[cancelOrder] Elan bazara qaytarılmadı:", err);
