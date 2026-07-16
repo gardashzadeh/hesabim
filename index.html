@@ -10907,6 +10907,10 @@ function drawSavedItems(items){
   el.querySelectorAll("[data-open-saved]").forEach(b=>b.onclick=()=>{
     const item = uniq[Number(b.dataset.openSaved)];
     if(typeof window.openProductDetail === "function"){
+      // DÜZƏLİŞ: kabinet (.cabinet-modal, z-index 1000010) elan modalından
+      // (#productModal, 1000000) YUXARIDADIR — bağlamasaq elan arxa fonda açılır.
+      // Satıcı profilindəki elan kartı da eyni məntiqlə əvvəl özünü bağlayır.
+      closeModal("cabinetModal");
       window.openProductDetail(item);
       document.getElementById("productModal")?.classList.add("show");
       document.body.classList.add("pd-open");
