@@ -3260,12 +3260,25 @@ button,input,select,textarea{max-width:100%}
         var src=document.querySelector('#cartBadge, .cart-badge, #cartCount, [data-cart-count]');
         n = src ? (parseInt((src.textContent||'').replace(/\D/g,''),10) || 0) : 0;
       }
-      if(n>0){ badge.textContent=n; badge.style.display='flex'; }
-      else{ badge.style.display='none'; }
+      // VACİB: aşağıdakı MutationObserver body-ni izləyir. Badge də body-nin
+      // içindədir, ona görə HƏR YAZI observer-i yenidən işə salır -> sonsuz
+      // döngə -> "Page unresponsive". Ona görə yalnız DƏYƏR DƏYİŞƏNDƏ yazırıq.
+      var txt = String(n);
+      var disp = n>0 ? 'flex' : 'none';
+      if(badge.textContent !== txt) badge.textContent = txt;
+      if(badge.style.display !== disp) badge.style.display = disp;
     }
     window.syncMobCart = syncMobCart;
     syncMobCart();
-    new MutationObserver(syncMobCart).observe(document.body,{subtree:true,childList:true,characterData:true});
+    // QEYD: əvvəl bu observer bütün body-ni (subtree+characterData ilə) izləyirdi —
+    // saytdakı HƏR DOM dəyişikliyində işə düşürdü və badge yazısı özü də mutasiya
+    // yaratdığı üçün sonsuz döngəyə girirdi. İndi yalnız header-dəki mənbə sayğac
+    // (#cartBadge) izlənilir. Səbət dəyişəndə updateCart() onsuz da syncMobCart()
+    // çağırır, ona görə bu observer sadəcə ehtiyat nüsxədir.
+    (function(){
+      var src=document.getElementById('cartBadge');
+      if(src) new MutationObserver(syncMobCart).observe(src,{childList:true,characterData:true,subtree:true});
+    })();
   });
 })();
 </script>
