@@ -10739,7 +10739,7 @@ async function _fetchPendingAds(){
             <button class="delete-btn"  data-delete="${a.id}">Sil</button>
           </div></td></tr>`).join("")}</tbody></table>`
       :'<div class="cabinet-empty">Gözləmədə elan yoxdur.</div>');
-    el.querySelectorAll("[data-ad-detail]").forEach(b=>b.onclick=()=>showAdDetailModal(b.dataset.adDetail));
+    el.querySelectorAll("[data-ad-detail]").forEach(b=>b.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();window.showAdDetailModal(b.dataset.adDetail);});
     el.querySelectorAll("[data-approve]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.approve,"Təsdiqləndi");_fetchPendingAds();});
     el.querySelectorAll("[data-reject]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.reject,"Rədd edildi");_fetchPendingAds();});
     el.querySelectorAll("[data-delete]").forEach(b=>b.onclick=async()=>{await deleteDoc(doc(db,"ads",b.dataset.delete));_fetchPendingAds();});
@@ -10816,7 +10816,7 @@ function renderAllAdsAdmin(arr){
   if(search){ search.value=q; search.oninput=()=>renderAllAdsAdmin(arr); }
   if(select){ select.value=st; select.onchange=()=>renderAllAdsAdmin(arr); }
   document.getElementById("adminAllAdsRefresh")?.addEventListener("click",_fetchAllAdsAdmin);
-  el.querySelectorAll("[data-ad-detail]").forEach(b=>b.onclick=()=>showAdDetailModal(b.dataset.adDetail));
+  el.querySelectorAll("[data-ad-detail]").forEach(b=>b.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();window.showAdDetailModal(b.dataset.adDetail);});
   el.querySelectorAll("[data-all-approve]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.allApprove,"Təsdiqləndi");_fetchPendingAds();_fetchAllAdsAdmin();});
   el.querySelectorAll("[data-all-reject]").forEach(b=>b.onclick=async()=>{await updateAdStatus(b.dataset.allReject,"Rədd edildi");_fetchPendingAds();_fetchAllAdsAdmin();});
   el.querySelectorAll("[data-all-sold]").forEach(b=>b.onclick=async()=>{try{await updateDoc(doc(db,"ads",b.dataset.allSold),{sold:true,stock:0,soldAt:serverTimestamp(),updatedAt:serverTimestamp()});toast("Elan satılmış kimi işarələndi");_fetchAllAdsAdmin();}catch(e){toast("Əməliyyat alınmadı: "+(e.message||""));}});
