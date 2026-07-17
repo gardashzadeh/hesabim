@@ -6012,6 +6012,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   getFirestore,
+  initializeFirestore,
   collection,
   addDoc,
   query,
@@ -6063,7 +6064,25 @@ async function tgNotify(msg){
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+// ══════════════════════════════════════════════════════════════════
+// [FIX] Mesajlar 1-2 dəqiqə gecikirdi ("göndərilir…" ilişirdi).
+// Səbəb: Firestore default WebChannel (streaming) kanalını adblock
+// genişləndirmələri, proxy və bəzi mobil operatorlar bloklayır.
+// SDK yalnız uzun timeout-dan sonra fallback edir → yazı növbədə qalır.
+// experimentalAutoDetectLongPolling: bağlantı problemini dərhal aşkarlayıb
+// long-polling-ə keçir. Yazı və real-time listener-lər dərhal işləyir.
+// ══════════════════════════════════════════════════════════════════
+let db;
+try{
+  db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    useFetchStreams: false
+  });
+}catch(e){
+  // initializeFirestore yalnız bir dəfə çağırıla bilər — təkrar halda mövcudu götür
+  console.warn("initializeFirestore fallback:", e?.message||e);
+  db = getFirestore(app);
+}
 
 window.incrementAdView = async function(adId, currentViews = 0){
   if(!adId) return currentViews;
