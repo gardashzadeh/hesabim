@@ -7521,7 +7521,8 @@ let _adminPresenceInterval = null;
 function startAdminPresence(){
   if(_adminPresenceInterval) clearInterval(_adminPresenceInterval);
   updateAdminPresence();
-  _adminPresenceInterval = setInterval(updateAdminPresence, 30000);
+  // 30 san → 60 san: yazı kvotasına qənaət (admin brauzeri açıq qalanda sutkada ~2880 yazı idi)
+  _adminPresenceInterval = setInterval(updateAdminPresence, 60000);
 }
 function stopAdminPresence(){
   if(_adminPresenceInterval){ clearInterval(_adminPresenceInterval); _adminPresenceInterval = null; }
@@ -7725,6 +7726,9 @@ function _supListenChatExtended(chatId){
   SUP.unsubChat = onSnapshot(doc(db,"support_chats",chatId), snap=>{
     if(!snap.exists()) return;
     const d = snap.data();
+    // Sayğac keşini serverdəki real dəyərlə sinxronla
+    _supUnreadCache.user = Number(d.unreadByUser||0);
+    _supUnreadCache.admin = Number(d.unreadByAdmin||0);
     const input = document.getElementById("supInput");
     const sendBtn = document.getElementById("supSendBtn");
     const ratingPanel = document.getElementById("supRating");
@@ -7766,7 +7770,7 @@ let _supTypingLastUpdate = 0;
 async function _supBroadcastTyping(){
   if(!SUP.chatId) return;
   const now = Date.now();
-  if(now - _supTypingLastUpdate < 3000) return;
+  if(now - _supTypingLastUpdate < 8000) return;  // 3s → 8s: yazı sərfiyyatını azaldır
   _supTypingLastUpdate = now;
   const field = SUP.isViewingAsAdmin ? "typingAdminAt" : "typingUserAt";
   try{ await updateDoc(doc(db,"support_chats",SUP.chatId), { [field]: serverTimestamp() }); }catch(_){}
@@ -7883,6 +7887,10 @@ function _supRenderMessagesV2(msgs){
 }
 
 let _supLastMsgCount = 0;
+// Oxunmamış sayğac keşi — eyni dəyəri təkrar yazmamaq üçün
+const _supUnreadCache = { user: -1, admin: -1 };
+// Artıq oxundu-qəbzi yazılmış mesajlar — təkrar yazının qarşısını alır
+const _supReceiptSent = new Set();
 function _supListenMessagesV2(chatId){
   if(SUP.unsubMsgs){ try{SUP.unsubMsgs()}catch(_){}; }
   const q = query(collection(db,"support_chats",chatId,"messages"));
@@ -7910,12 +7918,14 @@ function _supListenMessagesV2(chatId){
     if(isVisible){
       if(SUP.isViewingAsAdmin){
         _supMarkReadByAdmin(chatId);
-        arr.filter(m=>m.by==="user" && !m.readByAdmin).forEach(m=>{
+        arr.filter(m=>m.by==="user" && !m.readByAdmin && !_supReceiptSent.has(m.id)).forEach(m=>{
+          _supReceiptSent.add(m.id);
           try{ updateDoc(doc(db,"support_chats",chatId,"messages",m.id), { readByAdmin: serverTimestamp() }); }catch(_){}
         });
       } else {
         _supMarkReadByUser(chatId);
-        arr.filter(m=>m.by==="admin" && !m.readByUser).forEach(m=>{
+        arr.filter(m=>m.by==="admin" && !m.readByUser && !_supReceiptSent.has(m.id)).forEach(m=>{
+          _supReceiptSent.add(m.id);
           try{ updateDoc(doc(db,"support_chats",chatId,"messages",m.id), { readByUser: serverTimestamp() }); }catch(_){}
         });
       }
@@ -7924,9 +7934,14 @@ function _supListenMessagesV2(chatId){
 }
 
 async function _supMarkReadByUser(chatId){
+  // Artıq 0-dırsa yazma — hər snapshot-da təkrar yazı kvotanı yandırırdı
+  if(_supUnreadCache.user === 0) return;
+  _supUnreadCache.user = 0;
   try{ await updateDoc(doc(db,"support_chats",chatId), { unreadByUser: 0 }); }catch(_){}
 }
 async function _supMarkReadByAdmin(chatId){
+  if(_supUnreadCache.admin === 0) return;
+  _supUnreadCache.admin = 0;
   try{ await updateDoc(doc(db,"support_chats",chatId), { unreadByAdmin: 0 }); }catch(_){}
 }
 
