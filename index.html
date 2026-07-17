@@ -7811,7 +7811,7 @@ function _supRenderMessagesV2(msgs){
   if(!body) return;
 
   // Signature check: eyni məzmun yenidən render edilməsin (yanıb-sönmə problemi)
-  const sig = msgs.map(m => m.id + "|" + (m.readByAdmin?.seconds||0) + "|" + (m.readByUser?.seconds||0)).join("~") + "::" + (SUP.isViewingAsAdmin ? "a" : "u");
+  const sig = msgs.map(m => m.id + "|" + (m.createdAt?.seconds||0) + "|" + (m.readByAdmin?.seconds||0) + "|" + (m.readByUser?.seconds||0)).join("~") + "::" + (SUP.isViewingAsAdmin ? "a" : "u");
   if(body._supLastSig === sig) return;
   const prevIds = body._supPrevIds || new Set();
   body._supLastSig = sig;
@@ -7825,7 +7825,10 @@ function _supRenderMessagesV2(msgs){
   msgs.forEach(m=>{
     const ts = m.createdAt;
     if(ts?.seconds){
-      const day = new Date(ts.seconds*1000).toLocaleDateString('az-AZ',{day:'numeric',month:'long',year:'numeric'});
+      // 'az-AZ' locale bəzi brauzerlərdə ay adını "M07" kimi verir — manual siyahı
+      const _d = new Date(ts.seconds*1000);
+      const _months = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avqust","sentyabr","oktyabr","noyabr","dekabr"];
+      const day = _d.getDate()+" "+_months[_d.getMonth()]+" "+_d.getFullYear();
       if(day !== lastDay){
         parts.push(`<div class="sup-day-separator">${day}</div>`);
         lastDay = day;
@@ -7850,7 +7853,7 @@ function _supRenderMessagesV2(msgs){
     parts.push(`
       <div class="sup-msg ${cls}${isNew?' new':''}">
         ${_supEsc(m.text)}
-        <div class="sup-msg-time">${_supTime(m.createdAt)}${checks}</div>
+        <div class="sup-msg-time">${m.createdAt?.seconds ? _supTime(m.createdAt) : "göndərilir…"}${checks}</div>
       </div>`);
   });
 
@@ -7866,8 +7869,17 @@ function _supListenMessagesV2(chatId){
   const q = query(collection(db,"support_chats",chatId,"messages"));
   SUP.unsubMsgs = onSnapshot(q, snap=>{
     const arr = [];
-    snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
-    arr.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    let idx = 0;
+    snap.forEach(d=>{
+      const m = {id:d.id, ...d.data()};
+      // serverTimestamp hələ təsdiqlənməyibsə (pending write) createdAt null olur.
+      // Əvvəl `||0` ilə sıralanırdı → təzə mesaj siyahının BAŞINA düşürdü.
+      // Pending mesajlar həmişə ən yenidir — sona qoyulur.
+      m._sortT = m.createdAt?.seconds ?? (Number.MAX_SAFE_INTEGER - 10000 + idx);
+      idx++;
+      arr.push(m);
+    });
+    arr.sort((a,b)=>a._sortT-b._sortT);
     if(_supLastMsgCount > 0 && arr.length > _supLastMsgCount){
       const newest = arr[arr.length-1];
       const isIncoming = SUP.isViewingAsAdmin ? newest.by === "user" : newest.by === "admin";
