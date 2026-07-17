@@ -6075,11 +6075,11 @@ const auth = getAuth(app);
 let db;
 try{
   db = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
+    experimentalForceLongPolling: true,
     useFetchStreams: false
   });
+  console.info("[Firestore] long-polling rejimi aktivdir");
 }catch(e){
-  // initializeFirestore yalnız bir dəfə çağırıla bilər — təkrar halda mövcudu götür
   console.warn("initializeFirestore fallback:", e?.message||e);
   db = getFirestore(app);
 }
@@ -7974,11 +7974,18 @@ window.supSendMessage = async function(){
   const by = isAdminView ? "admin" : "user";
   input.value = "";
   input.style.height = "auto";
+  const _t0 = performance.now();
   try{
-    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+    const _ref = await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
       text, by, senderName,
       createdAt: serverTimestamp()
     });
+    console.info("[SUP] addDoc lokal növbəyə düşdü:", Math.round(performance.now()-_t0)+"ms", _ref.id);
+    // Serverin sənədi həqiqətən qəbul etdiyini ölç — burada ilişirsə problem şəbəkədədir
+    getDoc(_ref).then(s=>{
+      console.info("[SUP] SERVERƏ YAZILDI:", Math.round(performance.now()-_t0)+"ms",
+        "| createdAt:", s.data()?.createdAt?.toDate?.()?.toLocaleTimeString?.() || "YOX");
+    }).catch(err=>console.error("[SUP] server təsdiqi alınmadı:", err));
     const upd = {
       lastMessage: text,
       lastMessageBy: by,
