@@ -6865,7 +6865,7 @@ window.pvConfirmCode = async function(){
 let adminStatsState = {pendingAds:0,openTickets:0,activeOrders:0,balanceRequests:0,users:0,verifiedSellers:0,blockedUsers:0,totalSales:0,totalVolume:0};
 // ── Statistika sıfırlama nöqtəsi: bu tarixdən əvvəlki sifarişlər dashboard
 // rəqəmlərinə sayılmır (birdəfəlik reset — 2026-07-09).
-window.ADMIN_STATS_RESET_AT = 1752019200000;
+window.ADMIN_STATS_RESET_AT = 1784332800000; // 2026-07-18 00:00 UTC — bu tarixdən əvvəlki sifarişlər statistikaya sayılmır
 let activeReviewProductKey = "";
 
 function toast(msg){ if(window.showToast) window.showToast(msg); else alert(msg); }
@@ -10876,12 +10876,18 @@ function _fetchOrdersAdminRender(){
     if(needsRefund){
       actions += `<button class="approve-btn" data-admin-refund="${o.id}">↩️ Pulu qaytar + elanı aç</button>`;
     } else if(!["Tamamlandı","Ləğv edildi"].includes(o.status)){
+      actions += `<button class="approve-btn" data-admin-complete="${o.id}">✓ Tamamla</button>`;
       actions += `<button class="cancel-btn" data-admin-cancel="${o.id}">Ləğv + refund</button>`;
     }
     const statusExtra = needsRefund ? `<br><small style="color:#ff5100">↩️ Refund gözləyir</small>` : "";
     return `<tr><td><b>${esc(o.productTitle)}</b></td><td><small>${esc(o.buyerEmail)}</small></td><td><small>${esc(o.sellerEmail)}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}${statusExtra}</td><td><small>${adminDateTime(o.createdAt)}</small></td><td><div class="order-actions">${actions}</div></td></tr>`;
   }).join("")}</tbody></table>`:'<div class="cabinet-empty">Sifariş tapılmadı.</div>');
 
+  el.querySelectorAll("[data-admin-complete]").forEach(b=>b.onclick=async()=>{
+    if(!await showConfirm("Sifariş tamamlansın? Pul satıcının balansına köçürüləcək.","✓")) return;
+    await completeOrder(b.dataset.adminComplete);
+    _fetchOrdersAdmin();
+  });
   el.querySelectorAll("[data-admin-cancel]").forEach(b=>b.onclick=async()=>{await cancelOrder(b.dataset.adminCancel);_fetchOrdersAdmin();});
   el.querySelectorAll("[data-admin-refund]").forEach(b=>b.onclick=()=>adminRefundOrder(b.dataset.adminRefund));
 }
