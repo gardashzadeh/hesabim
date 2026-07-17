@@ -10612,8 +10612,10 @@ function _renderMsgsAdmin(){
     </tr>`).join("")
   }</tbody></table>`;
   el.querySelectorAll("[data-admin-msgchat]").forEach(b=>b.onclick=()=>{
+    const box=document.getElementById("adminChatBox");
+    if(box) box.style.display="";
     openChat(b.dataset.adminMsgchat,true);
-    document.getElementById("adminChatBox")?.scrollIntoView({behavior:"smooth",block:"start"});
+    box?.scrollIntoView({behavior:"smooth",block:"start"});
   });
 }
 window._renderMsgsAdmin = _renderMsgsAdmin;
@@ -10700,8 +10702,8 @@ function adminShell(){
       </select>
       <button type="button" class="approve-btn" onclick="_fetchMsgsAdmin()">🔄 Yenilə</button>
     </div>
+    <div id="adminChatBox" class="chat-box" style="display:none;margin-bottom:12px"><div class="chat-head"><b>Yazışma seç</b><small>Bütün alıcı/satıcı yazışmaları yalnız oxunuş rejimindədir.</small></div><div class="chat-messages"></div></div>
     <div id="adminMsgsList" class="admin-section"></div>
-    <div id="adminChatBox" class="chat-box" style="margin-top:12px"><div class="chat-head"><b>Yazışma seç</b><small>Bütün alıcı/satıcı yazışmaları yalnız oxunuş rejimindədir.</small></div><div class="chat-messages"></div></div>
   </div>`;
 }
 
