@@ -1803,6 +1803,11 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
   body.pd-open > .header{top:0!important;}
   body.pd-open > .nav{top:var(--pd-header-h, 84px)!important;}
 }
+/* [FIX] Elan açıq olanda səbət paneli və bildiriş dropdown-u #productModal-ın
+   (z-index:1000000) ALTINDA qalırdı → düymələr "işləmirmiş" kimi görünürdü. */
+body.pd-open .cart-panel{z-index:1000002!important}
+body.pd-open .notif-dropdown{z-index:1000002!important}
+
 #productModal .product-detail-head{
   position:sticky!important;
   top:0!important;
