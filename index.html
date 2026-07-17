@@ -7975,17 +7975,37 @@ window.supSendMessage = async function(){
   input.value = "";
   input.style.height = "auto";
   const _t0 = performance.now();
+  const _ms = ()=>Math.round(performance.now()-_t0);
+  // Diaqnostika birbaşa ekranda — konsola baxmağa ehtiyac qalmasın
+  const _diag = (txt, bad)=>{
+    const b = document.getElementById("supBody");
+    if(!b) return;
+    const d = document.createElement("div");
+    d.className = "sup-day-separator";
+    d.style.color = bad ? "#ef4444" : "#22c55e";
+    d.textContent = txt;
+    b.appendChild(d);
+    b.scrollTop = b.scrollHeight;
+  };
+  // 8 saniyə ərzində server cavab verməsə — bağlantı ilişib
+  const _watchdog = setTimeout(()=>{
+    _diag("⚠️ 8 san-dir server cavab vermir — bağlantı ilişib", true);
+  }, 8000);
   try{
     const _ref = await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
       text, by, senderName,
       createdAt: serverTimestamp()
     });
-    console.info("[SUP] addDoc lokal növbəyə düşdü:", Math.round(performance.now()-_t0)+"ms", _ref.id);
-    // Serverin sənədi həqiqətən qəbul etdiyini ölç — burada ilişirsə problem şəbəkədədir
+    clearTimeout(_watchdog);
+    console.info("[SUP] addDoc lokal növbəyə düşdü:", _ms()+"ms", _ref.id);
     getDoc(_ref).then(s=>{
-      console.info("[SUP] SERVERƏ YAZILDI:", Math.round(performance.now()-_t0)+"ms",
-        "| createdAt:", s.data()?.createdAt?.toDate?.()?.toLocaleTimeString?.() || "YOX");
-    }).catch(err=>console.error("[SUP] server təsdiqi alınmadı:", err));
+      const t = _ms();
+      console.info("[SUP] SERVERƏ YAZILDI:", t+"ms");
+      _diag("✓ serverə yazıldı: "+t+"ms", t>3000);
+    }).catch(err=>{
+      console.error("[SUP] server təsdiqi alınmadı:", err);
+      _diag("✗ server təsdiqi alınmadı: "+(err?.code||err?.message||err), true);
+    });
     const upd = {
       lastMessage: text,
       lastMessageBy: by,
@@ -8003,8 +8023,10 @@ window.supSendMessage = async function(){
     const faq = document.getElementById("supFaq");
     if(faq) faq.style.display = "none";
   }catch(e){
+    clearTimeout(_watchdog);
     console.error("Mesaj göndərilə bilmədi:", e);
-    toast("Mesaj göndərilmədi. Yenidən cəhd edin.");
+    _diag("✗ XƏTA: "+(e?.code||e?.message||e), true);
+    toast("Mesaj göndərilmədi: "+(e?.code||""));
     input.value = text;
   }
 }
