@@ -3817,6 +3817,42 @@ button,input,select,textarea{max-width:100%}
                 <option>Amazon</option><option>Discord Nitro</option><option>Digər</option>
               </select>
               <input id="adGiftNominal" placeholder="Nominal (məsələn: 25$, 50₼)" style="margin-top:6px;">
+              <label style="font-size:12px;color:#9ca3af;display:block;margin:8px 0 2px;">Region</label>
+              <select id="adGiftRegion">
+                <option value="">Region seç</option>
+                <option value="Global">🌐 Global (bütün ölkələr)</option>
+                <optgroup label="Populyar">
+                  <option>Azərbaycan</option>
+                  <option>Türkiyə</option>
+                  <option>Rusiya</option>
+                  <option>ABŞ</option>
+                  <option>Böyük Britaniya</option>
+                  <option>Almaniya</option>
+                  <option>Avropa (EU)</option>
+                </optgroup>
+                <optgroup label="Bütün ölkələr">
+                  <option>Argentina</option><option>Avstraliya</option><option>Avstriya</option>
+                  <option>Belarus</option><option>Belçika</option><option>Braziliya</option>
+                  <option>BƏƏ</option><option>Bolqarıstan</option><option>Çexiya</option>
+                  <option>Çin</option><option>Danimarka</option><option>Estoniya</option>
+                  <option>Filippin</option><option>Finlandiya</option><option>Fransa</option>
+                  <option>Gürcüstan</option><option>Hindistan</option><option>Honq Konq</option>
+                  <option>Xorvatiya</option><option>İndoneziya</option><option>İrlandiya</option>
+                  <option>İspaniya</option><option>İsrail</option><option>İsveç</option>
+                  <option>İsveçrə</option><option>İtaliya</option><option>Yaponiya</option>
+                  <option>Qazaxıstan</option><option>Qırğızıstan</option><option>Kanada</option>
+                  <option>Qətər</option><option>Cənubi Koreya</option><option>Küveyt</option>
+                  <option>Latviya</option><option>Litva</option><option>Malayziya</option>
+                  <option>Meksika</option><option>Misir</option><option>Moldova</option>
+                  <option>Niderland</option><option>Norveç</option><option>Özbəkistan</option>
+                  <option>Pakistan</option><option>Polşa</option><option>Portuqaliya</option>
+                  <option>Rumıniya</option><option>Səudiyyə Ərəbistanı</option><option>Serbiya</option>
+                  <option>Sinqapur</option><option>Slovakiya</option><option>Sloveniya</option>
+                  <option>Tailand</option><option>Ukrayna</option><option>Macarıstan</option>
+                  <option>Vyetnam</option><option>Yeni Zelandiya</option><option>Yunanıstan</option>
+                  <option>Cənubi Afrika</option><option>Digər</option>
+                </optgroup>
+              </select>
             </div>
 
             <!-- OYUN BOOST: oyun + cari rank + hədəf rank -->
@@ -3947,8 +3983,8 @@ button,input,select,textarea{max-width:100%}
                 <!-- Sayt vasitəsilə: 2 çatdırılma üsulu → Birbaşa / Chat vasitəsilə -->
                 <div id="contactPlatformSection">
                   <!-- Alt seçim düymələri -->
-                  <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px">Çatdırılma üsulu</div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+                  <div id="deliveryModeLabel" style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px">Çatdırılma üsulu</div>
+                  <div id="deliveryModeGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
                     <button type="button" id="deliveryBtnDirect" onclick="setDeliveryMode('direct')"
                       style="padding:12px;border-radius:10px;border:1px solid #ff5100;background:rgba(255,81,0,.1);color:#ff5100;font-weight:700;font-size:13px;cursor:pointer;transition:.15s;text-align:left;line-height:1.4">
                       ⚡ Birbaşa
@@ -3972,11 +4008,13 @@ button,input,select,textarea{max-width:100%}
                         Aşağıdakı məlumatlar şifrlənərək saxlanır. Satış reallaşan kimi <b style="color:#94a3b8">avtomatik alıcıya çatdırılır</b>.
                       </p>
 
-                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları <span style="color:#ef4444">*</span></div>
-                      <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com) *" autocomplete="off" style="margin-bottom:8px">
-                      <input id="adMailPassword" type="text" placeholder="Mail şifrəsi *" autocomplete="off" style="margin-bottom:12px">
+                      <div id="credMailGroup">
+                        <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">📧 Mail məlumatları <span style="color:#ef4444">*</span></div>
+                        <input id="adMailEmail" placeholder="Mail ünvanı (məs: hesab@gmail.com) *" autocomplete="off" style="margin-bottom:8px">
+                        <input id="adMailPassword" type="text" placeholder="Mail şifrəsi *" autocomplete="off" style="margin-bottom:12px">
+                      </div>
 
-                      <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları <span style="color:#ef4444">*</span></div>
+                      <div id="credLoginLabel" style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px">🎮 Oyun hesabı giriş məlumatları <span style="color:#ef4444">*</span></div>
                       <input id="adAccountLogin" placeholder="Login / İstifadəçi adı *" autocomplete="off" style="margin-bottom:8px">
                       <input id="adAccountPassword" type="text" placeholder="Şifrə / Parol *" autocomplete="off" style="margin-bottom:12px">
 
@@ -4801,7 +4839,51 @@ function syncAdFormToCategory(){
     if(el) el.style.display = cfg.sections.includes(sec) ? "" : "none";
   });
   if(cat==="Skin") updateSkinDeliveryHint();
+  syncDeliveryOptionsToCategory(cat);
+  syncCredFieldsToCategory(cat);
 }
+
+// Digital Hesablar: mail bölməsi ləğv olunur, başlıq "Hesab məlumatları" olur
+function syncCredFieldsToCategory(cat){
+  cat = cat || (document.getElementById("adCategory")?.value || "Hesab");
+  const isDigital = (cat === "Digital Hesablar");
+  const mailGroup = document.getElementById("credMailGroup");
+  const label     = document.getElementById("credLoginLabel");
+  if(mailGroup){
+    mailGroup.style.display = isDigital ? "none" : "";
+    if(isDigital){
+      const me = document.getElementById("adMailEmail");
+      const mp = document.getElementById("adMailPassword");
+      if(me) me.value = "";
+      if(mp) mp.value = "";
+    }
+  }
+  if(label){
+    label.innerHTML = isDigital
+      ? '🔑 Hesab məlumatları <span style="color:#ef4444">*</span>'
+      : '🎮 Oyun hesabı giriş məlumatları <span style="color:#ef4444">*</span>';
+  }
+}
+window.syncCredFieldsToCategory = syncCredFieldsToCategory;
+
+// Skin: "Birbaşa" çatdırılma ləğv edilib — yalnız "Özüm satıram" və "Chat vasitəsilə" qalır
+const NO_DIRECT_DELIVERY_CATS = ["Skin"];
+function isNoDirectDeliveryCat(cat){
+  cat = cat || (document.getElementById("adCategory")?.value || "Hesab");
+  return NO_DIRECT_DELIVERY_CATS.indexOf(cat) > -1;
+}
+function syncDeliveryOptionsToCategory(cat){
+  const noDirect = isNoDirectDeliveryCat(cat);
+  const btnDirect = document.getElementById("deliveryBtnDirect");
+  const grid      = document.getElementById("deliveryModeGrid");
+  const label     = document.getElementById("deliveryModeLabel");
+  if(btnDirect) btnDirect.style.display = noDirect ? "none" : "";
+  if(grid) grid.style.gridTemplateColumns = noDirect ? "1fr" : "1fr 1fr";
+  if(label) label.textContent = noDirect ? "Çatdırılma üsulu (yalnız chat)" : "Çatdırılma üsulu";
+  if(noDirect && window.setDeliveryMode) window.setDeliveryMode("chat");
+}
+window.isNoDirectDeliveryCat = isNoDirectDeliveryCat;
+window.syncDeliveryOptionsToCategory = syncDeliveryOptionsToCategory;
 
 // Skin oyununa görə trade və ya hesab modelini göstər
 function updateSkinDeliveryHint(){
@@ -4824,7 +4906,7 @@ function readAdProfessionalFields(){
   if(cat==="Hesab")           return {platform:"",region:"",server:"",rank:v("adRank"),level:v("adLevel")};
   if(cat==="Skin")            return {platform:v("adGameSkin"),region:"",server:"",rank:"",level:""};
   if(cat==="Oyun Pulu")       return {platform:v("adGameCurrency"),region:"",server:"",rank:"",level:v("adCurrencyAmount")};
-  if(cat==="Gift Card & E-Pin") return {platform:v("adGiftStore"),region:"",server:"",rank:"",level:v("adGiftNominal")};
+  if(cat==="Gift Card & E-Pin") return {platform:v("adGiftStore"),region:v("adGiftRegion"),server:"",rank:"",level:v("adGiftNominal")};
   if(cat==="Oyun Boost")      return {platform:v("adGameBoost"),region:"",server:v("adBoostFrom"),rank:v("adBoostTo"),level:""};
   if(cat==="Hesab Kirayəsi")  return {platform:v("adGameRent"),region:"",server:"",rank:v("adRentRank"),level:v("adRentDuration")};
   if(cat==="Sosial Media")    return {platform:v("adSocialPlatform"),region:"",server:"",rank:"",level:v("adSocialFollowers")};
@@ -4835,7 +4917,7 @@ function readAdProfessionalFields(){
 
 function clearAdProfessionalFields(){
   setSelectOrCustom("adGame","adGameCustom","");
-  ["adRank","adGameSkin","adGameCurrency","adGiftStore",
+  ["adRank","adGameSkin","adGameCurrency","adGiftStore","adGiftRegion",
    "adGameBoost","adGameRent","adRentRank","adRentDuration",
    "adSocialPlatform","adConsoleBrand","adConsoleCondition",
    "adDigitalService","adDigitalPlan"].forEach(id=>{
@@ -7209,6 +7291,7 @@ window.etaLabel = function(h){
   return n + " saat";
 };
 window.setDeliveryMode = function(mode){
+  if(mode==="direct" && window.isNoDirectDeliveryCat && window.isNoDirectDeliveryCat()) mode = "chat";
   const dm = document.getElementById("adDeliveryMode"); if(dm) dm.value = mode;
   const directSection = document.getElementById("deliveryDirectSection");
   const chatSection   = document.getElementById("deliveryChatSection");
@@ -7218,6 +7301,7 @@ window.setDeliveryMode = function(mode){
   if(mode==="direct"){
     directSection.style.display="";
     chatSection.style.display="none";
+    if(window.syncCredFieldsToCategory) window.syncCredFieldsToCategory();
     btnDirect.style.borderColor="#ff5100"; btnDirect.style.background="rgba(255,81,0,.1)"; btnDirect.style.color="#ff5100";
     btnChat.style.borderColor="#1c2330";   btnChat.style.background="transparent";           btnChat.style.color="#64748b";
   } else {
@@ -8647,7 +8731,7 @@ window.editMyAd = async function(id,arr){
   } else if(_cat==="Oyun Pulu"){
     _sv("adGameCurrency",a.platform); _sv("adCurrencyAmount",a.level);
   } else if(_cat==="Gift Card & E-Pin"){
-    _sv("adGiftStore",a.platform); _sv("adGiftNominal",a.level);
+    _sv("adGiftStore",a.platform); _sv("adGiftNominal",a.level); _sv("adGiftRegion",a.region);
   } else if(_cat==="Oyun Boost"){
     _sv("adGameBoost",a.platform); _sv("adBoostFrom",a.server); _sv("adBoostTo",a.rank);
   } else if(_cat==="Hesab Kirayəsi"){
@@ -8751,7 +8835,8 @@ window.submitAd = async function(){
 
     // Satış üsulu: platform (sayt vasitəsilə) və ya direct_contact (özüm satıram)
     const contactMode  = document.getElementById("adContactMode")?.value || "platform";
-    const deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
+    let deliveryMode = document.getElementById("adDeliveryMode")?.value || "direct";
+    if(window.isNoDirectDeliveryCat && window.isNoDirectDeliveryCat()) deliveryMode = "chat";
     const chatMode     = document.getElementById("adChatMode")?.value || "chat_only";
     const deliveryEta  = Number(document.getElementById("adDeliveryEta")?.value || 3);
 
@@ -8784,9 +8869,10 @@ window.submitAd = async function(){
       // Birbaşa çatdırılmada ödəniş anında məlumat AVTOMATİK gedir — yarımçıq
       // məlumat = alıcı hesaba girə bilmir. Ona görə 4 sahə MƏCBURİDİR.
       // "Əlavə məlumatlar" isteğe bağlıdır.
+      const _isDigitalCat = ((document.getElementById("adCategory")?.value || "") === "Digital Hesablar");
       const _missing = [];
-      if(!mailEmail)    _missing.push("Mail ünvanı");
-      if(!mailPassword) _missing.push("Mail şifrəsi");
+      if(!_isDigitalCat && !mailEmail)    _missing.push("Mail ünvanı");
+      if(!_isDigitalCat && !mailPassword) _missing.push("Mail şifrəsi");
       if(!accLogin)     _missing.push("Login / İstifadəçi adı");
       if(!accPassword)  _missing.push("Şifrə / Parol");
       if(_missing.length){
@@ -8873,7 +8959,7 @@ window.submitAd = async function(){
 
     // Formu təmizlə
     ["adTitle","adPrice","adOriginalPrice","adTags","adContact","adStock","adVideo","adDesc",
-     "adAccountLogin","adAccountPassword","adMailEmail","adMailPassword","adExtraInfo",
+     "adAccountLogin","adAccountPassword","adMailEmail","adMailPassword","adExtraInfo","adGiftRegion",
      "adChatAutoLogin","adChatAutoPassword"].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value="";
     });
