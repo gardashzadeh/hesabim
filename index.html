@@ -10574,10 +10574,49 @@ async function _fetchChatsAdmin(){
     // Yalnız son 30 chat-i yüklə
     const snap=await getDocs(query(collection(db,"chats"),orderBy("updatedAt","desc"),limit(30)));
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
-    el.innerHTML='<h3>Alıcı / satıcı yazışmaları</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Son mesaj</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(ch=>`<tr><td>${esc(ch.productTitle||'-')}</td><td>${esc(ch.buyerEmail||'-')}</td><td>${esc(ch.sellerEmail||'-')}</td><td>${esc(ch.lastMessage||'-')}</td><td><button class="info-btn" data-admin-chat="${esc(ch.id)}">Bax</button></td></tr>`).join("")}</tbody></table><div id="adminChatBox" class="chat-box" style="margin-top:12px"><div class="chat-head"><b>Yazışma seç</b><small>Admin mübahisə zamanı yazışmanı buradan görə bilər.</small></div><div class="chat-messages"></div></div>`:'<div class="cabinet-empty">Yazışma yoxdur.</div>');
-    el.querySelectorAll("[data-admin-chat]").forEach(b=>b.onclick=()=>openChat(b.dataset.adminChat,true));
+    el.innerHTML='<h3>Alıcı / satıcı yazışmaları</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Son mesaj</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(ch=>`<tr><td>${esc(ch.productTitle||'-')}</td><td>${esc(ch.buyerEmail||'-')}</td><td>${esc(ch.sellerEmail||'-')}</td><td>${esc(ch.lastMessage||'-')}</td><td><button class="info-btn" data-admin-chat="${esc(ch.id)}">Bax</button></td></tr>`).join("")}</tbody></table><small style="color:#94a3b8;display:block;margin-top:8px">Yazışmanı açmaq üçün "Bax" düyməsi → 👁 Yazışmalar bölməsində göstərilir.</small>`:'<div class="cabinet-empty">Yazışma yoxdur.</div>');
+    el.querySelectorAll("[data-admin-chat]").forEach(b=>b.onclick=()=>{ showAdminCat('msgs'); openChat(b.dataset.adminChat,true); });
   }catch(e){ console.error("_fetchChatsAdmin:",e); }
 }
+
+// ===== 👁 YAZIŞMALAR — bütün alıcı/satıcı chatları (yalnız oxunuş) =====
+window.__adminMsgsCache = [];
+async function _fetchMsgsAdmin(){
+  const el=document.getElementById("adminMsgsList"); if(!el||!isAdmin()) return;
+  el.innerHTML='<div class="cabinet-empty">Yüklənir...</div>';
+  try{
+    const lim = Number(document.getElementById("adminMsgsLimit")?.value || 100);
+    const snap=await getDocs(query(collection(db,"chats"),orderBy("updatedAt","desc"),limit(lim)));
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    window.__adminMsgsCache = arr;
+    _renderMsgsAdmin();
+  }catch(e){ console.error("_fetchMsgsAdmin:",e); el.innerHTML='<div class="cabinet-empty">Yüklənmədi: '+esc(e.message||"")+'</div>'; }
+}
+window._fetchMsgsAdmin = _fetchMsgsAdmin;
+function _renderMsgsAdmin(){
+  const el=document.getElementById("adminMsgsList"); if(!el) return;
+  const q=(document.getElementById("adminMsgsSearch")?.value||"").trim().toLowerCase();
+  let arr = window.__adminMsgsCache || [];
+  if(q) arr = arr.filter(c=>((c.productTitle||"")+" "+(c.buyerEmail||"")+" "+(c.sellerEmail||"")+" "+(c.lastMessage||"")).toLowerCase().includes(q));
+  if(!arr.length){ el.innerHTML='<div class="cabinet-empty">Yazışma tapılmadı.</div>'; return; }
+  const dt = (t)=> (t&&t.seconds) ? new Date(t.seconds*1000).toLocaleString("az-AZ",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "-";
+  el.innerHTML=`<h3>Bütün yazışmalar <span class="admin-tag">${arr.length}</span></h3>
+  <table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Alıcı</th><th>Satıcı</th><th>Son mesaj</th><th>Vaxt</th><th></th></tr></thead><tbody>${
+    arr.map(ch=>`<tr>
+      <td><b>${esc(ch.productTitle||"-")}</b></td>
+      <td><small>${esc(ch.buyerEmail||"-")}</small></td>
+      <td><small>${esc(ch.sellerEmail||"-")}</small></td>
+      <td><small>${esc(String(ch.lastMessage||"-").slice(0,60))}</small></td>
+      <td><small>${dt(ch.updatedAt||ch.createdAt)}</small></td>
+      <td><button class="info-btn" data-admin-msgchat="${esc(ch.id)}">Bax</button></td>
+    </tr>`).join("")
+  }</tbody></table>`;
+  el.querySelectorAll("[data-admin-msgchat]").forEach(b=>b.onclick=()=>{
+    openChat(b.dataset.adminMsgchat,true);
+    document.getElementById("adminChatBox")?.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+}
+window._renderMsgsAdmin = _renderMsgsAdmin;
 
 
 function renderAdminStats(){
@@ -10607,6 +10646,7 @@ function adminShell(){
     <button type="button" data-admincat="users" onclick="showAdminCat('users')">👥 İstifadəçilər</button>
     <button type="button" data-admincat="reports" onclick="showAdminCat('reports')">🚩 Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="supportcat" onclick="showAdminCat('supportcat')">💬 Dəstək</button>
+    <button type="button" data-admincat="msgs" onclick="showAdminCat('msgs')">👁 Yazışmalar</button>
   </div>
   <div id="adminCatOrders" class="admin-cat">
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
@@ -10649,11 +10689,24 @@ function adminShell(){
     <div id="adminSupport" class="admin-section"></div>
     <div id="adminChats" class="admin-section"></div>
     <div id="adminTickets" class="admin-section"></div>
+  </div>
+  <div id="adminCatMsgs" class="admin-cat" style="display:none">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <input id="adminMsgsSearch" placeholder="Email / məhsul / mesaj axtar..." oninput="clearTimeout(window.__amsT);window.__amsT=setTimeout(_renderMsgsAdmin,250)" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px">
+      <select id="adminMsgsLimit" onchange="_fetchMsgsAdmin()" style="padding:8px 10px;border-radius:8px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px">
+        <option value="50">Son 50</option>
+        <option value="100" selected>Son 100</option>
+        <option value="300">Son 300</option>
+      </select>
+      <button type="button" class="approve-btn" onclick="_fetchMsgsAdmin()">🔄 Yenilə</button>
+    </div>
+    <div id="adminMsgsList" class="admin-section"></div>
+    <div id="adminChatBox" class="chat-box" style="margin-top:12px"><div class="chat-head"><b>Yazışma seç</b><small>Bütün alıcı/satıcı yazışmaları yalnız oxunuş rejimindədir.</small></div><div class="chat-messages"></div></div>
   </div>`;
 }
 
 window.showAdminCat = function(cat){
-  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", reports:"adminCatReports", supportcat:"adminCatSupportcat"};
+  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
   Object.entries(cats).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = key===cat ? "" : "none";
@@ -10673,6 +10726,7 @@ window.showAdminCat = function(cat){
       if(typeof renderAdminSupport === "function") renderAdminSupport();
       if(firstOpen){ _fetchChatsAdmin(); _fetchTicketsAdmin(); }
     }
+    if(cat==="msgs" && firstOpen) _fetchMsgsAdmin();
   }catch(e){ console.error(e); }
 }
 async function _fetchBalanceAdmin(){
