@@ -10637,7 +10637,7 @@ function renderAdminStats(){
     <div class="admin-mini-card"><span>Bugünkü satış</span><b>${st.todaySales||0} / ${walletNumber(st.todayVolume||0)}</b></div>
     <div class="admin-mini-card"><span>Ümumi satış</span><b>${st.totalSales||0}</b></div>
     <div class="admin-mini-card"><span>Ümumi dövriyyə</span><b>${walletNumber(st.totalVolume||0)}</b></div>
-    <div class="admin-mini-card"><span>Komissiya (5%)</span><b style="color:#22c55e">${walletNumber(st.totalCommission||0)}</b></div>
+    <div class="admin-mini-card"><span>Komissiya (10%)</span><b style="color:#22c55e">${walletNumber(st.totalCommission||0)}</b></div>
     <div class="admin-mini-card"><span>Gözləmədə elan</span><b>${st.pendingAds||0}</b></div>
     <div class="admin-mini-card"><span>Balans müraciəti</span><b>${st.balanceRequests||0}</b></div>
     <div class="admin-mini-card"><span>İstifadəçi</span><b>${st.users||0}</b></div>`;
@@ -10842,7 +10842,7 @@ async function _fetchOrdersAdmin(){
     setAdminStat("refundsPending", stat.filter(o=>o.escrowStatus==="Geri ödəniş gözlənilir (admin)").length);
     setAdminStat("totalSales", done.length);
     setAdminStat("totalVolume", volume);
-    setAdminStat("totalCommission", Math.round(volume*5)/100 * 1); // 5%
+    setAdminStat("totalCommission", Math.round(volume*10)/100 * 1); // 10%
     setAdminStat("todaySales", todaySales.length);
     setAdminStat("todayVolume", todaySales.reduce((s,o)=>s+Number(o.price||0),0));
 
@@ -12284,7 +12284,7 @@ window.payoutHoldLeftText = payoutHoldLeftText;
 
 async function requestPayout(id){
   if(!currentUser) return;
-  if(!await showConfirm("Ödəniş tələb etmək istəyirsiniz? Admin 5% komissiya tutub qalan məbləği göndərəcək.", "💰")) return;
+  if(!await showConfirm("Ödəniş tələb etmək istəyirsiniz? Admin 10% komissiya tutub qalan məbləği göndərəcək.", "💰")) return;
   try{
     const oRef = doc(db,"orders",id);
     // Atomik: yoxlama + payoutRequested + payoutRequests sənədi bir transaction-da.
@@ -12322,7 +12322,7 @@ async function requestPayout(id){
       // DİQQƏT: `price` MÜTLƏQ sifarişdəki dəyərlə eyni qalmalıdır — Firestore Rules
       // `price == orders.price` bərabərliyini tələb edir (yuvarlaqlaşdırsaq rədd olunur).
       const _price = _o.price || 0;
-      const _commission = Math.round(_price*5)/100;
+      const _commission = Math.round(_price*10)/100;
       const _payout = Math.round((_price - _commission)*100)/100;
       tx.set(payoutRef,{
         orderId: id,
@@ -12483,7 +12483,7 @@ function listenPayoutsAdmin(){
   onSnapshot(q, snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
     if(!arr.length){ el.innerHTML=''; return; }
-    el.innerHTML=`<h3 style="color:#ff5100">💰 Ödəniş tələbləri (${arr.length})</h3><table class="cabinet-table"><thead><tr><th>Satıcı</th><th>Məhsul</th><th>Məbləğ</th><th>5% Komissiya</th><th>Ödənişi</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(r=>`<tr><td><small>${esc(r.sellerEmail||"")}</small></td><td>${esc(r.productTitle||"")}</td><td>${Number(r.price||0).toFixed(2)} ₼</td><td>-${Number(r.commission||0).toFixed(2)} ₼</td><td><b style="color:#22c55e">${Number(r.payout||0).toFixed(2)} ₼</b></td><td><button class="approve-btn" data-pay-id="${r.id}" data-seller-uid="${r.sellerUid||""}" data-payout="${r.payout||0}" data-order-id="${r.orderId||""}">✓ Ödə</button></td></tr>`).join("")}</tbody></table>`;
+    el.innerHTML=`<h3 style="color:#ff5100">💰 Ödəniş tələbləri (${arr.length})</h3><table class="cabinet-table"><thead><tr><th>Satıcı</th><th>Məhsul</th><th>Məbləğ</th><th>10% Komissiya</th><th>Ödənişi</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(r=>`<tr><td><small>${esc(r.sellerEmail||"")}</small></td><td>${esc(r.productTitle||"")}</td><td>${Number(r.price||0).toFixed(2)} ₼</td><td>-${Number(r.commission||0).toFixed(2)} ₼</td><td><b style="color:#22c55e">${Number(r.payout||0).toFixed(2)} ₼</b></td><td><button class="approve-btn" data-pay-id="${r.id}" data-seller-uid="${r.sellerUid||""}" data-payout="${r.payout||0}" data-order-id="${r.orderId||""}">✓ Ödə</button></td></tr>`).join("")}</tbody></table>`;
     el.querySelectorAll("[data-pay-id]").forEach(b=>b.onclick=()=>processPayoutAdmin(b.dataset.payId, b.dataset.sellerUid, parseFloat(b.dataset.payout), b.dataset.orderId));
   }, err=>console.warn("Payouts:", err));
 }
