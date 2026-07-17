@@ -4344,7 +4344,15 @@ button,input,select,textarea{max-width:100%}
       <label style="display:block;margin-bottom:6px;font-size:13px;color:#94a3b8">Ətraflı (isteğe bağlı)</label>
       <textarea id="reportDesc" maxlength="300" placeholder="Problemi qısa izah edin..." style="width:100%;padding:10px;background:#0d1117;border:1px solid #1e2d45;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;min-height:80px;box-sizing:border-box"></textarea>
     </div>
-    <button class="fullbtn" type="button" onclick="submitReport()">Şikayəti göndər</button>
+    <div style="margin-bottom:16px">
+      <label style="display:block;margin-bottom:6px;font-size:13px;color:#94a3b8">Sübut (şəkil / video — isteğe bağlı)</label>
+      <input type="file" id="reportFiles" accept="image/*,video/*" multiple
+        onchange="reportFilesChanged()"
+        style="width:100%;padding:9px;background:#0d1117;border:1px dashed #1e2d45;border-radius:8px;color:#94a3b8;font-size:12px;box-sizing:border-box;cursor:pointer">
+      <div style="font-size:11px;color:#475569;margin-top:5px">Maks. 3 fayl • şəkil 5 MB • video 30 MB</div>
+      <div id="reportFilePreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+    </div>
+    <button class="fullbtn" type="button" id="reportSubmitBtn" onclick="submitReport()">Şikayəti göndər</button>
   </div>
 </div>
 
@@ -6031,6 +6039,9 @@ import {
   limit,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAhGuZ-L8iZ5pRVD-446PI1_iJbPREvdLQ",
@@ -6064,6 +6075,7 @@ async function tgNotify(msg){
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const storage = getStorage(app);
 // ══════════════════════════════════════════════════════════════════
 // [FIX] Mesajlar 1-2 dəqiqə gecikirdi ("göndərilir…" ilişirdi).
 // Səbəb: Firestore default WebChannel (streaming) kanalını adblock
@@ -7800,6 +7812,7 @@ function _supInitSound(){
   }, {once:true});
 }
 function _supPlaySound(){
+  return;  // [FIX] Bildiriş səsi ləğv edildi — qeyri-sabit işləyirdi
   if(!_supAudioCtx) return;
   try{
     const ctx = _supAudioCtx;
@@ -9934,6 +9947,7 @@ window._chatLastUnread = window._chatLastUnread || {};
 window._notifBooted = false;
 
 function playNotifSound(){
+  return;  // [FIX] Bildiriş səsi ləğv edildi
   try{
     const ctx = new (window.AudioContext||window.webkitAudioContext)();
     const o = ctx.createOscillator();
@@ -12588,7 +12602,51 @@ window.openReportModal = function(type, targetId, targetTitle){
   document.getElementById("reportTargetType").value = type || "ad";
   document.getElementById("reportTargetTitle").value = targetTitle || "";
   document.getElementById("reportDesc").value = "";
+  const _rf = document.getElementById("reportFiles");
+  if(_rf) _rf.value = "";
+  const _rp = document.getElementById("reportFilePreview");
+  if(_rp) _rp.innerHTML = "";
+  _reportFiles = [];
   openModal("reportModal");
+};
+
+// ── Şikayətə əlavə olunan fayllar (şəkil / video)
+const REPORT_MAX_FILES = 3;
+const REPORT_MAX_IMG = 5 * 1024 * 1024;    // 5 MB
+const REPORT_MAX_VID = 30 * 1024 * 1024;   // 30 MB
+let _reportFiles = [];
+
+window.reportFilesChanged = function(){
+  const inp = document.getElementById("reportFiles");
+  const prev = document.getElementById("reportFilePreview");
+  _reportFiles = [];
+  if(prev) prev.innerHTML = "";
+  const files = Array.from(inp?.files || []);
+  if(files.length > REPORT_MAX_FILES){
+    toast("Maksimum "+REPORT_MAX_FILES+" fayl əlavə edə bilərsiniz.");
+    inp.value = ""; return;
+  }
+  for(const f of files){
+    const isImg = f.type.startsWith("image/");
+    const isVid = f.type.startsWith("video/");
+    if(!isImg && !isVid){ toast("Yalnız şəkil və ya video."); inp.value=""; _reportFiles=[]; if(prev) prev.innerHTML=""; return; }
+    const lim = isImg ? REPORT_MAX_IMG : REPORT_MAX_VID;
+    if(f.size > lim){
+      toast(f.name+" çox böyükdür (maks. "+(lim/1048576)+" MB).");
+      inp.value=""; _reportFiles=[]; if(prev) prev.innerHTML=""; return;
+    }
+    _reportFiles.push(f);
+    if(prev){
+      const url = URL.createObjectURL(f);
+      const box = document.createElement("div");
+      box.style.cssText = "width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #1e2d45;background:#0d1117;position:relative";
+      box.innerHTML = isImg
+        ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">`
+        : `<video src="${url}" style="width:100%;height:100%;object-fit:cover" muted></video>
+           <div style="position:absolute;inset:0;display:grid;place-items:center;font-size:18px">▶</div>`;
+      prev.appendChild(box);
+    }
+  }
 };
 
 window.submitReport = async function(){
@@ -12600,18 +12658,43 @@ window.submitReport = async function(){
   const reason = document.getElementById("reportReason").value;
   const desc = document.getElementById("reportDesc").value.trim();
   if(!targetId){ toast("Hədəf məlumatı tapılmadı."); return; }
+  const btn = document.getElementById("reportSubmitBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "Göndərilir..."; }
   try{
-    await addDoc(collection(db,"reports"),{
+    // Faylları əvvəlcə Storage-a yüklə, sonra linkləri sənədə yaz
+    const attachments = [];
+    for(let i=0;i<_reportFiles.length;i++){
+      const f = _reportFiles[i];
+      if(btn) btn.textContent = "Yüklənir "+(i+1)+"/"+_reportFiles.length+"...";
+      const safe = f.name.replace(/[^\w.\-]/g, "_").slice(-60);
+      const path = `reports/${currentUser.uid}/${Date.now()}_${i}_${safe}`;
+      const r = sRef(storage, path);
+      await uploadBytes(r, f, { contentType: f.type });
+      attachments.push({
+        url: await getDownloadURL(r),
+        type: f.type.startsWith("video/") ? "video" : "image",
+        name: f.name.slice(0,60),
+        path
+      });
+    }
+    const payload = {
       targetId, targetType, targetTitle: targetTitle||"",
       reason, desc,
       reporterUid: currentUser.uid,
       reporterEmail: currentUser.email||"",
       status: "Baxılmadı",
       createdAt: serverTimestamp()
-    });
+    };
+    if(attachments.length) payload.attachments = attachments;
+    await addDoc(collection(db,"reports"), payload);
     closeModal("reportModal");
     toast("Şikayətiniz göndərildi. Admin baxacaq.");
-  }catch(e){ console.error("Şikayət göndərilə bilmədi:", e); toast("Şikayət göndərilmədi: " + (e.message || e.code || "naməlum xəta")); }
+  }catch(e){
+    console.error("Şikayət göndərilə bilmədi:", e);
+    toast("Şikayət göndərilmədi: " + (e.message || e.code || "naməlum xəta"));
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = "Şikayəti göndər"; }
+  }
 };
 
 // Admin panelindən şikayətlərə baxmaq
@@ -12637,6 +12720,16 @@ window.listenReportsAdmin = function(){
             ${r.desc?`<span style="color:#94a3b8">${esc(r.desc)}</span>`:""}
             <br><small style="color:#475569">Şikayətçi: ${esc(r.reporterEmail||"")}</small>
             ${r.targetId?`<br><small style="color:#334155;font-family:'Space Grotesk',monospace">ID: ${esc(r.targetId)}</small>`:""}
+            ${(r.attachments&&r.attachments.length)?`
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+                ${r.attachments.map(a=>a.type==="video"
+                  ? `<video src="${esc(a.url)}" controls preload="metadata"
+                       style="width:150px;height:100px;object-fit:cover;border-radius:8px;border:1px solid #1e2d45;background:#000"></video>`
+                  : `<a href="${esc(a.url)}" target="_blank" rel="noopener">
+                       <img src="${esc(a.url)}" alt="sübut"
+                         style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid #1e2d45"></a>`
+                ).join("")}
+              </div>`:""}
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;flex:none">
             <button onclick="openReportTarget('${esc(r.targetType||"ad")}','${esc(r.targetId||"")}')"
@@ -13609,6 +13702,56 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
 .cabinet-modal{z-index:1000010!important}
 #confirmModal{z-index:1000020!important}
 #supportPanel{z-index:1000030!important}
+
+/* === ANA SƏHİFƏ düyməsi 20% kiçildildi === */
+.nav button#homeResetBtn{
+  height:32px!important;
+  padding:0 14px!important;
+  font-size:10.4px!important;
+  gap:6px!important;
+  border-radius:6px!important;
+}
+.nav button#homeResetBtn svg{width:12px!important;height:12px!important}
+@media(max-width:768px){
+  .nav button#homeResetBtn{padding:0 11px!important}
+}
+
+/* === Sırala / Kateqoriya select-ləri: səbət düyməsi ilə eyni narıncı === */
+.panel-head-actions .sort-select,
+select#marketSort,
+select#marketSaleMode{
+  background-color:#ff5100!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:right 9px center!important;
+  background-size:13px!important;
+  border:1px solid #ff5100!important;
+  color:#fff!important;
+  font-weight:700!important;
+  box-shadow:0 6px 16px -4px rgba(255,81,0,.4)!important;
+}
+.panel-head-actions .sort-select:hover,
+select#marketSort:hover,
+select#marketSaleMode:hover{
+  background-color:#ff6a20!important;
+  border-color:#ff6a20!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px -4px rgba(255,81,0,.55)!important;
+}
+.panel-head-actions .sort-select:focus,
+select#marketSort:focus,
+select#marketSaleMode:focus{
+  border-color:#ff5100!important;
+  box-shadow:0 0 0 3px rgba(255,81,0,.25)!important;
+}
+select#marketSort option,
+select#marketSaleMode option{background:#111418;color:#e5e7eb}
+body.light-mode select#marketSort,
+body.light-mode select#marketSaleMode{
+  background-color:#ff5100!important;
+  border-color:#ff5100!important;
+  color:#fff!important;
+}
 </style>
 </body>
 </html>
