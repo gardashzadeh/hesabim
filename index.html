@@ -11521,6 +11521,13 @@ async function completeOrder(id){
     }
     if(o.adId) await updateDoc(doc(db,"ads",o.adId),{status:"Satıldı",updatedAt:serverTimestamp()}).catch(()=>{});
 
+    // Satıcının açıq satış sayğacı (sellerStats/{uid}) — profil üçün
+    if(o.sellerUid){
+      await setDoc(doc(db,"sellerStats",o.sellerUid),{
+        sellerUid:o.sellerUid, salesCount:increment(1), updatedAt:serverTimestamp()
+      },{merge:true}).catch(e=>console.warn("sellerStats:",e));
+    }
+
     // Hesab məlumatları burada alıcıya avtomatik göndərilmir.
     // Məlumatlar yalnız admin panelində yoxlanıb "Təsdiqləyirəm, alıcıya göndər" düyməsi basıldıqdan sonra alıcıya gedir.
     if(o.pendingCredentials){
@@ -12715,10 +12722,12 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
       ? new Date(_joinTs*1000).toLocaleDateString("az-AZ",{day:"2-digit",month:"2-digit",year:"numeric"})
       : "";
 
-    // Satış sayını tap
-    const salesKey = sellerEmail || "";
-    const salesCache = JSON.parse(localStorage.getItem("gs_seller_sales_counts")||"{}");
-    const salesCount = salesCache[salesKey] || 0;
+    // Satış sayı — açıq sellerStats/{uid} sənədindən
+    let salesCount = 0;
+    if(sellerUid){
+      const stSnap = await getDoc(doc(db,"sellerStats",sellerUid)).catch(()=>null);
+      if(stSnap && stSnap.exists()) salesCount = Number(stSnap.data().salesCount || 0);
+    }
 
     // Rəyləri yüklə (bu satıcının aldığı rəylər)
     let avgRating = 0, reviewCount = 0;
