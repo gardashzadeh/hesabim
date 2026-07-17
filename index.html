@@ -8129,13 +8129,15 @@ window.supSendMessage = async function(){
   input.style.height = "auto";
   const _t0 = performance.now();
   const _ms = ()=>Math.round(performance.now()-_t0);
-  // Diaqnostika birbaşa ekranda — konsola baxmağa ehtiyac qalmasın
+  // Diaqnostika: uğur mesajları YALNIZ konsola gedir (istifadəçi görməsin),
+  // xəta mesajları isə çatda qırmızı görünməyə davam edir.
   const _diag = (txt, bad)=>{
+    if(!bad){ console.info("[SUP]", txt); return; }
     const b = document.getElementById("supBody");
     if(!b) return;
     const d = document.createElement("div");
     d.className = "sup-day-separator";
-    d.style.color = bad ? "#ef4444" : "#22c55e";
+    d.style.color = "#ef4444";
     d.textContent = txt;
     b.appendChild(d);
     b.scrollTop = b.scrollHeight;
@@ -8154,7 +8156,7 @@ window.supSendMessage = async function(){
     getDoc(_ref).then(s=>{
       const t = _ms();
       console.info("[SUP] SERVERƏ YAZILDI:", t+"ms");
-      _diag("✓ serverə yazıldı: "+t+"ms", t>3000);
+      _diag("✓ serverə yazıldı: "+t+"ms", false);
     }).catch(err=>{
       console.error("[SUP] server təsdiqi alınmadı:", err);
       _diag("✗ server təsdiqi alınmadı: "+(err?.code||err?.message||err), true);
@@ -12686,7 +12688,10 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
       : query(collection(db,"ads"), where("sellerEmail","==",sellerEmail), where("status","==","Təsdiqləndi"));
     const adsSnap = await getDocs(adsQ).catch(()=>null);
     const ads = [];
-    if(adsSnap) adsSnap.forEach(d=>ads.push({id:d.id,...d.data()}));
+    if(adsSnap) adsSnap.forEach(d=>{
+      const data = {id:d.id, ...d.data()};
+      if(!isAdExpired(data) && (!data.sold || Number(data.stock || 0) > 0)) ads.push(data);
+    });
 
     // Görünən ad: users/{uid} sənədi YALNIZ sahibi/admin üçün oxunandır (Firestore rules).
     // Kənar istifadəçidə profile={} olur — ona görə açıq mənbələrdən götürülür.
