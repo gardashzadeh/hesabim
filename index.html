@@ -2140,7 +2140,7 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   flex:none;
 }
 .seller-verified-badge svg{width:20px;height:20px;display:block}
-#pdSeller .seller-verified-badge{position:relative;top:3px}
+#pdSeller .seller-verified-badge{position:relative;top:0}
 
 /* ===========================================================
    ANA SƏHİFƏ ELAN KARTI — yenidən tərtib (referens şəkil)
@@ -13808,6 +13808,14 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
 .cabinet-modal{z-index:1000010!important}
 #confirmModal{z-index:1000020!important}
 #supportPanel{z-index:1000030!important}
+
+/* === Caret browsing (F7) kursoru mətndə görünməsin === */
+html,body,body *{caret-color:transparent}
+input,textarea,select,[contenteditable="true"],[contenteditable=""]{caret-color:auto!important}
+
+/* Nişan mərkəzə otursun */
+#pdSeller .seller-verified-badge,
+.seller-name-row .seller-verified-badge{position:relative;top:0;vertical-align:middle}
 
 /* === ANA SƏHİFƏ düyməsi 20% kiçildildi === */
 .nav button#homeResetBtn{
