@@ -480,6 +480,8 @@ body.light-mode select optgroup option{background:#fff;color:#1a1d23}
 .admin-support-meta{font-size:12px;color:#64748b}
 .admin-support-preview{font-size:13px;color:#94a3b8;grid-column:1/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
 .admin-support-time{font-size:11px;color:#64748b;text-align:right}
+.admin-support-del{background:none;border:1px solid transparent;border-radius:8px;cursor:pointer;font-size:14px;padding:3px 6px;margin-left:6px;opacity:.55;transition:.15s;line-height:1}
+.admin-support-del:hover{opacity:1;border-color:#ef444466;background:rgba(239,68,68,.12)}
 .admin-support-status-tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.3px}
 .admin-support-status-tag.open{background:#052e1a;color:#4ade80}
 .admin-support-status-tag.closed{background:#1a1a1a;color:#94a3b8}
@@ -6050,11 +6052,12 @@ window.ESCROW_WORKER_URL = "https://escrow.gardashzadeh.workers.dev";
 
 async function tgNotify(msg){
   try{
-    await fetch(TG_WORKER, {
+    const r = await fetch(TG_WORKER, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({text: msg})
     });
+    if(!r.ok) console.warn("Telegram worker cavabı:", r.status, await r.text().catch(()=>"") );
   }catch(e){ console.warn("Telegram bildirişi göndərilmədi:", e); }
 }
 
@@ -6333,8 +6336,10 @@ function syncAdminBodyClass(){
     // Dəstək widget-i üçün admin online statusu
     if(isAdm){
       if(typeof startAdminPresence === "function") startAdminPresence();
+      if(typeof listenAdminSupportUnread === "function") listenAdminSupportUnread();
     } else {
       if(typeof stopAdminPresence === "function") stopAdminPresence();
+      if(typeof stopAdminSupportUnread === "function") stopAdminSupportUnread();
     }
   }catch(e){}
 }
@@ -7502,6 +7507,47 @@ function startAdminPresence(){
 function stopAdminPresence(){
   if(_adminPresenceInterval){ clearInterval(_adminPresenceInterval); _adminPresenceInterval = null; }
 }
+
+// ===== ADMIN: qlobal dəstək bildirişi (badge + səs + brauzer bildirişi) =====
+// Problem: admin Dəstək tabını açmayınca yeni mesajdan xəbər tutmurdu.
+// Bu listener admin login olan kimi bütün support_chats-i dinləyir.
+let _supAdminUnreadUnsub = null;
+let _supAdminPrevUnread = -1;
+function listenAdminSupportUnread(){
+  if(_supAdminUnreadUnsub) return;
+  try{
+    _supAdminUnreadUnsub = onSnapshot(query(collection(db,"support_chats")), snap=>{
+      let total = 0;
+      snap.forEach(d=>{ total += Number(d.data()?.unreadByAdmin||0); });
+      const badge = document.getElementById("supBadge");
+      if(badge){
+        badge.textContent = total>99 ? "99+" : String(total);
+        badge.style.display = total>0 ? "grid" : "none";
+      }
+      // Say artıbsa — yeni mesaj gəlib: səs + brauzer bildirişi
+      if(_supAdminPrevUnread >= 0 && total > _supAdminPrevUnread){
+        try{ _supPlaySound(); }catch(_){}
+        try{
+          if("Notification" in window && Notification.permission === "granted" && document.hidden){
+            new Notification("Hesablar.net — Dəstək", { body: "Yeni dəstək mesajı ("+total+" oxunmamış)" });
+          }
+        }catch(_){}
+        try{ toast("💬 Yeni dəstək mesajı"); }catch(_){}
+      }
+      _supAdminPrevUnread = total;
+    }, err=>console.warn("Admin support unread listener:", err));
+    // Brauzer bildirişi icazəsi — ilk klikdə soruşulur
+    document.addEventListener("click", ()=>{
+      try{ if("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }catch(_){}
+    }, {once:true});
+  }catch(e){ console.warn("listenAdminSupportUnread:", e); }
+}
+function stopAdminSupportUnread(){
+  if(_supAdminUnreadUnsub){ try{_supAdminUnreadUnsub()}catch(_){}; _supAdminUnreadUnsub=null; }
+  _supAdminPrevUnread = -1;
+  const badge = document.getElementById("supBadge");
+  if(badge) badge.style.display = "none";
+}
 function listenAdminPresence(){
   try{
     onSnapshot(doc(db,"presence","admin"), snap=>{
@@ -7956,6 +8002,8 @@ function listenUserSupportUnread(){
   if(!chatId) return;
   try{
     onSnapshot(doc(db,"support_chats",chatId), snap=>{
+      // Admin üçün badge-i qlobal admin listener idarə edir — üstünə yazma
+      if(typeof isAdmin === "function" && isAdmin()) return;
       const badge = document.getElementById("supBadge");
       if(!badge) return;
       const unread = snap.exists() ? (snap.data()?.unreadByUser || 0) : 0;
@@ -7999,7 +8047,10 @@ window.renderAdminSupport = function(){
             </div>
             <div class="admin-support-meta">${_supEsc(c.userEmail||"-")} • ${_supEsc(c.category||"Ümumi")}</div>
           </div>
-          <div class="admin-support-time">${_supTime(c.lastMessageAt)}</div>
+          <div class="admin-support-time">
+            ${_supTime(c.lastMessageAt)}
+            <button type="button" class="admin-support-del" data-del-support="${c.id}" title="Söhbəti sil" aria-label="Söhbəti sil">🗑</button>
+          </div>
           <div class="admin-support-preview">${previewBy}${preview || "<i>Mesaj yoxdur</i>"}</div>
         </div>`;
     };
@@ -8012,12 +8063,42 @@ window.renderAdminSupport = function(){
         ${arr.length ? arr.map(renderItem).join("") : '<div class="cabinet-empty">Hələ dəstək söhbəti yoxdur.</div>'}
       </div>`;
     el.querySelectorAll("[data-open-support]").forEach(item=>{
-      item.onclick = ()=> openSupportAsAdmin(item.dataset.openSupport);
+      item.onclick = (e)=>{
+        // Sil düyməsinə klik söhbəti açmasın
+        if(e.target.closest("[data-del-support]")) return;
+        openSupportAsAdmin(item.dataset.openSupport);
+      };
+    });
+    el.querySelectorAll("[data-del-support]").forEach(b=>{
+      b.onclick = (e)=>{ e.stopPropagation(); supDeleteChat(b.dataset.delSupport); };
     });
   }, err=>{
     console.error("Admin support list error:", err);
     el.innerHTML = '<h3>Canlı dəstək</h3><div class="cabinet-empty">Yüklənmədi. Firestore Rules yoxla.</div>';
   });
+}
+
+// ===== ADMIN: dəstək söhbətini tamamilə sil (mesajlarla birlikdə) =====
+window.supDeleteChat = async function(chatId){
+  if(!isAdmin() || !chatId) return;
+  const confirmFn = window.showConfirm || (msg => Promise.resolve(window.confirm(msg)));
+  const ok = await confirmFn("Bu söhbət və bütün mesajları HƏMİŞƏLİK silinəcək. Davam edilsin?", "🗑");
+  if(!ok) return;
+  try{
+    // Açıq olan həmin çatdırsa bağla
+    if(SUP.chatId === chatId) closeSupport();
+    // Əvvəl messages alt-kolleksiyası silinir (Firestore-da sənədi silmək
+    // alt-kolleksiyanı avtomatik silmir — "yetim" mesajlar qalırdı)
+    const msgSnap = await getDocs(collection(db,"support_chats",chatId,"messages"));
+    const dels = [];
+    msgSnap.forEach(m=>dels.push(deleteDoc(doc(db,"support_chats",chatId,"messages",m.id))));
+    await Promise.allSettled(dels);
+    await deleteDoc(doc(db,"support_chats",chatId));
+    toast("Söhbət silindi");
+  }catch(e){
+    console.error("supDeleteChat:", e);
+    toast("Silinmədi — Firestore Rules-da admin üçün delete icazəsini yoxla");
+  }
 }
 
 window.openSupportAsAdmin = function(chatId){
@@ -9372,11 +9453,11 @@ function listenHeaderNotifications(){
   // DÜZƏLİŞ: yenidən qoşulanda sayğacı dərhal 0-lamırıq — snapshot gələnə
   // qədər köhnə rəqəm qalır (badge "gah gəlir gah gedir" flicker-inin qarşısı).
   if(!currentUser){ setHeaderNotificationCount(0); return; }
-  let buyerUnread=null, sellerUnread=null, adminUnread=(currentUserRole==="admin")?null:0;
+  let buyerUnread=null, sellerUnread=null, adminUnread=(currentUserRole==="admin")?null:0, supportUnread=(currentUserRole==="admin")?null:0;
   const draw=()=>{
     // Yalnız bütün mənbələr ən azı bir dəfə cavab verəndə çək
-    if(buyerUnread===null||sellerUnread===null||adminUnread===null) return;
-    setHeaderNotificationCount(buyerUnread+sellerUnread+adminUnread);
+    if(buyerUnread===null||sellerUnread===null||adminUnread===null||supportUnread===null) return;
+    setHeaderNotificationCount(buyerUnread+sellerUnread+adminUnread+supportUnread);
   };
   // Xəta olduqda (kvota/şəbəkə) 20 saniyə sonra yenidən qoşul
   const retry=(e)=>{
@@ -9438,12 +9519,28 @@ function listenHeaderNotifications(){
       renderNotifDropdown();
       draw();
     },retry));
-  } else { _notifItems.admin=[]; }
+    // DƏSTƏK söhbətləri — oxunmamış istifadəçi mesajları zəng ikonunda görünsün
+    const qsup=query(collection(db,"support_chats"));
+    headerNotifUnsubs.push(onSnapshot(qsup,s=>{
+      supportUnread=0;
+      const arr=[];
+      s.forEach(d=>{
+        const c=d.data()||{};
+        const u=Number(c.unreadByAdmin||0);
+        supportUnread+=u;
+        const t=(c.lastMessageAt&&c.lastMessageAt.toMillis)?c.lastMessageAt.toMillis():((c.createdAt&&c.createdAt.toMillis)?c.createdAt.toMillis():0);
+        arr.push({type:"support", id:d.id, title:"Dəstək: "+(c.userName||"Qonaq"), text:(c.lastMessage||"Yeni dəstək sorğusu"), time:t, unread:u});
+      });
+      _notifItems.support=arr;
+      renderNotifDropdown();
+      draw();
+    },retry));
+  } else { _notifItems.admin=[]; _notifItems.support=[]; }
 }
 
 // ── BİLDİRİŞ DROPDOWN — zəngə toxunanda son 3 bildiriş göstərilir,
 // toxunanda müvafiq bölməyə (yazışma / admin paneli) yönləndirir.
-let _notifItems = {buyer:[], seller:[], admin:[]};
+let _notifItems = {buyer:[], seller:[], admin:[], support:[]};
 function _notifTimeAgo(t){
   if(!t) return "";
   const s=Math.max(0,(Date.now()-t)/1000);
@@ -9454,7 +9551,7 @@ function _notifTimeAgo(t){
 }
 function _notifEsc(s){ return String(s||"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 function getRecentNotifItems(){
-  const all=[..._notifItems.buyer, ..._notifItems.seller, ..._notifItems.admin];
+  const all=[..._notifItems.buyer, ..._notifItems.seller, ..._notifItems.admin, ...(_notifItems.support||[])];
   // Eyni chat həm buyer həm seller siyahısına düşə bilməz, amma ehtiyat üçün dedupe:
   const seen={}; const out=[];
   all.sort((a,b)=>b.time-a.time);
@@ -9474,7 +9571,7 @@ function renderNotifDropdown(){
     html+='<div class="notif-dd-empty">Hələ bildiriş yoxdur.</div>';
   }else{
     html+=items.map(it=>{
-      const icon = it.type==="admin" ? "🛠" : "💬";
+      const icon = it.type==="admin" ? "🛠" : (it.type==="support" ? "🎧" : "💬");
       return '<button type="button" class="notif-dd-item'+(it.unread>0?" unread":"")+'" '
         + 'onclick="notifItemClick(\''+it.type+'\',\''+_notifEsc(it.id)+'\')">'
         + '<span class="notif-dd-icon">'+icon+'</span>'
@@ -9496,6 +9593,12 @@ function renderNotifDropdown(){
 window.notifItemClick=function(type,id){
   hideNotifDropdown();
   if(!currentUser){ openModal("loginModal"); return; }
+  if(type==="support"){
+    // Oxunmuş kimi işarələ və çatı admin rejimində aç
+    updateDoc(doc(db,"support_chats",id),{unreadByAdmin:0}).catch(()=>{});
+    if(typeof openSupportAsAdmin === "function") openSupportAsAdmin(id);
+    return;
+  }
   if(type==="admin"){
     // Oxunmuş kimi işarələ — sayğac dərhal düşsün
     updateDoc(doc(db,"adminNotifications",id),{readByAdmin:true,updatedAt:serverTimestamp()}).catch(()=>{});
@@ -9528,6 +9631,9 @@ function markAllNotifsRead(){
   });
   (_notifItems.admin||[]).forEach(x=>{
     if(x.unread) updateDoc(doc(db,"adminNotifications",x.id),{readByAdmin:true,updatedAt:serverTimestamp()}).catch(()=>{});
+  });
+  (_notifItems.support||[]).forEach(x=>{
+    if(x.unread) updateDoc(doc(db,"support_chats",x.id),{unreadByAdmin:0}).catch(()=>{});
   });
   setHeaderNotificationCount(0);
 }
