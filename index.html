@@ -10612,13 +10612,18 @@ function _renderMsgsAdmin(){
     </tr>`).join("")
   }</tbody></table>`;
   el.querySelectorAll("[data-admin-msgchat]").forEach(b=>b.onclick=()=>{
-    const box=document.getElementById("adminChatBox");
-    if(box) box.style.display="";
+    const wrap=document.getElementById("adminChatBoxWrap");
+    if(wrap) wrap.style.display="";
     openChat(b.dataset.adminMsgchat,true);
-    box?.scrollIntoView({behavior:"smooth",block:"start"});
+    wrap?.scrollIntoView({behavior:"smooth",block:"start"});
   });
 }
 window._renderMsgsAdmin = _renderMsgsAdmin;
+window._closeAdminMsgChat = function(){
+  const wrap=document.getElementById("adminChatBoxWrap");
+  if(wrap) wrap.style.display="none";
+  try{ adminActiveChatId=null; }catch(e){}
+};
 
 
 function renderAdminStats(){
@@ -10702,7 +10707,10 @@ function adminShell(){
       </select>
       <button type="button" class="approve-btn" onclick="_fetchMsgsAdmin()">🔄 Yenilə</button>
     </div>
-    <div id="adminChatBox" class="chat-box" style="display:none;margin-bottom:12px"><div class="chat-head"><b>Yazışma seç</b><small>Bütün alıcı/satıcı yazışmaları yalnız oxunuş rejimindədir.</small></div><div class="chat-messages"></div></div>
+    <div id="adminChatBoxWrap" style="display:none;position:relative;margin-bottom:12px">
+      <button type="button" onclick="window._closeAdminMsgChat()" title="Yazışmanı bağla" style="position:absolute;top:8px;right:8px;z-index:5;width:30px;height:30px;border-radius:8px;border:1px solid #333;background:#151616;color:#e2e8f0;font-size:15px;cursor:pointer;line-height:1">✕</button>
+      <div id="adminChatBox" class="chat-box"><div class="chat-head"><b>Yazışma seç</b><small>Bütün alıcı/satıcı yazışmaları yalnız oxunuş rejimindədir.</small></div><div class="chat-messages"></div></div>
+    </div>
     <div id="adminMsgsList" class="admin-section"></div>
   </div>`;
 }
