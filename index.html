@@ -8166,7 +8166,27 @@ window.supSendMessage = async function(){
     };
     if(by === "user") upd.unreadByAdmin = increment(1);
     else upd.unreadByUser = increment(1);
-    await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+    try{
+      await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+    }catch(updErr){
+      // DÜZƏLİŞ: admin söhbəti silsə (və ya sənəd hər hansı səbəbdən yoxa çıxsa),
+      // widget-də köhnə chatId qalırdı. Mövcud olmayan sənədə updateDoc edəndə
+      // qayda `resource.data.get(...)` oxuya bilmir → permission-denied.
+      // Nəticə: mesajlar "yetim" yaranırdı, istifadəçi isə xəta görürdü.
+      // İndi: sənəd yoxdursa söhbət avtomatik bərpa olunur.
+      const _gone = await getDoc(doc(db,"support_chats",SUP.chatId)).then(s=>!s.exists()).catch(()=>false);
+      if(!_gone) throw updErr;
+      console.warn("[SUP] söhbət sənədi yoxdur — bərpa edilir");
+      await _supCreateChat({
+        userUid: currentUser ? currentUser.uid : null,
+        userName: senderName,
+        userEmail: currentUser?.email || "",
+        category: "Ümumi",
+        firstMessage: null
+      });
+      await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+      _diag("↻ söhbət bərpa edildi");
+    }
     if(by === "user"){
       try{
         tgNotify(`💬 <b>Yeni mesaj (dəstək)!</b>\n👤 ${senderName}\n💭 ${text.slice(0,200)}\n\nhesablar.net → Admin panel → Dəstək`);
