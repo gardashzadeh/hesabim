@@ -1642,7 +1642,9 @@ body.light-mode .notif-dd-item.unread{background:#eef6ff}
 .request-form button{grid-column:1/3}
 .admin-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
 .admin-cat-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0;padding-bottom:12px;border-bottom:1px solid #2d2f2f}
-.admin-cat-tabs button{height:36px;padding:0 14px;background:#151616;border:1px solid #2d2f2f;color:#c8ccd0;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',Arial,sans-serif;transition:.16s ease}
+.admin-cat-tabs button{height:38px;padding:0 15px;background:#151616;border:1px solid #2d2f2f;color:#c8ccd0;border-radius:10px;font-size:13px;font-weight:600;letter-spacing:.2px;cursor:pointer;font-family:'DM Sans',Arial,sans-serif;transition:.16s ease;display:inline-flex;align-items:center}
+.admin-cat-tabs button svg{opacity:.75;transition:opacity .16s ease}
+.admin-cat-tabs button.active svg,.admin-cat-tabs button:hover svg{opacity:1}
 .admin-cat-tabs button:hover{border-color:#ff5100;color:#e8eaed}
 .admin-cat-tabs button.active{background:linear-gradient(#ff5100,#ff005b);border:0;color:#fff}
 body.light-mode .admin-cat-tabs{border-bottom:1px solid #eef0f5}
@@ -10646,14 +10648,14 @@ function adminShell(){
   return `<h3>Admin panel</h3>
   <div id="adminStatsGrid" class="admin-mini-grid"></div>
   <div class="admin-cat-tabs">
-    <button type="button" class="active" data-admincat="orders" onclick="showAdminCat('orders')">📋 Sifarişlər</button>
-    <button type="button" data-admincat="deals" onclick="showAdminCat('deals')">🔍 Satış İzləmə</button>
-    <button type="button" data-admincat="ads" onclick="showAdminCat('ads')">📦 Elanlar</button>
-    <button type="button" data-admincat="finance" onclick="showAdminCat('finance')">💰 Maliyyə</button>
-    <button type="button" data-admincat="users" onclick="showAdminCat('users')">👥 İstifadəçilər</button>
-    <button type="button" data-admincat="reports" onclick="showAdminCat('reports')">🚩 Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
-    <button type="button" data-admincat="supportcat" onclick="showAdminCat('supportcat')">💬 Dəstək</button>
-    <button type="button" data-admincat="msgs" onclick="showAdminCat('msgs')">👁 Yazışmalar</button>
+    <button type="button" class="active" data-admincat="orders" onclick="showAdminCat('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>Sifarişlər</button>
+    <button type="button" data-admincat="deals" onclick="showAdminCat('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>Satış İzləmə</button>
+    <button type="button" data-admincat="ads" onclick="showAdminCat('ads')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Elanlar</button>
+    <button type="button" data-admincat="finance" onclick="showAdminCat('finance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>Maliyyə</button>
+    <button type="button" data-admincat="users" onclick="showAdminCat('users')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 00-3-3.87M15 3.13A4 4 0 0115 11"/></svg>İstifadəçilər</button>
+    <button type="button" data-admincat="reports" onclick="showAdminCat('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
+    <button type="button" data-admincat="supportcat" onclick="showAdminCat('supportcat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8z"/></svg>Dəstək</button>
+    <button type="button" data-admincat="msgs" onclick="showAdminCat('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Yazışmalar</button>
   </div>
   <div id="adminCatOrders" class="admin-cat">
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
