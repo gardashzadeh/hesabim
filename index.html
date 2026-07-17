@@ -8914,7 +8914,16 @@ window.editMyAd = async function(id,arr){
 }
 window.deleteMyAd = async function(id){
   await refreshUser(); if(!currentUser) return;
-  try{ await deleteDoc(doc(db,"ads",id)); toast("Elan silindi"); }
+  try{
+    // DÜZƏLİŞ: sahiblik yoxlaması yox idi — konsoldan deleteMyAd("başqa_id")
+    // çağırıb özgə elanını silmək mümkün idi (yalnız Firestore Rules qoruyurdu).
+    const _s = await getDoc(doc(db,"ads",id));
+    if(!_s.exists()){ toast("Elan tapılmadı."); return; }
+    if(!isAdmin() && (_s.data()||{}).sellerUid !== currentUser.uid){
+      toast("Bu elanı silmək icazən yoxdur."); return;
+    }
+    await deleteDoc(doc(db,"ads",id)); toast("Elan silindi");
+  }
   catch(e){ console.error(e); toast("Elan silinmədi."); }
 }
 
@@ -12199,12 +12208,21 @@ async function requestPayout(id){
       const _upd = {payoutRequested:true, payoutRequestedAt:serverTimestamp(), updatedAt:serverTimestamp()};
       if(o.status !== "Tamamlandı") _upd.status = "Tamamlandı";
       tx.update(oRef, _upd);
+      // DÜZƏLİŞ: əvvəl komissiya və payout AYRI-AYRI yuvarlaqlaşdırılırdı —
+      // ikisi də yuxarı yuvarlaqlaşanda cəmi qiymətdən 1 qəpik ÇOX olurdu
+      // (məs. 13.50 → 0.68 + 12.83 = 13.51). Sayt hər belə satışda ziyan edirdi.
+      // İndi: komissiya yuvarlaqlaşır, payout isə qiymətdən çıxılır → cəm həmişə dəqiq.
+      // DİQQƏT: `price` MÜTLƏQ sifarişdəki dəyərlə eyni qalmalıdır — Firestore Rules
+      // `price == orders.price` bərabərliyini tələb edir (yuvarlaqlaşdırsaq rədd olunur).
+      const _price = _o.price || 0;
+      const _commission = Math.round(_price*5)/100;
+      const _payout = Math.round((_price - _commission)*100)/100;
       tx.set(payoutRef,{
         orderId: id,
         productTitle: _o.productTitle||"",
-        price: _o.price||0,
-        commission: Math.round((_o.price||0)*5)/100,
-        payout: Math.round((_o.price||0)*95)/100,
+        price: _price,
+        commission: _commission,
+        payout: _payout,
         sellerUid: currentUser.uid,
         userUid: currentUser.uid,
         sellerEmail: currentUser.email||"",
@@ -12254,6 +12272,12 @@ function listenMyAds(){
 async function renewMyAd(id){
   if(!currentUser) return;
   try{
+    // DÜZƏLİŞ: sahiblik yoxlaması əlavə edildi (deleteMyAd ilə eyni problem)
+    const _s = await getDoc(doc(db,"ads",id));
+    if(!_s.exists()){ toast("Elan tapılmadı."); return; }
+    if(!isAdmin() && (_s.data()||{}).sellerUid !== currentUser.uid){
+      toast("Bu elanı yeniləmək icazən yoxdur."); return;
+    }
     const newExpiry = new Date(Date.now() + 30*24*60*60*1000);
     await updateDoc(doc(db,"ads",id),{
       expiresAt: newExpiry,
