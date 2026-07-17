@@ -1595,8 +1595,9 @@ body.light-mode .chat-form input{background:#fff;border:1px solid #c8cdd8;color:
 /* ── Bildiriş dropdown ── */
 .notif-dropdown{
   display:none;position:fixed;z-index:9999;width:320px;max-width:calc(100vw - 16px);
+  max-height:calc(100vh - 90px);overflow-y:auto;
   background:#101111;border:1px solid #292b2b;border-radius:12px;
-  box-shadow:0 12px 32px rgba(0,0,0,.45);overflow:hidden;
+  box-shadow:0 12px 32px rgba(0,0,0,.45);overflow-x:hidden;
 }
 .notif-dropdown.show{display:block;animation:notifDdIn .15s ease}
 @keyframes notifDdIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
@@ -7992,10 +7993,19 @@ function _supRenderMessagesV2(msgs){
     let fileHtml = "";
     if(m.fileUrl){
       const _u = _supEsc(m.fileUrl);
-      if(m.fileType === "video"){
-        fileHtml = `<video class="sup-msg-file" src="${_u}" controls preload="metadata"></video>`;
-      } else if(m.fileType === "image"){
-        fileHtml = `<img class="sup-msg-file" src="${_u}" alt="${_supEsc(m.fileName||'şəkil')}" onclick="window.open('${_u}','_blank')">`;
+      // fileType bəzən yazılmaya bilər — URL uzantısından / isImage bayrağından təxmin et
+      let _ft = m.fileType;
+      if(_ft !== "image" && _ft !== "video"){
+        const _low = String(m.fileUrl).toLowerCase();
+        if(/\.(mp4|webm|mov|m4v|ogv|ogg)(\?|#|$)/.test(_low)) _ft = "video";
+        else if(m.isImage || /\.(png|jpe?g|gif|webp|bmp|heic|heif|avif|svg)(\?|#|$)/.test(_low)) _ft = "image";
+      }
+      // Şəkil/video yüklənməsə boş qutu yox, açıla bilən link göstər
+      const _fb = _supEsc(`<a href="${_u}" target="_blank" rel="noopener" class="sup-msg-file-name" style="color:inherit;display:inline-block;text-decoration:underline">🖼️ ${_supEsc(m.fileName||'şəkil')} — açmaq üçün klikləyin</a>`);
+      if(_ft === "video"){
+        fileHtml = `<video class="sup-msg-file" src="${_u}" controls preload="metadata" data-fb="${_fb}" onerror="this.outerHTML=this.getAttribute('data-fb')"></video>`;
+      } else if(_ft === "image"){
+        fileHtml = `<img class="sup-msg-file" src="${_u}" alt="${_supEsc(m.fileName||'şəkil')}" loading="lazy" onclick="window.open('${_u}','_blank')" data-fb="${_fb}" onerror="this.outerHTML=this.getAttribute('data-fb')">`;
       } else {
         fileHtml = `<div class="sup-msg-file-name"><a href="${_u}" target="_blank" rel="noopener" style="color:inherit">📎 ${_supEsc(m.fileName||'fayl')}</a></div>`;
       }
@@ -8293,6 +8303,21 @@ window.supDeleteChat = async function(chatId){
     // Əvvəl messages alt-kolleksiyası silinir (Firestore-da sənədi silmək
     // alt-kolleksiyanı avtomatik silmir — "yetim" mesajlar qalırdı)
     const msgSnap = await getDocs(collection(db,"support_chats",chatId,"messages"));
+
+    // DÜZƏLİŞ: Firestore sənədini silmək Storage-dəki faylı silmir —
+    // şəkil/videolar əbədi qalırdı. Mesajları silməzdən ƏVVƏL fayl
+    // linklərini toplayıb Storage-dən də silirik.
+    const fileDels = [];
+    msgSnap.forEach(m=>{
+      const u = (m.data()||{}).fileUrl;
+      if(!u) return;
+      // ref() həm gs:// həm də https download URL qəbul edir
+      fileDels.push(deleteObject(sRef(storage, u)).catch(e=>{
+        console.warn("[SUP] fayl silinmədi:", e?.code||e);
+      }));
+    });
+    await Promise.allSettled(fileDels);
+
     const dels = [];
     msgSnap.forEach(m=>dels.push(deleteDoc(doc(db,"support_chats",chatId,"messages",m.id))));
     await Promise.allSettled(dels);
@@ -9951,6 +9976,10 @@ function toggleNotifDropdown(){
   const p=document.getElementById("notifDropdown");
   const btn=document.getElementById("notifyBtn");
   if(!p||!btn) return;
+  // DÜZƏLİŞ: .header-də `backdrop-filter` var → position:fixed övladlar üçün
+  // containing block yaradır və onları header-in sərhədinə kəsir. Panel
+  // header-in içində qaldıqca yalnız başlıq görünürdü. Body-yə köçürürük.
+  if(p.parentElement !== document.body) document.body.appendChild(p);
   if(p.classList.contains("show")){ p.classList.remove("show"); return; }
   renderNotifDropdown();
   const r=btn.getBoundingClientRect();
