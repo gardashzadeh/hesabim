@@ -3808,7 +3808,7 @@ button,input,select,textarea{max-width:100%}
             <!-- GIFT CARD & E-PIN: mağaza + kod növü -->
             <div id="adSec_giftcard" class="ad-form-section" style="display:none;">
               <div class="ad-form-section-title">Mağaza və nominal</div>
-              <select id="adGiftStore">
+              <select id="adGiftStore" onchange="updateAdGiftStoreCustomVisibility()">
                 <option value="">Mağaza seç</option>
                 <option>Google Play</option><option>App Store / iTunes</option>
                 <option>Steam Wallet</option><option>PlayStation Store</option>
@@ -3816,6 +3816,7 @@ button,input,select,textarea{max-width:100%}
                 <option>Netflix</option><option>Spotify</option>
                 <option>Amazon</option><option>Discord Nitro</option><option>Digər</option>
               </select>
+              <input id="adGiftStoreCustom" placeholder="Mağaza adını yaz" style="display:none;margin-top:6px;">
               <input id="adGiftNominal" placeholder="Nominal (məsələn: 25$, 50₼)" style="margin-top:6px;">
               <label style="font-size:12px;color:#9ca3af;display:block;margin:8px 0 2px;">Region</label>
               <select id="adGiftRegion">
@@ -4809,6 +4810,15 @@ function getSelectedGameValue(){
   if(cat==="Hesab Kirayəsi") return document.getElementById("adGameRent")?.value.trim()||"";
   return "";
 }
+function updateAdGiftStoreCustomVisibility(){
+  const sel=document.getElementById("adGiftStore");
+  const custom=document.getElementById("adGiftStoreCustom");
+  if(!sel||!custom) return;
+  custom.style.display = sel.value==="Digər" ? "" : "none";
+  if(sel.value!=="Digər") custom.value="";
+}
+window.updateAdGiftStoreCustomVisibility = updateAdGiftStoreCustomVisibility;
+
 function updateAdGameCustomVisibility(){
   const sel=document.getElementById("adGame");
   const custom=document.getElementById("adGameCustom");
@@ -4844,9 +4854,10 @@ function syncAdFormToCategory(){
 }
 
 // Digital Hesablar: mail bölməsi ləğv olunur, başlıq "Hesab məlumatları" olur
+const NO_MAIL_CREDS_CATS = ["Digital Hesablar","Oyun Boost"];
 function syncCredFieldsToCategory(cat){
   cat = cat || (document.getElementById("adCategory")?.value || "Hesab");
-  const isDigital = (cat === "Digital Hesablar");
+  const isDigital = (NO_MAIL_CREDS_CATS.indexOf(cat) > -1);
   const mailGroup = document.getElementById("credMailGroup");
   const label     = document.getElementById("credLoginLabel");
   if(mailGroup){
@@ -4867,7 +4878,7 @@ function syncCredFieldsToCategory(cat){
 window.syncCredFieldsToCategory = syncCredFieldsToCategory;
 
 // Skin: "Birbaşa" çatdırılma ləğv edilib — yalnız "Özüm satıram" və "Chat vasitəsilə" qalır
-const NO_DIRECT_DELIVERY_CATS = ["Skin"];
+const NO_DIRECT_DELIVERY_CATS = ["Skin","Gift Card & E-Pin","Oyun Boost"];
 function isNoDirectDeliveryCat(cat){
   cat = cat || (document.getElementById("adCategory")?.value || "Hesab");
   return NO_DIRECT_DELIVERY_CATS.indexOf(cat) > -1;
@@ -4906,7 +4917,10 @@ function readAdProfessionalFields(){
   if(cat==="Hesab")           return {platform:"",region:"",server:"",rank:v("adRank"),level:v("adLevel")};
   if(cat==="Skin")            return {platform:v("adGameSkin"),region:"",server:"",rank:"",level:""};
   if(cat==="Oyun Pulu")       return {platform:v("adGameCurrency"),region:"",server:"",rank:"",level:v("adCurrencyAmount")};
-  if(cat==="Gift Card & E-Pin") return {platform:v("adGiftStore"),region:v("adGiftRegion"),server:"",rank:"",level:v("adGiftNominal")};
+  if(cat==="Gift Card & E-Pin"){
+    const _store = v("adGiftStore")==="Digər" ? (v("adGiftStoreCustom") || "Digər") : v("adGiftStore");
+    return {platform:_store,region:v("adGiftRegion"),server:"",rank:"",level:v("adGiftNominal")};
+  }
   if(cat==="Oyun Boost")      return {platform:v("adGameBoost"),region:"",server:v("adBoostFrom"),rank:v("adBoostTo"),level:""};
   if(cat==="Hesab Kirayəsi")  return {platform:v("adGameRent"),region:"",server:"",rank:v("adRentRank"),level:v("adRentDuration")};
   if(cat==="Sosial Media")    return {platform:v("adSocialPlatform"),region:"",server:"",rank:"",level:v("adSocialFollowers")};
@@ -4917,6 +4931,7 @@ function readAdProfessionalFields(){
 
 function clearAdProfessionalFields(){
   setSelectOrCustom("adGame","adGameCustom","");
+  setSelectOrCustom("adGiftStore","adGiftStoreCustom","");
   ["adRank","adGameSkin","adGameCurrency","adGiftStore","adGiftRegion",
    "adGameBoost","adGameRent","adRentRank","adRentDuration",
    "adSocialPlatform","adConsoleBrand","adConsoleCondition",
@@ -8731,7 +8746,7 @@ window.editMyAd = async function(id,arr){
   } else if(_cat==="Oyun Pulu"){
     _sv("adGameCurrency",a.platform); _sv("adCurrencyAmount",a.level);
   } else if(_cat==="Gift Card & E-Pin"){
-    _sv("adGiftStore",a.platform); _sv("adGiftNominal",a.level); _sv("adGiftRegion",a.region);
+    setSelectOrCustom("adGiftStore","adGiftStoreCustom",a.platform||""); _sv("adGiftNominal",a.level); _sv("adGiftRegion",a.region);
   } else if(_cat==="Oyun Boost"){
     _sv("adGameBoost",a.platform); _sv("adBoostFrom",a.server); _sv("adBoostTo",a.rank);
   } else if(_cat==="Hesab Kirayəsi"){
@@ -8869,7 +8884,10 @@ window.submitAd = async function(){
       // Birbaşa çatdırılmada ödəniş anında məlumat AVTOMATİK gedir — yarımçıq
       // məlumat = alıcı hesaba girə bilmir. Ona görə 4 sahə MƏCBURİDİR.
       // "Əlavə məlumatlar" isteğe bağlıdır.
-      const _isDigitalCat = ((document.getElementById("adCategory")?.value || "") === "Digital Hesablar");
+      const _noMailCat = (typeof NO_MAIL_CREDS_CATS !== "undefined")
+        ? (NO_MAIL_CREDS_CATS.indexOf(document.getElementById("adCategory")?.value || "") > -1)
+        : false;
+      const _isDigitalCat = _noMailCat;
       const _missing = [];
       if(!_isDigitalCat && !mailEmail)    _missing.push("Mail ünvanı");
       if(!_isDigitalCat && !mailPassword) _missing.push("Mail şifrəsi");
@@ -12329,6 +12347,8 @@ function wire(){
   document.getElementById("adGame")?.addEventListener("change", updateAdGameCustomVisibility);
   document.getElementById("adCategory")?.addEventListener("change", syncAdFormToCategory);
   updateAdGameCustomVisibility();
+  document.getElementById("adGiftStore")?.addEventListener("change", updateAdGiftStoreCustomVisibility);
+  updateAdGiftStoreCustomVisibility();
   syncAdFormToCategory();
   document.getElementById("adImageFile")?.addEventListener("change", function(e){
     const files = Array.from(e.target.files || []);
