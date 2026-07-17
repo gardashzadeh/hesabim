@@ -434,6 +434,13 @@ body.light-mode select optgroup option{background:#fff;color:#1a1d23}
 
 .sup-canned-wrap{position:relative}
 .sup-canned-btn{background:transparent;border:0;color:#94a3b8;width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-attach-btn{background:transparent;border:0;color:#94a3b8;width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none;transition:.15s}
+.sup-attach-btn:hover{background:rgba(255,81,0,.12);color:#ff5100}
+.sup-attach-btn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sup-attach-btn:disabled{opacity:.45;cursor:default}
+.sup-msg-file{display:block;max-width:220px;max-height:240px;border-radius:10px;margin-bottom:5px;cursor:pointer;background:#000}
+.sup-msg-file-name{font-size:11px;opacity:.75;margin-bottom:4px;word-break:break-all}
+.sup-upload-bar{font-size:11px;color:#ff5100;padding:0 12px 6px;display:none}
 .sup-canned-btn:hover{background:#1c2330;color:#ff5100}
 .sup-canned-btn svg{width:19px;height:19px;fill:currentColor}
 .sup-canned-menu{position:absolute;bottom:44px;left:0;background:#11151d;border:1px solid #1c2330;border-radius:10px;min-width:260px;max-width:320px;max-height:280px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:100000;display:none;padding:6px}
@@ -3563,6 +3570,7 @@ button,input,select,textarea{max-width:100%}
   </div>
 
   <!-- Input row -->
+  <div class="sup-upload-bar" id="supUploadBar"></div>
   <div class="sup-input-row" id="supInputRow" style="display:none">
     <div class="sup-canned-wrap" id="supCannedWrap" style="display:none">
       <button class="sup-canned-btn" id="supCannedBtn" type="button" title="Hazır cavablar" aria-label="Hazır cavab">
@@ -3570,6 +3578,10 @@ button,input,select,textarea{max-width:100%}
       </button>
       <div class="sup-canned-menu" id="supCannedMenu"></div>
     </div>
+    <button class="sup-attach-btn" id="supAttachBtn" type="button" title="Şəkil / video göndər" aria-label="Fayl əlavə et">
+      <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+    </button>
+    <input type="file" id="supFileInput" accept="image/*,video/*" style="display:none">
     <textarea class="sup-input" id="supInput" placeholder="Mesajınızı yazın..." rows="1" maxlength="1000"></textarea>
     <button class="sup-send-btn" id="supSendBtn" type="button" aria-label="Göndər">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -4382,14 +4394,6 @@ button,input,select,textarea{max-width:100%}
     <div style="margin-bottom:16px">
       <label style="display:block;margin-bottom:6px;font-size:13px;color:#94a3b8">Ətraflı (isteğe bağlı)</label>
       <textarea id="reportDesc" maxlength="300" placeholder="Problemi qısa izah edin..." style="width:100%;padding:10px;background:#0d1117;border:1px solid #1e2d45;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;min-height:80px;box-sizing:border-box"></textarea>
-    </div>
-    <div style="margin-bottom:16px">
-      <label style="display:block;margin-bottom:6px;font-size:13px;color:#94a3b8">Sübut (şəkil / video — isteğe bağlı)</label>
-      <input type="file" id="reportFiles" accept="image/*,video/*" multiple
-        onchange="reportFilesChanged()"
-        style="width:100%;padding:9px;background:#0d1117;border:1px dashed #1e2d45;border-radius:8px;color:#94a3b8;font-size:12px;box-sizing:border-box;cursor:pointer">
-      <div style="font-size:11px;color:#475569;margin-top:5px">Maks. 3 fayl • şəkil 5 MB • video 30 MB</div>
-      <div id="reportFilePreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
     </div>
     <button class="fullbtn" type="button" id="reportSubmitBtn" onclick="submitReport()">Şikayəti göndər</button>
   </div>
@@ -7946,7 +7950,7 @@ function _supRenderMessagesV2(msgs){
   if(!body) return;
 
   // Signature check: eyni məzmun yenidən render edilməsin (yanıb-sönmə problemi)
-  const sig = msgs.map(m => m.id + "|" + (m.createdAt?.seconds||0) + "|" + (m.readByAdmin?.seconds||0) + "|" + (m.readByUser?.seconds||0)).join("~") + "::" + (SUP.isViewingAsAdmin ? "a" : "u");
+  const sig = msgs.map(m => m.id + "|" + (m.createdAt?.seconds||0) + "|" + (m.readByAdmin?.seconds||0) + "|" + (m.readByUser?.seconds||0) + "|" + (m.fileUrl||"")).join("~") + "::" + (SUP.isViewingAsAdmin ? "a" : "u");
   if(body._supLastSig === sig) return;
   const prevIds = body._supPrevIds || new Set();
   body._supLastSig = sig;
@@ -7985,8 +7989,20 @@ function _supRenderMessagesV2(msgs){
     }
     // Yalnız yeni gələn mesajlara animasiya (əvvəlkilər olduğu kimi qalır)
     const isNew = prevIds.size > 0 && !prevIds.has(m.id);
+    let fileHtml = "";
+    if(m.fileUrl){
+      const _u = _supEsc(m.fileUrl);
+      if(m.fileType === "video"){
+        fileHtml = `<video class="sup-msg-file" src="${_u}" controls preload="metadata"></video>`;
+      } else if(m.fileType === "image"){
+        fileHtml = `<img class="sup-msg-file" src="${_u}" alt="${_supEsc(m.fileName||'şəkil')}" onclick="window.open('${_u}','_blank')">`;
+      } else {
+        fileHtml = `<div class="sup-msg-file-name"><a href="${_u}" target="_blank" rel="noopener" style="color:inherit">📎 ${_supEsc(m.fileName||'fayl')}</a></div>`;
+      }
+    }
     parts.push(`
       <div class="sup-msg ${cls}${isNew?' new':''}">
+        ${fileHtml}
         ${_supEsc(m.text)}
         <div class="sup-msg-time">${m.createdAt?.seconds ? _supTime(m.createdAt) : "göndərilir…"}${checks}</div>
       </div>`);
@@ -8435,6 +8451,84 @@ function _supAttachRatingHandlers(){
 }
 
 // ===== Widget event handler-ləri =====
+// ===== Dəstək: şəkil / video göndərmə =====
+const SUP_MAX_IMG = 5 * 1024 * 1024;    // 5 MB
+const SUP_MAX_VID = 30 * 1024 * 1024;   // 30 MB
+
+function _supUploadBar(txt){
+  const bar = document.getElementById("supUploadBar");
+  if(!bar) return;
+  if(txt){ bar.textContent = txt; bar.style.display = "block"; }
+  else { bar.textContent = ""; bar.style.display = "none"; }
+}
+
+async function supSendFile(file){
+  if(!file) return;
+  if(!SUP.chatId){ toast("Əvvəlcə söhbəti başlat."); return; }
+  if(!currentUser){ toast("Fayl göndərmək üçün giriş et."); return; }
+  const isImg = file.type.startsWith("image/");
+  const isVid = file.type.startsWith("video/");
+  if(!isImg && !isVid){ toast("Yalnız şəkil və ya video."); return; }
+  const lim = isImg ? SUP_MAX_IMG : SUP_MAX_VID;
+  if(file.size > lim){ toast("Fayl çox böyükdür (maks. "+(lim/1048576)+" MB)."); return; }
+
+  const btn = document.getElementById("supAttachBtn");
+  if(btn) btn.disabled = true;
+  _supUploadBar("Yüklənir… " + file.name.slice(0,40));
+  try{
+    const safe = file.name.replace(/[^\w.\-]/g, "_").slice(-60);
+    const path = `support/${SUP.chatId}/${currentUser.uid}/${Date.now()}_${safe}`;
+    const r = sRef(storage, path);
+    // Storage qaydaları bağlı olsa uploadBytes sonsuz retry edir → timeout qoy
+    await Promise.race([
+      uploadBytes(r, file, { contentType: file.type }),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error("Yükləmə timeout — Storage qaydalarını yoxla.")), 60000))
+    ]);
+    const url = await getDownloadURL(r);
+
+    const isAdminView = !!SUP.isViewingAsAdmin;
+    const by = isAdminView ? "admin" : "user";
+    const senderName = isAdminView
+      ? "Dəstək komandası"
+      : (currentUser?.email?.split("@")[0] || document.getElementById("supPreName")?.value || "İstifadəçi");
+
+    await addDoc(collection(db,"support_chats",SUP.chatId,"messages"), {
+      text: "",
+      fileUrl: url,
+      fileType: isVid ? "video" : "image",
+      fileName: file.name.slice(0,60),
+      isImage: !isVid,
+      by, senderName,
+      createdAt: serverTimestamp()
+    });
+
+    const upd = {
+      lastMessage: isVid ? "🎥 Video" : "🖼️ Şəkil",
+      lastMessageBy: by,
+      lastMessageAt: serverTimestamp()
+    };
+    if(by === "user") upd.unreadByAdmin = increment(1);
+    else upd.unreadByUser = increment(1);
+    await updateDoc(doc(db,"support_chats",SUP.chatId), upd);
+
+    if(by === "user"){
+      try{ tgNotify(`📎 <b>Yeni fayl (dəstək)!</b>\n👤 ${senderName}\n${isVid?"🎥 Video":"🖼️ Şəkil"}\n\nhesablar.net → Admin panel → Dəstək`); }catch(_){}
+    }
+    const faq = document.getElementById("supFaq");
+    if(faq) faq.style.display = "none";
+    _supUploadBar("");
+  }catch(e){
+    console.error("[SUP] fayl göndərilmədi:", e);
+    toast("Fayl göndərilmədi: " + (e?.code || e?.message || "naməlum xəta"));
+    _supUploadBar("");
+  }finally{
+    if(btn) btn.disabled = false;
+    const inp = document.getElementById("supFileInput");
+    if(inp) inp.value = "";
+  }
+}
+window.supSendFile = supSendFile;
+
 function _supAttachHandlers(){
   const btn = document.getElementById("supportBtn");
   const minBtn = document.getElementById("supMinimize");
@@ -8450,6 +8544,19 @@ function _supAttachHandlers(){
   if(closeBtn && !closeBtn._supBound){ closeBtn._supBound = true; closeBtn.addEventListener("click", supCloseChat); }
   if(preSubmit && !preSubmit._supBound){ preSubmit._supBound = true; preSubmit.addEventListener("click", supSubmitPrechat); }
   if(sendBtn && !sendBtn._supBound){ sendBtn._supBound = true; sendBtn.addEventListener("click", supSendMessage); }
+  const attachBtn = document.getElementById("supAttachBtn");
+  const fileInput = document.getElementById("supFileInput");
+  if(attachBtn && fileInput && !attachBtn._supBound){
+    attachBtn._supBound = true;
+    attachBtn.addEventListener("click", ()=>{
+      if(!currentUser){ toast("Fayl göndərmək üçün giriş et."); return; }
+      fileInput.click();
+    });
+    fileInput.addEventListener("change", ()=>{
+      const f = fileInput.files && fileInput.files[0];
+      if(f) supSendFile(f);
+    });
+  }
   if(input && !input._supBound){
     input._supBound = true;
     input.addEventListener("keydown", (e)=>{
@@ -12708,52 +12815,9 @@ window.openReportModal = function(type, targetId, targetTitle){
   document.getElementById("reportTargetType").value = type || "ad";
   document.getElementById("reportTargetTitle").value = targetTitle || "";
   document.getElementById("reportDesc").value = "";
-  const _rf = document.getElementById("reportFiles");
-  if(_rf) _rf.value = "";
-  const _rp = document.getElementById("reportFilePreview");
-  if(_rp) _rp.innerHTML = "";
-  _reportFiles = [];
   openModal("reportModal");
 };
 
-// ── Şikayətə əlavə olunan fayllar (şəkil / video)
-const REPORT_MAX_FILES = 3;
-const REPORT_MAX_IMG = 5 * 1024 * 1024;    // 5 MB
-const REPORT_MAX_VID = 30 * 1024 * 1024;   // 30 MB
-let _reportFiles = [];
-
-window.reportFilesChanged = function(){
-  const inp = document.getElementById("reportFiles");
-  const prev = document.getElementById("reportFilePreview");
-  _reportFiles = [];
-  if(prev) prev.innerHTML = "";
-  const files = Array.from(inp?.files || []);
-  if(files.length > REPORT_MAX_FILES){
-    toast("Maksimum "+REPORT_MAX_FILES+" fayl əlavə edə bilərsiniz.");
-    inp.value = ""; return;
-  }
-  for(const f of files){
-    const isImg = f.type.startsWith("image/");
-    const isVid = f.type.startsWith("video/");
-    if(!isImg && !isVid){ toast("Yalnız şəkil və ya video."); inp.value=""; _reportFiles=[]; if(prev) prev.innerHTML=""; return; }
-    const lim = isImg ? REPORT_MAX_IMG : REPORT_MAX_VID;
-    if(f.size > lim){
-      toast(f.name+" çox böyükdür (maks. "+(lim/1048576)+" MB).");
-      inp.value=""; _reportFiles=[]; if(prev) prev.innerHTML=""; return;
-    }
-    _reportFiles.push(f);
-    if(prev){
-      const url = URL.createObjectURL(f);
-      const box = document.createElement("div");
-      box.style.cssText = "width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #1e2d45;background:#0d1117;position:relative";
-      box.innerHTML = isImg
-        ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover">`
-        : `<video src="${url}" style="width:100%;height:100%;object-fit:cover" muted></video>
-           <div style="position:absolute;inset:0;display:grid;place-items:center;font-size:18px">▶</div>`;
-      prev.appendChild(box);
-    }
-  }
-};
 
 window.submitReport = async function(){
   if(!currentUser){ openModal("loginModal"); return; }
@@ -12767,22 +12831,6 @@ window.submitReport = async function(){
   const btn = document.getElementById("reportSubmitBtn");
   if(btn){ btn.disabled = true; btn.textContent = "Göndərilir..."; }
   try{
-    // Faylları əvvəlcə Storage-a yüklə, sonra linkləri sənədə yaz
-    const attachments = [];
-    for(let i=0;i<_reportFiles.length;i++){
-      const f = _reportFiles[i];
-      if(btn) btn.textContent = "Yüklənir "+(i+1)+"/"+_reportFiles.length+"...";
-      const safe = f.name.replace(/[^\w.\-]/g, "_").slice(-60);
-      const path = `reports/${currentUser.uid}/${Date.now()}_${i}_${safe}`;
-      const r = sRef(storage, path);
-      await uploadBytes(r, f, { contentType: f.type });
-      attachments.push({
-        url: await getDownloadURL(r),
-        type: f.type.startsWith("video/") ? "video" : "image",
-        name: f.name.slice(0,60),
-        path
-      });
-    }
     const payload = {
       targetId, targetType, targetTitle: targetTitle||"",
       reason, desc,
@@ -12791,7 +12839,6 @@ window.submitReport = async function(){
       status: "Baxılmadı",
       createdAt: serverTimestamp()
     };
-    if(attachments.length) payload.attachments = attachments;
     await addDoc(collection(db,"reports"), payload);
     closeModal("reportModal");
     toast("Şikayətiniz göndərildi. Admin baxacaq.");
