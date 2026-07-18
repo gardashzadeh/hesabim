@@ -5023,6 +5023,11 @@ function closeModal(id){
       if(canonEl) canonEl.setAttribute("href", "https://hesablar.net/");
       const oldSchema = document.getElementById("dynamicProductSchema");
       if(oldSchema) oldSchema.remove();
+      // URL-i ana səhifəyə qaytar (popstate ilə gəlmiriksə)
+      if(location.pathname.indexOf("/elan/") === 0 && !window.__pdPopstate){
+        history.pushState({}, "", "/");
+      }
+      window.__pdPopstate = false;
     }catch(e){}
   }
 }
@@ -5396,7 +5401,19 @@ function openProductDetail(p){
     const _d = (currentDetailProduct.desc||"").slice(0,155) || "Azərbaycanda etibarlı oyun marketplace-i.";
     const _img = window.cldImg((currentDetailProduct.imageUrls && currentDetailProduct.imageUrls[0]) || currentDetailProduct.imageUrl || "https://hesablar.net/og-image.png", 1200);
     const _adNo = (currentDetailProduct.adNumber ? String(currentDetailProduct.adNumber) : "").replace(/[^0-9]/g,"");
-    const _url = "https://hesablar.net/" + (_adNo ? "?ad=" + _adNo : "");
+    const _slug = String(currentDetailProduct.title||"")
+      .toLowerCase()
+      .replace(/ə/g,"e").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ü/g,"u")
+      .replace(/ç/g,"c").replace(/ş/g,"s").replace(/ğ/g,"g")
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60);
+    const _path = _adNo ? ("/elan/" + _adNo + (_slug ? "-"+_slug : "")) : "/";
+    const _url = "https://hesablar.net" + _path;
+    // Real URL — history-yə yaz (bot və paylaşım üçün indekslənən ünvan)
+    try{
+      if(_adNo && location.pathname !== _path){
+        history.pushState({adNumber:_adNo}, "", _path);
+      }
+    }catch(_e){}
     document.title = _t + " — " + (currentDetailProduct.category || "Elan") + " | Hesablar.net";
     const setMeta = (sel, val) => { const el = document.querySelector(sel); if(el) el.setAttribute("content", val); };
     setMeta('meta[name="description"]', _d);
@@ -13113,6 +13130,66 @@ window.listenReportsAdmin = function(){
 /* Şikayət olunan hədəfi açır.
    Elan üçün: sənədi oxuyub openProductDetail()-ə uyğun obyekt qurur.
    Elan silinibsə xəbər verir (admin panelində "Elanlar" tabından da tapıla bilməz). */
+/* ── Real URL routing: /elan/{adNumber}-{slug} ─────────────────────────── */
+function _adDocToProduct(id, a){
+  const raw = (a.imageUrls && a.imageUrls[0]) || a.imageUrl || "";
+  const img = (typeof window.cldImg === "function") ? window.cldImg(raw, 800) : raw;
+  const iconHtml = img ? '<img src="'+String(img).replace(/"/g,'%22')+'" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy">' : "";
+  return {
+    title: a.title||"", price: a.priceText || (Number(a.price||0).toFixed(2)+" ₼"),
+    desc: a.desc||"", rawDesc: a.desc||"", game: a.game||"",
+    category: a.category||"", platform: a.platform||"", region: a.region||"",
+    server: a.server||"", rank: a.rank||"", level: a.level||"",
+    seller: a.sellerUserId || (a.sellerEmail||"").split("@")[0] || "Satıcı",
+    sellerUid: a.sellerUid||"", sellerEmail: a.sellerEmail||"",
+    adId: id, adNumber: a.adNumber||"", views: a.views||0,
+    imageUrls: a.imageUrls||[], stock: Number(a.stock||1),
+    contactMode: a.contactMode||"platform", deliveryMode: a.deliveryMode||"",
+    deliveryEta: Number(a.deliveryEta||0), icon: iconHtml
+  };
+}
+window.openAdByNumber = async function(adNo){
+  adNo = String(adNo||"").replace(/[^0-9]/g,"");
+  if(!adNo) return false;
+  try{
+    let _dDoc = null;
+    const snap = await getDocs(query(collection(db,"ads"), where("adNumber","==",adNo), limit(1)));
+    if(!snap.empty){ _dDoc = snap.docs[0]; }
+    else{
+      // adNumber bəzən rəqəm kimi saxlanıla bilər
+      const snap2 = await getDocs(query(collection(db,"ads"), where("adNumber","==",Number(adNo)), limit(1)));
+      if(!snap2.empty) _dDoc = snap2.docs[0];
+    }
+    if(!_dDoc) return false;
+    const _aData = _dDoc.data()||{};
+    if(_aData.status && _aData.status !== "Təsdiqləndi"){ toast("Bu elan artıq aktiv deyil."); return false; }
+    window.openProductDetail(_adDocToProduct(_dDoc.id, _aData));
+    document.getElementById("productModal")?.classList.add("show");
+    document.body.classList.add("pd-open");
+    return true;
+  }catch(e){ console.warn("openAdByNumber:", e); return false; }
+};
+// Brauzerin geri/irəli düymələri
+window.addEventListener("popstate", function(){
+  const m = location.pathname.match(/^\/elan\/(\d+)/);
+  if(m){
+    window.openAdByNumber(m[1]);
+  }else{
+    const pm = document.getElementById("productModal");
+    if(pm && pm.classList.contains("show")){
+      window.__pdPopstate = true;
+      if(typeof window.closeModal === "function") window.closeModal("productModal");
+      else pm.classList.remove("show");
+      document.body.classList.remove("pd-open");
+    }
+  }
+});
+// Səhifə /elan/... ünvanı ilə açılıbsa — elanı birbaşa yüklə
+(function(){
+  const m = location.pathname.match(/^\/elan\/(\d+)/);
+  if(m){ setTimeout(()=>window.openAdByNumber(m[1]), 400); }
+})();
+
 window.openReportTarget = async function(type, targetId){
   if(!targetId){ toast("Hədəf ID-si yoxdur."); return; }
 
