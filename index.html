@@ -11048,7 +11048,15 @@ function _fetchOrdersAdminRender(){
     await completeOrder(b.dataset.adminComplete);
     _fetchOrdersAdmin();
   });
-  el.querySelectorAll("[data-admin-cancel]").forEach(b=>b.onclick=async()=>{await cancelOrder(b.dataset.adminCancel);_fetchOrdersAdmin();});
+  el.querySelectorAll("[data-admin-cancel]").forEach(b=>b.onclick=async()=>{
+    const _cid = b.dataset.adminCancel;
+    const _co = arr.find(o=>o.id===_cid);
+    const _cMsg = `Bu sifariş ləğv edilib refund edilsin?\n\n🆔 ${_cid}\n💰 ${Number(_co?.price||0).toFixed(2)} ₼\n👤 ${_co?.buyerEmail||""}\n\nBu əməliyyat geri qaytarıla bilməz.`;
+    const _cOk = await (window.showConfirm ? window.showConfirm(_cMsg,"↩️") : Promise.resolve(window.confirm(_cMsg)));
+    if(!_cOk) return;
+    await cancelOrder(_cid);
+    _fetchOrdersAdmin();
+  });
   el.querySelectorAll("[data-admin-refund]").forEach(b=>b.onclick=()=>adminRefundOrder(b.dataset.adminRefund));
 }
 window._fetchOrdersAdminRender = _fetchOrdersAdminRender;
