@@ -3117,10 +3117,13 @@ button,input,select,textarea{max-width:100%}
   #productModal .pd-gallery-col{
     border-right:0!important;
     border-bottom:1px solid #161b24;
-    aspect-ratio:16/10;
-    min-height:220px;
+    aspect-ratio:auto!important;
+    min-height:0;
+    height:auto!important;
+    overflow:visible!important;
   }
   #productModal .pd-gallery-col .product-detail-image{
+    aspect-ratio:16/10;
     min-height:220px!important;
   }
   #productModal .pd-gallery-col .product-detail-image svg,
@@ -14017,6 +14020,8 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
   /* --- 4. Alt sətir: "3 baxış" və satıcı adı kəsilirdi --- */
   .ad-footer-row{gap:6px!important;min-width:0!important}
   .ad-views{font-size:11px!important;flex:none!important}
+  /* Mobildə satıcı adı göstərilmir — uzun olub sığmır */
+  .ads .ad .user{display:none!important}
   .ad-footer-row .user{
     min-width:0!important;overflow:hidden!important;
     text-overflow:ellipsis!important;white-space:nowrap!important;
