@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <!-- Performance: Preconnect to external origins -->
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+<link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
@@ -174,7 +178,8 @@
   ]
 }
 </script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 *{box-sizing:border-box}
 *{-webkit-tap-highlight-color:rgba(255,81,0,.12);touch-action:manipulation}
@@ -3374,7 +3379,7 @@ button,input,select,textarea{max-width:100%}
 
 <header class="header">
   <div class="shell">
-    <button class="logo" onclick="goHome(event)"><img src="img/sekil_01.webp" alt="Hesablar.net" style="height:128px;width:auto;object-fit:contain;display:block" loading="lazy"></button>
+    <button class="logo" onclick="goHome(event)"><img src="img/sekil_01.webp" alt="Hesablar.net" style="height:128px;width:auto;object-fit:contain;display:block" fetchpriority="high" decoding="async"></button>
     <form class="search" onsubmit="event.preventDefault();filterCards()">
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
