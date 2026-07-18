@@ -468,6 +468,19 @@ body.light-mode select optgroup option{background:#fff;color:#1a1d23}
 .sup-rating-submitted{color:#22c55e;font-size:13px;padding:14px;text-align:center}
 
 .faq-section{padding:40px 0 8px}
+.seo-cats{padding:40px 0 0}
+.seo-cats-intro p{font-size:14px;line-height:1.7;color:#95a1b3;max-width:820px;margin:0 0 22px}
+.seo-cats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.seo-cat{background:#0c0f14;border:1px solid #1c2230;border-radius:12px;padding:16px 18px}
+.seo-cat h3{margin:0 0 8px;font-size:15px}
+.seo-cat h3 a{color:#ff5100;text-decoration:none}
+.seo-cat h3 a:hover{text-decoration:underline}
+.seo-cat p{margin:0;font-size:13px;line-height:1.6;color:#95a1b3}
+body.light-mode .seo-cats-intro p{color:#475569}
+body.light-mode .seo-cat{background:#fff;border-color:#e2e8f0}
+body.light-mode .seo-cat p{color:#475569}
+@media(max-width:900px){.seo-cats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.seo-cats-grid{grid-template-columns:1fr}}
 .faq-wrap{display:flex;flex-direction:column;gap:10px}
 .faq-item{background:#0c0f14;border:1px solid #1c2230;border-radius:12px;overflow:hidden;transition:border-color .15s}
 .faq-item[open]{border-color:#ff5100}
@@ -4354,6 +4367,54 @@ button,input,select,textarea{max-width:100%}
     </div>
   </div>
 </div>
+
+<!-- SEO mətn bloku — kateqoriyaların axtarış sözləri ilə təsviri -->
+<section class="seo-cats" aria-label="Kateqoriyalar haqqında">
+  <div class="shell">
+    <div class="panel-head" style="margin-bottom:18px"><h2>HESABLAR.NET — AZƏRBAYCANDA OYUN MARKETPLACE-İ</h2></div>
+    <div class="seo-cats-intro">
+      <p>Hesablar.net Azərbaycanda oyun hesablarının satışı, oyun pulu, skin, gift card və rəqəmsal məhsulların alqı-satqısı üçün etibarlı platformadır. Bütün ödənişlər təhlükəsiz sistem üzərindən aparılır, elanlar admin təsdiqindən keçir. Aşağıda əsas kateqoriyalarımızla tanış ola bilərsiniz.</p>
+    </div>
+    <div class="seo-cats-grid">
+      <article class="seo-cat">
+        <h3><a href="/?category=Hesab" onclick="filterCategory('Hesab');return false">Oyun Hesabları</a></h3>
+        <p>PUBG Mobile, Valorant, Free Fire, Fortnite, League of Legends, CS2, Dota 2, Roblox və Minecraft hesablarının satışı. Yüksək rütbəli, skinli və nadir əşyalı oyun hesabını münasib qiymətə al və ya öz hesabını təhlükəsiz sat.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Oyun%20Pulu" onclick="filterCategory('Oyun Pulu');return false">Oyun Pulu</a></h3>
+        <p>PUBG UC, Valorant VP, Free Fire almaz, Roblox Robux, Mobile Legends elması və digər oyun valyutalarının satışı. Sürətli çatdırılma ilə al və ya sat — ödəniş təsdiqləndikdən dərhal sonra hesabına köçürülür.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Skin" onclick="filterCategory('Skin');return false">Oyun Skinləri</a></h3>
+        <p>CS2 (Counter-Strike 2) və Valorant skinlərinin satışı — bıçaq, tüfəng və nadir kolleksiya əşyaları. Etibarlı satıcılardan orijinal skinləri əlverişli qiymətə al və ya öz skinini sat.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Gift%20Card%20%26%20E-Pin" onclick="filterCategory('Gift Card &amp; E-Pin');return false">Gift Card &amp; E-Pin</a></h3>
+        <p>Steam Wallet, Google Play, App Store, PlayStation, Xbox, Netflix və Spotify gift kartlarının satışı. Rəqəmsal kod ödənişdən dərhal sonra çatdırılır — al və ya sat.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Oyun%20Boost" onclick="filterCategory('Oyun Boost');return false">Oyun Boost və Rank Yüksəltmə</a></h3>
+        <p>Valorant, League of Legends, CS2 və digər oyunlarda rank yüksəltmə və boost xidmətlərinin satışı. Peşəkar oyunçular hesabını istədiyin səviyyəyə çatdırır.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Hesab%20Kiray%C9%99si" onclick="filterCategory('Hesab Kirayəsi');return false">Hesab Kirayəsi</a></h3>
+        <p>Bahalı oyun hesablarının kirayəsi — saatlıq və ya günlük. Yüksək rütbəli hesabları almadan qısa müddətə sərfəli qiymətə kirayələ və ya öz hesabını kirayə ver.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Sosial%20Media" onclick="filterCategory('Sosial Media');return false">Sosial Media Hesabları</a></h3>
+        <p>Instagram, TikTok, Telegram, YouTube və digər sosial media hesablarının satışı. İzləyicili və aktiv hesabları etibarlı satıcılardan al və ya öz hesabını sat.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Oyun%20Konsolu" onclick="filterCategory('Oyun Konsolu');return false">Oyun Konsolu</a></h3>
+        <p>PlayStation, Xbox və Nintendo konsollarının, oyunlarının və aksesuarlarının satışı. İkinci əl və yeni məhsulları münasib qiymətə al və ya sat.</p>
+      </article>
+      <article class="seo-cat">
+        <h3><a href="/?category=Digital%20Hesablar" onclick="filterCategory('Digital Hesablar');return false">Digital Hesablar</a></h3>
+        <p>Netflix, Spotify, Canva Pro, ChatGPT Plus, Discord Nitro və digər abunə hesablarının satışı. Aylıq və illik planları endirimli qiymətə al və ya öz digital hesabını sat.</p>
+      </article>
+    </div>
+  </div>
+</section>
 
 <!-- Görünən FAQ — schema ilə eyni suallar (Google rich snippet üçün mütləq görünməlidir) -->
 <section class="faq-section" aria-label="Tez-tez verilən suallar">
