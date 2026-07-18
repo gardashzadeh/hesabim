@@ -5463,6 +5463,20 @@ function openProductDetail(p){
     const sellerKey = currentDetailProduct.sellerEmail || currentDetailProduct.seller || "Hesablar.net";
     const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
     sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
+    // Real say: sellerStats/{uid} sənədindən (profil modalı ilə eyni mənbə)
+    const _suid = currentDetailProduct.sellerUid || "";
+    if(_suid && typeof window.fetchSellerSalesCount === "function"){
+      window.fetchSellerSalesCount(_suid).then(n=>{
+        if(typeof n === "number"){
+          sellerSalesEl.textContent = n + " satış";
+          try{
+            const c = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
+            c[sellerKey] = n;
+            localStorage.setItem("gs_seller_sales_counts", JSON.stringify(c));
+          }catch(e){}
+        }
+      }).catch(()=>{});
+    }
   }
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
   const _icon = currentDetailProduct.icon || "";
@@ -12754,6 +12768,12 @@ window.spCopyLink = function(btn, url){
   try{ navigator.clipboard.writeText(url).then(done).catch(()=>{ if(window.showToast) window.showToast(url); }); }
   catch(e){ if(window.showToast) window.showToast(url); }
 };
+window.fetchSellerSalesCount = async function(uid){
+  if(!uid) return 0;
+  const snap = await getDoc(doc(db,"sellerStats",uid)).catch(()=>null);
+  return (snap && snap.exists()) ? Number(snap.data().salesCount || 0) : 0;
+};
+
 window.openSellerProfile = async function(sellerUid, sellerEmail){
   if(!sellerUid && !sellerEmail){ toast("Satıcı məlumatı tapılmadı."); return; }
   openModal("sellerProfileModal");
