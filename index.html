@@ -540,9 +540,10 @@ body.light-mode .admin-support-name{color:#1a1d23}
   .search button{width:48px;font-size:20px}
   .toplinks{display:none}
   .actions{justify-content:center;order:2;gap:8px;flex-wrap:wrap}
-  .hbtn{height:38px;padding:0 14px;font-size:12px}
-  .cart{width:42px;height:42px;font-size:20px}
-  .notify-btn{width:42px;height:42px;font-size:19px}
+  .hbtn{height:40px;padding:0 16px;font-size:12px}
+  .cart{width:40px;height:40px;font-size:19px;border:1px solid #292b2b;border-radius:8px;background:#101111}
+  .notify-btn{width:40px;height:40px;font-size:18px;border:1px solid #292b2b;border-radius:8px;background:#101111}
+  .theme-toggle{width:40px;height:40px;font-size:18px;border-radius:8px}
   .hero{height:auto;min-height:160px;padding:20px 16px}
   .hero-title{position:static;padding:0}
   .hero-title h1{font-size:22px;line-height:1.2}
@@ -2858,7 +2859,7 @@ button,input,select,textarea{max-width:100%}
 
 @media (max-width: 430px){
   .actions{grid-template-columns:repeat(5,minmax(0,1fr))!important}
-  .actions .hbtn{font-size:11px!important;padding:0 5px!important}
+  .actions .hbtn{font-size:11px!important;padding:0 11px!important}
   .search select{width:104px!important;font-size:12px!important}
   .games{grid-template-columns:repeat(3,minmax(0,1fr))!important}
   .ad{grid-template-columns:82px 1fr!important}
@@ -2948,17 +2949,21 @@ button,input,select,textarea{max-width:100%}
   }
   .actions::-webkit-scrollbar{display:none}
   .actions .hbtn{
-    height:38px!important;
-    padding:0 10px!important;
+    height:40px!important;
+    padding:0 16px!important;
     font-size:12px!important;
     flex:0 0 auto!important;
     white-space:nowrap!important;
   }
-  .cart, .notify-btn{
-    width:38px!important;height:38px!important;
-    font-size:15px!important;
-    flex:0 0 38px!important;
+  .cart, .notify-btn, .theme-toggle{
+    width:40px!important;height:40px!important;
+    font-size:18px!important;
+    flex:0 0 40px!important;
+    background:#101111!important;
+    border:1px solid #292b2b!important;
+    border-radius:8px!important;
   }
+  .header-balance{height:40px!important;border-radius:8px!important;flex:0 0 auto!important}
   .cart-badge, [class*="cart-count"], [class*="cart-badge"]{
     font-size:11px!important;
     min-width:15px!important;height:15px!important;
@@ -3019,17 +3024,22 @@ button,input,select,textarea{max-width:100%}
   .game b, .game .name, .game span{font-size:11px!important;padding:6px 4px!important;display:block;text-align:center}
   .game small{font-size:11px!important}
 
-  /* Profil / Çıxış düymələri — mobildə kompakt */
+  /* Profil / Çıxış düymələri — mobildə 1 nömrəli dizayn kimi */
   #loginBtn, #registerBtn{
-    height:34px!important;
-    padding:0 10px!important;
-    font-size:11px!important;
-    border-radius:8px!important;
-    max-width:100px!important;
+    height:40px!important;
+    padding:0 16px!important;
+    font-size:12px!important;
+    font-weight:700!important;
+    border-radius:7px!important;
+    max-width:none!important;
+    display:inline-flex!important;
+    align-items:center;
+    justify-content:center;
     overflow:hidden;
-    text-overflow:ellipsis;
     white-space:nowrap;
   }
+  #loginBtn{background:#121313!important;border:1px solid #2c2e2e!important}
+  #registerBtn{background:linear-gradient(90deg,#ff5100,#ff005b)!important;border:0!important}
 
   /* E-PIN da eyni: üfüqi carousel */
   .epins{
@@ -7393,9 +7403,11 @@ function updateHeader(){
   const register=document.getElementById("registerBtn");
   const notifyPerm=document.getElementById("notifyPermBtn");
 
+  const ICON_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin-right:7px;flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  const ICON_LOGOUT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin-right:7px;flex-shrink:0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
   if(currentUser && currentUser.emailVerified){
-    if(login){ login.textContent="Kabinet"; login.onclick=()=>{ openCabinetModal(); }; }
-    if(register) register.textContent="Çıxış";
+    if(login){ login.innerHTML=ICON_USER+"<span>Kabinet</span>"; login.onclick=()=>{ openCabinetModal(); }; }
+    if(register) register.innerHTML=ICON_LOGOUT+"<span>Çıxış</span>";
   }else{
     if(login){ login.textContent="Giriş et"; login.onclick=null; }
     if(register) register.textContent="Qeydiyyat";
