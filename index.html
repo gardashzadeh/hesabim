@@ -4491,6 +4491,10 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
             <span id="pdDeliveryIcon"></span>
             <span id="pdDeliveryText">Dərhal çatdırılma</span>
           </span>
+          <span class="badge" id="pdWarrantyBadge" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span id="pdWarrantyText">Zəmanət</span>
+          </span>
         </div>
 
         <div class="pd-price">
@@ -5063,6 +5067,24 @@ function renderPdDeliveryBadge(P){
   }
 }
 
+/* Zəmanət müddəti badge-i */
+function renderPdWarrantyBadge(P){
+  P = P || {};
+  const box = document.getElementById("pdWarrantyBadge");
+  const txt = document.getElementById("pdWarrantyText");
+  if(!box || !txt) return;
+  const LBL = { "1w":"1 həftə zəmanət", "15d":"15 gün zəmanət", "1m":"1 ay zəmanət",
+                "6m":"6 ay zəmanət", "1y":"1 il zəmanət", "forever":"Ömürlük zəmanət" };
+  const w = P.warranty || "forever";
+  const label = LBL[w];
+  if(!label){ box.style.display = "none"; return; }
+  txt.textContent = label;
+  box.style.display = "";
+  box.title = (w === "forever")
+    ? "Bu elan üçün ömürlük zəmanət var — istənilən vaxt problem olarsa mübahisə aça bilərsən."
+    : "Təhvildən sonra bu müddət ərzində problem olarsa mübahisə aça bilərsən.";
+}
+
 function renderPdAbout(P){
   P = P || {};
   const descEl = document.getElementById("pdDesc");
@@ -5574,7 +5596,8 @@ window.renderMarketAds = function renderMarketAds(){
     directWhatsapp: a.directWhatsapp || "",
     stock: Number(a.stock || 1),
     video: a.video || "",
-    adNumber: a.adNumber || ""
+    adNumber: a.adNumber || "",
+    warranty: a.warranty || "forever"
   }));
 
   const base = baseAds.map(x => ({
@@ -5971,6 +5994,7 @@ function openProductDetail(p){
   // Satış üsuluna görə düymələr
   const isDirect  = currentDetailProduct.contactMode === "direct_contact";
   renderPdDeliveryBadge(currentDetailProduct);
+  renderPdWarrantyBadge(currentDetailProduct);
   const _addCart  = document.getElementById("pdAddCart");
   const callBtn   = document.getElementById("pdCallBtn");
   const dirPhone  = (currentDetailProduct.directPhone || "").trim();
@@ -13616,7 +13640,7 @@ function _adDocToProduct(id, a){
     adId: id, adNumber: a.adNumber||"", views: a.views||0,
     imageUrls: a.imageUrls||[], stock: Number(a.stock||1),
     contactMode: a.contactMode||"platform", deliveryMode: a.deliveryMode||"",
-    deliveryEta: Number(a.deliveryEta||0), icon: iconHtml
+    deliveryEta: Number(a.deliveryEta||0), warranty: a.warranty||"forever", icon: iconHtml
   };
 }
 window.openAdByNumber = async function(adNo){
@@ -13696,7 +13720,7 @@ window.openReportTarget = async function(type, targetId){
       adId: targetId, adNumber: a.adNumber||"", views: a.views||0,
       imageUrls: a.imageUrls||[], stock: Number(a.stock||1),
       contactMode: a.contactMode||"platform", deliveryMode: a.deliveryMode||"",
-      deliveryEta: Number(a.deliveryEta||0), icon: iconHtml
+      deliveryEta: Number(a.deliveryEta||0), warranty: a.warranty||"forever", icon: iconHtml
     });
     document.getElementById("productModal")?.classList.add("show");
     document.body.classList.add("pd-open");
