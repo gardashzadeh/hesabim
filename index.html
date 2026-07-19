@@ -1872,6 +1872,15 @@ body.pd-open .notif-dropdown{z-index:1000002!important}
 }
 .pd-back-btn:hover{background:#1a212e;border-color:#3a4456;color:#f1f5f9}
 .pd-back-btn svg{width:16px;height:16px}
+.pd-topbar-close{
+  margin-left:auto;flex:none;
+  background:#11151c;border:1px solid #232b38;color:#8b95a8;
+  border-radius:9px;width:34px;height:34px;padding:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .15s ease;
+}
+.pd-topbar-close:hover{background:#1a212e;border-color:#3a4456;color:#f1f5f9;transform:rotate(90deg)}
+.pd-topbar-close svg{width:16px;height:16px}
 .pd-breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:#5b6678;min-width:0;overflow:hidden;white-space:nowrap;font-family:'DM Sans',Arial,sans-serif;}
 .pd-breadcrumb a{color:#8b95a8;text-decoration:none;transition:color .15s;cursor:pointer;}
 .pd-breadcrumb a:hover{color:#ff5100}
@@ -2884,7 +2893,7 @@ button,input,select,textarea{max-width:100%}
   .mobile-bottom-nav button svg{width:20px;height:20px;stroke-width:1.8}
   .mobile-bottom-nav button.active{color:#ff5100}
   .mobile-bottom-nav button.active svg{stroke:#ff5100}
-  .mob-cart-badge{position:absolute;top:2px;right:50%;transform:translateX(14px);min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
+  .mob-cart-badge{position:absolute;top:5px;left:50%;margin-left:5px;right:auto;transform:none;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 0 2px #0b0d10;box-sizing:border-box}
 }
 
 @media (min-width: 901px){.mobile-bottom-nav{display:none!important}.cab-menu-toggle{display:none!important}}
@@ -4345,15 +4354,13 @@ button,input,select,textarea{max-width:100%}
 <div class="modal" id="productModal">
   <div class="modal-box product-detail-box">
     <div class="pd-topbar">
-      <button class="pd-back-btn" type="button" onclick="closeModal('productModal')" title="Geri qayıt">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
       <div class="pd-breadcrumb">
-        <a href="#" onclick="closeModal('productModal');goHome(event);return false;">Ana səhifə</a>
-        <span class="pd-bc-sep">›</span>
         <span id="pdBreadcrumbTitle" class="pd-bc-current">Elan</span>
       </div>
       <h3 id="pdTitle" style="display:none">Məhsul detalları</h3>
+      <button class="pd-topbar-close" type="button" onclick="closeModal('productModal')" title="Bağla" aria-label="Bağla">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="product-detail-grid pd-grid-3col">
       <div class="pd-gallery-col">
