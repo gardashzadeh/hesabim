@@ -11139,7 +11139,23 @@ async function _fetchBalanceAdmin(){
     const snap=await getDocs(query(collection(db,"balanceRequests"),where("status","==","Gözləmədə")));
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
     setAdminStat("balanceRequests",arr.length);
-    el.innerHTML='<h3>Balans / çıxarış müraciətləri</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Tip</th><th>İstifadəçi</th><th>Məbləğ</th><th>Metod</th><th>Çek / məlumat</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(r=>`<tr><td>${r.type==="deposit"?"Artırma":"Çıxarış"}</td><td>${esc(r.userEmail)}</td><td>${walletNumber(r.amount)}</td><td>${esc(r.method||"-")}</td><td>${r.receipt?`<a href="${esc(r.receipt)}" target="_blank">Çekə bax</a>`:esc(r.details||"-")}</td><td><div class="action-row"><button class="approve-btn" data-bal-ok="${r.id}">Təsdiqlə</button><button class="reject-btn" data-bal-no="${r.id}">Rədd et</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Gözləmədə balans müraciəti yoxdur.</div>');
+    // Hər müraciət üçün istifadəçi profilini və cüzdanını yüklə (say azdır, problem deyil)
+    const uids=[...new Set(arr.map(r=>r.userUid).filter(Boolean))];
+    const userMap={}, walletMap={};
+    await Promise.all(uids.map(async uid=>{
+      try{ const u=await getDoc(doc(db,"users",uid)); if(u.exists()) userMap[uid]=u.data()||{}; }catch(e){}
+      try{ const w=await getDoc(doc(db,"wallets",uid)); if(w.exists()) walletMap[uid]=w.data()||{}; }catch(e){}
+    }));
+    el.innerHTML='<h3>Balans / çıxarış müraciətləri</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Tarix</th><th>Tip</th><th>İstifadəçi</th><th>Məbləğ</th><th>Metod</th><th>Rekvizit / Çek</th><th>Cüzdan</th><th>Əməliyyat</th></tr></thead><tbody>${arr.map(r=>{
+      const u=userMap[r.userUid]||{}, w=walletMap[r.userUid]||{};
+      const phone=u.phone||u.phoneNumber||"";
+      const det=(r.details||"").trim();
+      const detHtml=(det?`<span style="font-family:monospace;user-select:all">${esc(det)}</span> <button class="info-btn" data-bal-copy="${esc(det)}" title="Kopyala" style="padding:2px 8px;font-size:11px">📋</button>`:"—")
+        +(r.receipt?`<br><a href="${esc(r.receipt)}" target="_blank">Çekə bax</a>`:"");
+      const wHtml=`Bal: <b>${walletNumber(w.balance||0)}</b><br><small>Gözl.çıx: ${walletNumber(w.pendingOut||0)} · Qazanc: ${walletNumber(w.totalEarned||0)}</small>`;
+      return `<tr><td>${adminDateTime(r.createdAt)}</td><td>${r.type==="deposit"?"Artırma":"<b style='color:#ff5100'>Çıxarış</b>"}</td><td>${esc(r.userEmail)}${phone?`<br><small>📱 ${esc(phone)}</small>`:""}</td><td><b>${walletNumber(r.amount)}</b></td><td>${esc(r.method||"-")}</td><td>${detHtml}</td><td>${wHtml}</td><td><div class="action-row"><button class="approve-btn" data-bal-ok="${r.id}">Təsdiqlə</button><button class="reject-btn" data-bal-no="${r.id}">Rədd et</button></div></td></tr>`;
+    }).join("")}</tbody></table><div class="wallet-note">⚠️ <b>Çıxarış:</b> "Təsdiqlə" basmazdan ƏVVƏL rekvizitə köçürməni et. Təsdiq yalnız sistemdə "gözləyən çıxarışı" bağlayır — pul avtomatik köçürülmür.</div>`:'<div class="cabinet-empty">Gözləmədə balans müraciəti yoxdur.</div>');
+    el.querySelectorAll("[data-bal-copy]").forEach(b=>b.onclick=()=>{ try{ navigator.clipboard.writeText(b.dataset.balCopy); toast("Rekvizit kopyalandı"); }catch(e){ toast("Kopyalanmadı"); } });
     el.querySelectorAll("[data-bal-ok]").forEach(b=>b.onclick=async()=>{await processBalanceRequest(b.dataset.balOk,true,arr);_fetchBalanceAdmin();});
     el.querySelectorAll("[data-bal-no]").forEach(b=>b.onclick=async()=>{await processBalanceRequest(b.dataset.balNo,false,arr);_fetchBalanceAdmin();});
   }catch(e){ console.error("_fetchBalanceAdmin:",e); }
