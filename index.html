@@ -3425,6 +3425,57 @@ button,input,select,textarea{max-width:100%}
   }
 }
 
+/* ── İŞIQ REJİMİ — elan detalı modalı (üst panel, breadcrumb, üstünlüklər) ── */
+body.light-mode .pd-topbar{background:#f8fafc;border-bottom:1px solid #e2e8f0}
+body.light-mode .pd-breadcrumb{color:#64748b}
+body.light-mode .pd-breadcrumb a{color:#475569}
+body.light-mode .pd-breadcrumb a:hover{color:#ff5100}
+body.light-mode .pd-bc-sep{color:#cbd5e1}
+body.light-mode .pd-bc-current{color:#0f172a}
+body.light-mode .pd-topbar-close,
+body.light-mode .pd-back-btn{background:#ffffff;border:1px solid #dde1e7;color:#64748b}
+body.light-mode .pd-topbar-close:hover,
+body.light-mode .pd-back-btn:hover{background:#eef1f6;border-color:#cbd5e1;color:#0f172a}
+body.light-mode .pd-benefits-strip{background:#f8fafc;border-top:1px solid #e2e8f0}
+body.light-mode .pd-benefit{color:#475569;border-right:1px solid #e8ecf2}
+body.light-mode .pd-benefit svg{color:#ff5100}
+body.light-mode .product-detail-head{background:#f8fafc;border-bottom:1px solid #e2e8f0}
+body.light-mode .product-detail-head h3{color:#0f172a}
+body.light-mode .product-detail-head .pd-close-btn{background:#fff;border:1px solid #dde1e7;color:#64748b}
+body.light-mode .product-detail-head .pd-close-btn:hover{background:#eef1f6;border-color:#cbd5e1;color:#0f172a}
+body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shadow:0 30px 80px -20px rgba(0,0,0,.25)!important}
+@media (max-width: 900px){
+  body.light-mode #productModal .pd-topbar{background:#fff}
+  body.light-mode .pd-topbar{position:sticky}
+}
+
+/* ── İŞIQ REJİMİ — mobil header dizayn #4 düymələri ── */
+@media (max-width: 900px){
+  body.light-mode .actions .notify-btn{
+    background:#ffffff!important;border:1px solid #c8cdd8!important;color:#475569!important;
+  }
+  body.light-mode .actions .theme-toggle{
+    background:#ffffff!important;border:1.5px dashed #ff5100!important;color:#d97706!important;
+  }
+  body.light-mode .actions .header-balance{
+    background:#fff!important;border:1.5px dashed #ff5100!important;color:#ff5100!important;
+  }
+  body.light-mode .actions .header-balance svg{stroke:#ff5100!important}
+  body.light-mode #loginBtn,
+  body.light-mode .actions .hbtn:not(.orange){
+    background:#ffffff!important;border:1px solid #c8cdd8!important;color:#2d3748!important;
+  }
+  body.light-mode #registerBtn,
+  body.light-mode .actions .hbtn.orange{
+    background:linear-gradient(135deg,#e14b4b,#c0392b)!important;border:0!important;color:#fff!important;
+    box-shadow:0 4px 14px rgba(192,57,43,.22)!important;
+  }
+  body.light-mode .actions .cart{
+    background:#ffffff!important;border:1px solid #c8cdd8!important;color:#475569!important;
+  }
+  body.light-mode .mob-cart-badge{box-shadow:0 0 0 2px #ffffff!important}
+}
+
 /* Kiçik ekran (≤430px) — mətnləri sıxlaşdır */
 @media (max-width: 430px){
   .actions{gap:5px!important}
