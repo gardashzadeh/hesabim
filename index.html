@@ -4412,6 +4412,18 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
               <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Stok sayı</label>
               <input id="adStock" placeholder="Məsələn: 1" inputmode="numeric" type="text">
             </div>
+            <div>
+              <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Zəmanət müddəti <span style="color:#ef4444">*</span></label>
+              <select id="adWarranty">
+                <option value="forever">Ömürlük zəmanət</option>
+                <option value="1y">1 il</option>
+                <option value="6m">6 ay</option>
+                <option value="1m">1 ay</option>
+                <option value="15d">15 gün</option>
+                <option value="1w">1 həftə</option>
+              </select>
+              <p style="font-size:11px;color:#5b6678;margin:4px 0 0;line-height:1.5">Alıcı təhvildən sonra bu müddət ərzində problem olarsa mübahisə aça bilər. Müddət bitəndən sonra mübahisə açıla bilməz.</p>
+            </div>
             <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
             <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
             <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 3 ədəd)</label>
@@ -9325,6 +9337,7 @@ window.editMyAd = async function(id,arr){
   if(document.getElementById("adTags"))    document.getElementById("adTags").value=(a.tags||[]).join(", ");
   if(document.getElementById("adContact")) document.getElementById("adContact").value=a.contact || "";
   if(document.getElementById("adStock"))   document.getElementById("adStock").value = (a.stock == null ? "1" : String(a.stock));
+  if(document.getElementById("adWarranty")) document.getElementById("adWarranty").value = a.warranty || "forever";
   if(document.getElementById("adVideo"))   document.getElementById("adVideo").value=a.video || "";
   document.getElementById("adDesc").value=a.desc || "";
   // Satış üsulu / çatdırılma rejimi / müddət bərpası
@@ -9425,6 +9438,10 @@ window.submitAd = async function(){
     if(window.isNoDirectDeliveryCat && window.isNoDirectDeliveryCat()) deliveryMode = "chat";
     const chatMode     = document.getElementById("adChatMode")?.value || "chat_only";
     const deliveryEta  = Number(document.getElementById("adDeliveryEta")?.value || 3);
+    // Zəmanət müddəti — yalnız Rules-un icazə verdiyi dəyərlər
+    const _WARRANTY_OK = ["1w","15d","1m","6m","1y","forever"];
+    let warranty = document.getElementById("adWarranty")?.value || "forever";
+    if(_WARRANTY_OK.indexOf(warranty) === -1) warranty = "forever";
 
     let directPhone = "", directWhatsapp = "";
     if(contactMode === "direct_contact"){
@@ -9493,6 +9510,7 @@ window.submitAd = async function(){
       deliveryMode: contactMode === "platform" ? deliveryMode : null,
       chatMode: (contactMode === "platform" && deliveryMode==="chat") ? chatMode : null,
       deliveryEta: (contactMode === "platform" && deliveryMode==="chat") ? deliveryEta : null,
+      warranty,
       updatedAt: serverTimestamp()
     };
 
@@ -9552,6 +9570,8 @@ window.submitAd = async function(){
      "adChatAutoLogin","adChatAutoPassword"].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value="";
     });
+    // Zəmanət seçimini defolt-a qaytar
+    if(document.getElementById("adWarranty")) document.getElementById("adWarranty").value = "forever";
     // Çatdırılma üsulunu sıfırla
     if(window.setDeliveryMode) window.setDeliveryMode("direct");
     if(window.setDeliveryEta)  window.setDeliveryEta(3);
