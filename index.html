@@ -10057,12 +10057,50 @@ async function renderWithdraw(){
     </div>
     <div class="request-form">
       <input id="withdrawAmount" inputmode="decimal" placeholder="Məbləğ, məsələn 50">
-      <select id="withdrawMethod"><option>m10</option><option>Kart</option><option>Bank hesabı</option></select>
-      <input class="full" id="withdrawDetails" placeholder="Kart/m10/bank məlumatı">
+      <select id="withdrawMethod" onchange="onWithdrawMethodChange()">
+        <option value="m10">m10</option>
+        <option value="Kart">Kart</option>
+      </select>
+      <div id="wdM10Fields" class="full">
+        <input class="full" id="wdM10Phone" inputmode="tel" maxlength="13" placeholder="m10 nömrəsi, məs: +994551234567">
+      </div>
+      <div id="wdCardFields" class="full" style="display:none">
+        <select class="full" id="wdCardBank" style="margin-bottom:8px">
+          <option value="">Bank seçin...</option>
+          <option>Kapital Bank</option>
+          <option>ABB (Beynəlxalq Bank)</option>
+          <option>Leobank</option>
+          <option>Unibank</option>
+          <option>PAŞA Bank</option>
+          <option>Bank Respublika</option>
+          <option>AccessBank</option>
+          <option>Rabitəbank</option>
+          <option>Digər</option>
+        </select>
+        <input class="full" id="wdCardNumber" inputmode="numeric" maxlength="19" placeholder="Kart nömrəsi (16 rəqəm): 1234 5678 9012 3456" oninput="formatWdCardNumber(this)">
+      </div>
+      <label class="full" style="display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:#94a3b8;cursor:pointer;margin:4px 0">
+        <input type="checkbox" id="wdConfirmCheck" style="margin-top:2px;flex:none;width:16px;height:16px;accent-color:#ff5100">
+        <span>Daxil etdiyim məlumatların <b style="color:#e2e8f0">düzgünlüyünü təsdiq edirəm</b>. Yanlış nömrə və ya kart məlumatı yazıldığı halda köçürmənin itməsinə görə <b style="color:#e2e8f0">Hesablar.net məsuliyyət daşımır</b>.</span>
+      </label>
       <button class="fullbtn" type="button" onclick="submitWithdrawRequest()">Çıxarış müraciəti göndər</button>
     </div>
-    <div class="wallet-note">Çıxarış admin təsdiqindən sonra manual icra olunur.</div>`;
+    <div class="wallet-note">Çıxarış admin təsdiqindən sonra manual icra olunur. Adətən 24 saat ərzində köçürülür.</div>`;
 }
+
+window.onWithdrawMethodChange = function(){
+  const m=document.getElementById("withdrawMethod")?.value;
+  const m10=document.getElementById("wdM10Fields");
+  const card=document.getElementById("wdCardFields");
+  if(m10) m10.style.display = m==="m10" ? "" : "none";
+  if(card) card.style.display = m==="Kart" ? "" : "none";
+};
+
+// Kart nömrəsini 4-4-4-4 formatında yaz
+window.formatWdCardNumber = function(inp){
+  const digits=(inp.value||"").replace(/\D/g,"").slice(0,16);
+  inp.value = digits.replace(/(\d{4})(?=\d)/g,"$1 ");
+};
 
 window.submitWithdrawRequest = async function(){
   if(!requirePhoneVerified()){ toast("Çıxarış üçün nömrənizi təsdiqləyin."); return; }
@@ -10070,9 +10108,30 @@ window.submitWithdrawRequest = async function(){
   if(!currentUser){ openModal("loginModal"); return; }
   if(!rateLimiter("submitWithdraw", 30_000, "Çıxarış müraciəti üçün 30 saniyə gözləyin.")) return;
   const amount=moneyToNumber(document.getElementById("withdrawAmount")?.value);
-  const method=document.getElementById("withdrawMethod")?.value || "Manual";
-  const details=document.getElementById("withdrawDetails")?.value.trim() || "";
+  const method=document.getElementById("withdrawMethod")?.value || "m10";
   if(!(amount>0)){ toast("Məbləği düzgün yaz."); return; }
+
+  // Metoda görə rekvizit yığ və yoxla
+  let details="";
+  if(method==="m10"){
+    const phone=(document.getElementById("wdM10Phone")?.value||"").trim();
+    const digits=phone.replace(/\D/g,"");
+    if(digits.length<9){ toast("m10 nömrəsini düzgün yaz (məs: +994551234567)."); return; }
+    details="m10: "+phone;
+  }else{ // Kart
+    const bank=(document.getElementById("wdCardBank")?.value||"").trim();
+    const cardDigits=(document.getElementById("wdCardNumber")?.value||"").replace(/\D/g,"");
+    if(!bank){ toast("Bankı seç."); return; }
+    if(cardDigits.length!==16){ toast("Kart nömrəsi 16 rəqəm olmalıdır."); return; }
+    details=bank+" | Kart: "+cardDigits.replace(/(\d{4})(?=\d)/g,"$1 ");
+  }
+
+  // Məlumat düzgünlüyü təsdiqi
+  if(!document.getElementById("wdConfirmCheck")?.checked){
+    toast("Məlumatların düzgünlüyünü təsdiq et (xanaya işarə qoy).");
+    return;
+  }
+
   const walletRef=doc(db,"wallets",currentUser.uid);
   try{
     // Transaction: balans yetərliliyi yoxlanışı və çıxılması atomik icra edilir
