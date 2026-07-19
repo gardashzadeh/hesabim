@@ -9727,9 +9727,10 @@ window.createOrdersFromCart = async function(items){
       }
 
       // ── 3) YAZMALAR
+      // QEYD: wallet update rules yalnız ['balance','totalSpent','updatedAt']
+      // sahələrinə icazə verir. uid/email göndərsək affectedKeys pozulur və
+      // permission-denied verir — ona görə yalnız icazəli sahələri yazırıq.
       tx.set(buyerRef,{
-        uid: currentUser.uid,
-        email: currentUser.email||"",
         balance: bal-total,
         totalSpent: Number(w.totalSpent||0)+total,
         updatedAt: serverTimestamp()
