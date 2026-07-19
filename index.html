@@ -12228,6 +12228,37 @@ function canDispute(o){
   return Date.now() < ms + days*24*60*60*1000;
 }
 
+// Zəmanət haqqında alıcıya göstəriləcək qısa məlumat (HTML sətir qaytarır).
+const WARRANTY_LABEL = { "1w":"1 həftə", "15d":"15 gün", "1m":"1 ay", "6m":"6 ay", "1y":"1 il", "forever":"Ömürlük" };
+function warrantyInfoHtml(o){
+  if(!o) return "";
+  const w = o.warranty || "forever";
+  const label = WARRANTY_LABEL[w] || "Ömürlük";
+  // Ömürlük
+  if(w === "forever"){
+    return `<small style="color:#22c55e;display:block;margin-top:4px">🛡️ Ömürlük zəmanət — mübahisə hüququn həmişə açıqdır.</small>`;
+  }
+  // Hələ təhvil verilməyib
+  const t = o.credentialsDeliveredAt;
+  if(!t){
+    return `<small style="color:#38bdf8;display:block;margin-top:4px">🛡️ ${label} zəmanət — təhvildən sonra başlayacaq.</small>`;
+  }
+  const days = WARRANTY_DAYS[w] || 0;
+  const ms = (t.toDate ? t.toDate().getTime() : new Date(t).getTime());
+  const endMs = ms + days*24*60*60*1000;
+  const endDate = new Date(endMs);
+  const dd = String(endDate.getDate()).padStart(2,"0");
+  const mm = String(endDate.getMonth()+1).padStart(2,"0");
+  const yy = endDate.getFullYear();
+  const dateStr = `${dd}.${mm}.${yy}`;
+  const leftMs = endMs - Date.now();
+  if(leftMs <= 0){
+    return `<small style="color:#64748b;display:block;margin-top:4px">🛡️ ${label} zəmanət — ${dateStr} tarixində bitdi.</small>`;
+  }
+  const leftDays = Math.ceil(leftMs / (24*60*60*1000));
+  return `<small style="color:#22c55e;display:block;margin-top:4px">🛡️ ${label} zəmanət — ${dateStr}-dək aktiv (${leftDays} gün qalıb).</small>`;
+}
+
 async function disputeOrder(id){
   await refreshUser(); if(!currentUser) return;
   try{
@@ -12456,6 +12487,7 @@ function listenPurchases(){
           else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın</span>`;
           if(canDispute(o)) btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
           else btns += ` <span style="color:#64748b;font-size:12px">🔒 Zəmanət müddəti bitib</span>`;
+          btns += warrantyInfoHtml(o);
         }
       } else if(o.status==="Aktiv"){
         // Hesab məlumatları statusu — KİLİDLİ ÇATDIRILMA MODELİ
@@ -12489,12 +12521,16 @@ function listenPurchases(){
         else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın${o.autoConfirmed?' (avtomatik)':''}</span>`;
         if(canDispute(o)) btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
         else btns += ` <span style="color:#64748b;font-size:12px">🔒 Zəmanət müddəti bitib</span>`;
+        btns += warrantyInfoHtml(o);
         // Sosial media — uzadılmış saxlama müddəti barədə məlumat
         if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
           btns += `<small style="color:#64748b;display:block;margin-top:4px">🔒 Təhlükəsizlik: ödəniş ${o.holdDays} gün saxlanılır.</small>`;
         }
       } else if(o.status==="Tamamlandı"){
         btns = `<span style="color:#22c55e;font-size:12px">✅ Tamamlandı</span>`;
+        // Zəmanət hələ aktivdirsə, tamamlanmış sifariş üçün də mübahisə açıla bilər
+        if(canDispute(o)) btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
+        btns += warrantyInfoHtml(o);
       } else if(o.status==="Ləğv edildi"){
         btns = `<span style="color:#ef4444;font-size:12px">Ləğv edildi</span>`;
       }
