@@ -9775,6 +9775,12 @@ window.createOrdersFromCart = async function(items){
           payoutRequested: false,
           payoutDone: false,
           credentialsStatus: _credentialsStatus,
+          // Zəmanət müddəti elandan order-ə köçürülür (Rules bunu elanla tutuşdurur).
+          warranty: (function(){
+            var _wOk = ["1w","15d","1m","6m","1y","forever"];
+            var _w = (adData && adData.warranty) ? adData.warranty : "forever";
+            return _wOk.indexOf(_w) > -1 ? _w : "forever";
+          })(),
           ...(pendingCredentials ? { pendingCredentials, credentialsSellerSentAt: serverTimestamp() } : {}),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -12181,6 +12187,22 @@ async function cancelOrder(id){
     else toast("Ləğv edilmədi.");
   }
 }
+// Zəmanət pəncərəsi — Firestore Rules-dakı canDisputeNow ilə EYNİ məntiq.
+// warranty=forever → həmişə; təhvil verilməyibsə → həmişə (çatdırılmama şikayəti);
+// əks halda: request.time < credentialsDeliveredAt + warranty günləri.
+const WARRANTY_DAYS = { "1w":7, "15d":15, "1m":30, "6m":180, "1y":365 };
+function canDispute(o){
+  if(!o) return false;
+  const w = o.warranty || "forever";
+  if(w === "forever") return true;
+  const t = o.credentialsDeliveredAt;
+  if(!t) return true; // hələ təhvil verilməyib
+  const ms = (t.toDate ? t.toDate().getTime() : new Date(t).getTime());
+  const days = WARRANTY_DAYS[w];
+  if(!days) return true; // naməlum kod → təhlükəsiz tərəf: icazə ver (Rules də -1/forever kimi baxır)
+  return Date.now() < ms + days*24*60*60*1000;
+}
+
 async function disputeOrder(id){
   await refreshUser(); if(!currentUser) return;
   try{
@@ -12189,6 +12211,7 @@ async function disputeOrder(id){
     if(o.status==="Ləğv edildi"){ toast("Ləğv edilmiş sifarişə mübahisə açıla bilməz."); return; }
     if(o.status==="Tamamlandı" && !isAdmin()){ toast("Tamamlanmış sifarişə mübahisə açıla bilməz — dəstəyə ticket yaz."); return; }
     if(o.status==="Mübahisə"){ toast("Bu sifariş üzrə mübahisə artıq açılıb."); return; }
+    if(!isAdmin() && !canDispute(o)){ toast("Zəmanət müddəti bitib — mübahisə açıla bilməz."); return; }
     await updateDoc(ref,{status:"Mübahisə",escrowStatus:"Admin araşdırır",updatedAt:serverTimestamp()});
     await addDoc(collection(db,"tickets"),{type:"Sifariş mübahisəsi",subject:"Sifariş: "+(o.productTitle||id),text:"Sifariş üzrə mübahisə açıldı.",status:"Açıq",orderId:id,userUid:currentUser.uid,userEmail:currentUser.email,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}).catch(()=>{});
     toast("Mübahisə açıldı");
@@ -12406,7 +12429,8 @@ function listenPurchases(){
           btns += `<small style="color:#22c55e;display:block;margin-bottom:4px">✓ Trade linki göndərildi: ${esc(String(o.tradeInfo).slice(0,40))}</small>`;
           if(!o.buyerConfirmed) btns += `<button class="complete-btn" data-buyer-confirm="${o.id}">✓ Skini aldım</button>`;
           else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın</span>`;
-          btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
+          if(canDispute(o)) btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
+          else btns += ` <span style="color:#64748b;font-size:12px">🔒 Zəmanət müddəti bitib</span>`;
         }
       } else if(o.status==="Aktiv"){
         // Hesab məlumatları statusu — KİLİDLİ ÇATDIRILMA MODELİ
@@ -12438,7 +12462,8 @@ function listenPurchases(){
           }
         }
         else btns += `<span style="color:#22c55e;font-size:12px">✓ Aldın${o.autoConfirmed?' (avtomatik)':''}</span>`;
-        btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
+        if(canDispute(o)) btns += ` <button class="dispute-btn" data-dispute="${o.id}">Mübahisə</button>`;
+        else btns += ` <span style="color:#64748b;font-size:12px">🔒 Zəmanət müddəti bitib</span>`;
         // Sosial media — uzadılmış saxlama müddəti barədə məlumat
         if((o.category||"").toLowerCase().indexOf("sosial")>-1 && o.holdDays>1){
           btns += `<small style="color:#64748b;display:block;margin-top:4px">🔒 Təhlükəsizlik: ödəniş ${o.holdDays} gün saxlanılır.</small>`;
