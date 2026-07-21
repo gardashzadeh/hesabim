@@ -7680,44 +7680,54 @@ function adExpiryText(a){
   return new Date(exp).toLocaleDateString("az-AZ", {day:"numeric", month:"short", year:"numeric"});
 }
 
-// ===== AES-256-GCM ŞİFRƏLƏMƏ =====
-// Hesab məlumatları Firestore-da şifrəli saxlanılır
-// Firebase Console-dan oxunsa belə, məna daşımayan mətn görünür
-const _CREDS_PASSPHRASE = "hsbllr-s3cr3t-2025-v2-xK9mN";
+// ===== SERVER TƏRƏFLİ ŞİFRƏLƏMƏ (Cloudflare Worker) =====
+// Şifrələmə açarı artıq HTML-də YOXDUR. Şifrələmə/deşifrələmə serverdə olur.
+// Worker Firebase token-ını və sifariş statusunu yoxlayıb yalnız icazəli
+// istifadəçiyə deşifrə olunmuş məlumatı verir.
+const WORKER_URL = "https://hesablar-creds.gardashzadeh.workers.dev";
 
-async function _getCredsKey(){
-  const raw = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(_CREDS_PASSPHRASE),
-    "PBKDF2", false, ["deriveKey"]
-  );
-  return crypto.subtle.deriveKey(
-    {name:"PBKDF2", salt:new TextEncoder().encode("hsbllr-salt-77"), iterations:100000, hash:"SHA-256"},
-    raw, {name:"AES-GCM",length:256}, false, ["encrypt","decrypt"]
-  );
+// Cari istifadəçinin Firebase ID token-ını al
+async function _getIdToken(){
+  if(!currentUser) throw new Error("Giriş edilməyib");
+  return await currentUser.getIdToken();
 }
 
+// Satıcı elan yaradanda: serverdə şifrələ
 async function encryptCreds(obj){
-  const key = await _getCredsKey();
-  const iv  = crypto.getRandomValues(new Uint8Array(12));
-  const enc = await crypto.subtle.encrypt(
-    {name:"AES-GCM", iv},
-    key,
-    new TextEncoder().encode(JSON.stringify(obj))
-  );
-  return {
-    iv: btoa(String.fromCharCode(...iv)),
-    data: btoa(String.fromCharCode(...new Uint8Array(enc)))
-  };
+  const idToken = await _getIdToken();
+  const res = await fetch(WORKER_URL + "/encrypt", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken, creds: obj }),
+  });
+  if(!res.ok){
+    const e = await res.json().catch(()=>({}));
+    throw new Error("Şifrələmə xətası: " + (e.error || res.status));
+  }
+  const data = await res.json();
+  return data.blob;  // {v:2, iv, data}
 }
 
-async function decryptCreds(blob){
+// Alıcı/admin: təsdiqlənmiş sifarişin məlumatını serverdən deşifrə olunmuş al
+async function decryptOrderCreds(orderId){
   try{
-    const key  = await _getCredsKey();
-    const iv   = Uint8Array.from(atob(blob.iv),   c=>c.charCodeAt(0));
-    const data = Uint8Array.from(atob(blob.data),  c=>c.charCodeAt(0));
-    const dec  = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, data);
-    return JSON.parse(new TextDecoder().decode(dec));
-  }catch(e){ console.warn("Deşifrə xətası:", e); return null; }
+    const idToken = await _getIdToken();
+    const res = await fetch(WORKER_URL + "/order-creds", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken, orderId }),
+    });
+    if(!res.ok){
+      const e = await res.json().catch(()=>({}));
+      console.warn("Deşifrə rədd edildi:", res.status, e.error);
+      return null;
+    }
+    const data = await res.json();
+    return data.creds;  // {mailEmail, mailPassword, login, password, extraInfo}
+  }catch(e){
+    console.warn("Server deşifrə xətası:", e.message);
+    return null;
+  }
 }
 
 window.setContactMode = function(mode){
@@ -11322,8 +11332,8 @@ async function adminOrderCredentialsText(order, notifMap){
   try{
     const fromNotif = notifMap && notifMap[order.id];
     if(fromNotif && fromNotif.credentials) return String(fromNotif.credentials||"").trim();
-    if(order.pendingCredentials && order.pendingCredentials.data){
-      const c = await decryptCreds(order.pendingCredentials);
+    if(order.id){
+      const c = await decryptOrderCreds(order.id);
       if(!c) return "Şifrəli məlumat oxunmadı";
       let t="";
       if(c.mailEmail || c.mailPassword) t += `Mail: ${c.mailEmail||""}\nMail şifrəsi: ${c.mailPassword||""}\n`;
@@ -11589,10 +11599,7 @@ async function prepareCredsForAdminApproval(orderId){
     const oSnap = await getDoc(doc(db,"orders",orderId));
     if(!oSnap.exists()) return;
     const o = oSnap.data();
-    const encBlob = await loadOrderCredsBlob(o);
-    if(!encBlob) { toast("Bu sifarişdə hesab məlumatı yoxdur."); return; }
-
-    const c = await decryptCreds(encBlob);
+    const c = await decryptOrderCreds(orderId);
     if(!c){ toast("Deşifrə xətası — məlumatlar oxunmadı."); return; }
 
     let credText = credsToText(c);
@@ -11735,14 +11742,9 @@ window.showAdDetailModal = async function(adId){
     if(!snap.exists()){ toast("Elan tapılmadı."); return; }
     const a = snap.data()||{};
 
-    // Kredensiallar: yeni model ads/{id}/secure/creds, köhnə model inline
+    // Kredensiallar server tərəfdə şifrəlidir; deşifrə yalnız təsdiqlənmiş
+    // sifariş kontekstində (Worker) olur. Elan-önizləmədə açıq göstərilmir.
     let creds = null;
-    try{
-      const sec = await getDoc(doc(db,"ads",adId,"secure","creds"));
-      let blob = sec.exists() ? (sec.data()||{}).creds : null;
-      if(!blob && a.accountCredentials && a.accountCredentials.data) blob = a.accountCredentials;
-      if(blob) creds = await decryptCreds(blob);
-    }catch(e){ console.warn("[adDetail] creds:", e); }
 
     const imgs = Array.isArray(a.imageUrls) && a.imageUrls.length ? a.imageUrls : (a.imageUrl ? [a.imageUrl] : []);
     const row = (k,v)=> v ? `<tr><th style="text-align:left;color:#64748b;font-weight:600;padding:5px 10px 5px 0;white-space:nowrap;vertical-align:top">${esc(k)}</th><td style="color:#e2e8f0;padding:5px 0;word-break:break-word">${v}</td></tr>` : "";
@@ -11761,7 +11763,7 @@ window.showAdDetailModal = async function(adId){
           ${row("Əlavə", esc(creds.extraInfo||"—"))}
         </table>
       </div>` : (a.hasCredentials
-        ? `<div style="color:#f87171;font-size:12px;margin-top:10px">⚠️ Kredensiallar var, amma deşifrə olunmadı.</div>`
+        ? `<div style="color:#64748b;font-size:12px;margin-top:10px">🔒 Hesab məlumatları serverdə şifrəlidir. Yalnız satış təsdiqləndikdən sonra sifariş üzərindən açılır.</div>`
         : `<div style="color:#64748b;font-size:12px;margin-top:10px">Bu elanda saxlanılan hesab məlumatı yoxdur (chat modeli).</div>`);
 
     const m = document.createElement("div");
@@ -12582,7 +12584,7 @@ async function viewOrderCredentials(orderId){
     }
 
     let c = null;
-    try{ c = await decryptCreds(o.deliveredCredentials); }catch(e){ console.warn(e); }
+    try{ c = await decryptOrderCreds(orderId); }catch(e){ console.warn(e); }
     if(!c){ toast("Deşifrə xətası — satıcıya chat-də yaz, məlumatları yenidən göndərsin."); return; }
     showCredsViewModal(o.productTitle||"Sifariş", c);
   }catch(e){
@@ -13022,9 +13024,8 @@ async function sendNotifToBuyer(notifId, buyerUid, buyerEmail){
           if(oSnap.exists()) o = { ...oSnap.data(), adId: oSnap.data().adId || n.adId || "" };
         }catch(e){}
       }
-      const encBlob = await loadOrderCredsBlob(o);
-      if(encBlob){
-        const c = await decryptCreds(encBlob);
+      if(n.orderId){
+        const c = await decryptOrderCreds(n.orderId);
         if(c) credText = credsToText(c);
       }
     }
