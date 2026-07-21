@@ -11764,9 +11764,13 @@ window.openUserActivity = async function(uid, email){
       <div id="uaBody" style="color:#cbd5e1;font-size:13px">Yüklənir…</div>
     </div>`;
   document.body.appendChild(modal);
+  modal.style.zIndex = "1000005";
+  const _cab = document.getElementById("cabinetModal");
+  const _cabZ = _cab ? _cab.style.zIndex : "";
+  if(_cab) _cab.style.zIndex = "1";
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
-  const close = ()=>{ modal.classList.remove("show"); document.body.style.overflow=""; modal.remove(); };
+  const close = ()=>{ modal.classList.remove("show"); document.body.style.overflow=""; if(_cab) _cab.style.zIndex=_cabZ; modal.remove(); };
   modal.querySelector("#uaClose").onclick = close;
   modal.onclick = (e)=>{ if(e.target===modal) close(); };
 
@@ -11939,10 +11943,15 @@ window.showAdDetailModal = async function(adId){
         </div>
       </div>`;
     document.body.appendChild(m);
-    m.querySelector("#adDetailClose").onclick = ()=>m.remove();
-    m.onclick = e=>{ if(e.target===m) m.remove(); };
-    m.querySelector("#adDetailApprove").onclick = async()=>{ await updateAdStatus(adId,"Təsdiqləndi"); m.remove(); _fetchPendingAds(); if(typeof _fetchAllAdsAdmin==="function") _fetchAllAdsAdmin(); };
-    m.querySelector("#adDetailReject").onclick  = async()=>{ await updateAdStatus(adId,"Rədd edildi");  m.remove(); _fetchPendingAds(); if(typeof _fetchAllAdsAdmin==="function") _fetchAllAdsAdmin(); };
+    m.style.zIndex = "1000005";
+    const _cab = document.getElementById("cabinetModal");
+    const _cabZ = _cab ? _cab.style.zIndex : "";
+    if(_cab) _cab.style.zIndex = "1";
+    const _closeAd = ()=>{ if(_cab) _cab.style.zIndex=_cabZ; m.remove(); };
+    m.querySelector("#adDetailClose").onclick = _closeAd;
+    m.onclick = e=>{ if(e.target===m) _closeAd(); };
+    m.querySelector("#adDetailApprove").onclick = async()=>{ await updateAdStatus(adId,"Təsdiqləndi"); _closeAd(); _fetchPendingAds(); if(typeof _fetchAllAdsAdmin==="function") _fetchAllAdsAdmin(); };
+    m.querySelector("#adDetailReject").onclick  = async()=>{ await updateAdStatus(adId,"Rədd edildi");  _closeAd(); _fetchPendingAds(); if(typeof _fetchAllAdsAdmin==="function") _fetchAllAdsAdmin(); };
   }catch(e){
     console.error("[showAdDetailModal]", e);
     toast("Detallar açılmadı: " + (e.message||e.code||"xəta"));
