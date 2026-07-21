@@ -9916,13 +9916,9 @@ window.createOrdersFromCart = async function(items){
 
             // 1) BİRBAŞA MODEL — KİLİDLİ ÇATDIRILMA
             // Kredensiallar chat-ə açıq mətn kimi GETMİR. Şifrəli blob
-            // sifariş sənədinə yazılır; alıcı "Alışlarım"da qaydaları
-            // (video qeydiyyat şərti) qəbul etdikdən sonra görür.
-            let credsBlob = null;
-            try{
-              const secSnap = await getDoc(doc(db,"ads",item.adId,"secure","creds"));
-              if(secSnap.exists()) credsBlob = (secSnap.data()||{}).creds;
-            }catch(e){ console.warn("[creds] secure oxunmadı:", e); }
+            // ads/{adId}/secure/creds-də qalır (client oxuya bilmir);
+            // sifarişə yalnız marker yazılır. Deşifrə Worker-də olur.
+            let credsBlob = adHasCreds ? { v: 2, data: "__SECURE__" } : null;
             if(!credsBlob && pendingCredentials) credsBlob = pendingCredentials;
 
             if(credsBlob){
