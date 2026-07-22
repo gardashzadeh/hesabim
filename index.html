@@ -2224,7 +2224,7 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
 }
 .ad-banner .ad-img svg{width:95px;height:95px}
 .ad-banner .ad-img > svg[style]{width:95px!important;height:95px!important}
-.ad-banner .ad-img img{width:100%!important;height:135%!important;object-fit:cover!important;border-radius:0!important;filter:none}
+.ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important;filter:none}
 /* Ana səhifə kartında kateqoriya etiketi (satıcı profili kartlarındakı kimi) */
 .ad-cat-badge{
   position:absolute;left:10px;top:10px;z-index:2;
@@ -3268,7 +3268,7 @@ button,input,select,textarea{max-width:100%}
   .ad-banner{aspect-ratio:4/3!important;min-height:0}
   .ad-banner .ad-img{width:100%!important;height:100%!important;padding:0!important;border-radius:0!important}
   .ad-banner .ad-img svg{width:64px!important;height:64px!important}
-  .ad-banner .ad-img img{width:100%!important;height:135%!important;object-fit:cover!important;border-radius:0!important}
+  .ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important}
   .ad-body{padding:10px!important}
 
   /* Bottom nav safe-area */
@@ -5872,10 +5872,10 @@ function openProductDetail(p){
   const sellerSalesEl = document.getElementById("pdSellerSales");
   if(sellerSalesEl){
     const sellerKey = currentDetailProduct.sellerEmail || currentDetailProduct.seller || "Hesablar.net";
-    const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
-    sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
-    // Real say: sellerStats/{uid} sənədindən (profil modalı ilə eyni mənbə)
     const _suid = currentDetailProduct.sellerUid || "";
+    // Köhnə keşlənmiş rəqəmi göstərib sonra "aşağı düşürmək" olmasın deyə,
+    // yalnız sellerStats-dan gələn real dəyəri göstəririk.
+    sellerSalesEl.textContent = "… satış";
     if(_suid && typeof window.fetchSellerSalesCount === "function"){
       window.fetchSellerSalesCount(_suid).then(n=>{
         if(typeof n === "number"){
@@ -5885,8 +5885,17 @@ function openProductDetail(p){
             c[sellerKey] = n;
             localStorage.setItem("gs_seller_sales_counts", JSON.stringify(c));
           }catch(e){}
+        } else {
+          const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
+          sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
         }
-      }).catch(()=>{});
+      }).catch(()=>{
+        const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
+        sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
+      });
+    } else {
+      const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
+      sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
     }
   }
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
@@ -10764,6 +10773,22 @@ window.openChatFromProduct=async function(p){
   window.showTab("messages");
   setTimeout(()=>openChat(id),250);
 };
+// Satıcı profilindən birbaşa yazışma — konkret elan olmadan da işləyir.
+window.openChatWithSeller=async function(sellerUid, sellerEmail){
+  await refreshUser();
+  if(!currentUser){ openModal("loginModal"); return; }
+  if(sellerUid && sellerUid === currentUser.uid){ toast("Özünə mesaj yaza bilməzsən."); return; }
+  // Satıcının ilk aktiv elanını (varsa) yazışma konteksti kimi götür
+  let p = { sellerUid: sellerUid||"", sellerEmail: sellerEmail||"", title: "Profil üzərindən" };
+  try{
+    if(window.__spAds){
+      const first = Object.values(window.__spAds)[0];
+      if(first && (first.sellerUid===sellerUid || (sellerEmail && first.sellerEmail===sellerEmail))) p = first;
+    }
+  }catch(e){}
+  closeModal("sellerProfileModal");
+  await window.openChatFromProduct(p);
+};
 function renderMessagesCenter(){
   const el=document.getElementById("cabMessages");
   if(!el) return;
@@ -13679,7 +13704,7 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
         <b>Hələ rəy yoxdur</b><p>Rəylər yalnız tamamlanmış alışdan sonra yazıla bilər.</p>
       </div>`;
 
-    const canMsg = !!(_firstKey && currentUser && sellerUid !== (currentUser.uid||""));
+    const canMsg = !!(currentUser && (sellerUid || sellerEmail) && sellerUid !== (currentUser.uid||""));
     const profileLink = location.origin + "/#user/" + (sellerUid || "");
 
     el.innerHTML = `
@@ -13708,9 +13733,9 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
         </div>
 
         <div class="sp-actions">
-          ${canMsg ? `<button type="button" class="sp-btn primary" onclick="closeModal('sellerProfileModal');window.openChatFromProduct(window.__spAds['${esc(_firstKey)}'])">
+          ${canMsg ? `<button type="button" class="sp-btn primary" onclick="window.openChatWithSeller('${esc(sellerUid||'')}','${esc(sellerEmail||'')}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.5 8.5 0 01-3.9-.9L3 21l1.9-5a8.4 8.4 0 01-.9-3.9 8.5 8.5 0 018.4-9h.5a8.5 8.5 0 018.1 8.1v.3z"/></svg>
-            Mesaj göndər</button>` : ""}
+            Mesaj yaz</button>` : ""}
           <button type="button" class="sp-btn" onclick="window.spCopyLink(this,'${esc(profileLink)}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             <span>Linki kopyala</span>
