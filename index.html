@@ -7034,6 +7034,25 @@ window.syncMyStore = async function(){
   }catch(e){ console.error("syncMyStore:", e); (typeof toast==="function") && toast("Xəta: "+(e.message||e)); }
 };
 
+// [ALL USERS] Sahibi sayta girəndə öz elanlarında köhnə qalan satıcı adını sakitcə yenilə.
+window._adNameSyncDone = false;
+async function autoSyncMyAdsName(){
+  try{
+    if(window._adNameSyncDone) return;
+    if(!currentUser) return;
+    const uSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
+    const myId = (uSnap && uSnap.exists() && uSnap.data()?.userId) || "";
+    if(!myId) return;
+    window._adNameSyncDone = true;
+    const adsSnap = await getDocs(query(collection(db,"ads"), where("sellerUid","==",currentUser.uid)));
+    for(const d of adsSnap.docs){
+      const data = d.data() || {};
+      if(data.seller === myId && data.sellerUserId === myId) continue;
+      await updateDoc(doc(db,"ads",d.id),{seller:myId, sellerUserId:myId, updatedAt:serverTimestamp()}).catch(e=>console.warn("ad "+d.id+":",e));
+    }
+  }catch(e){ console.warn("autoSyncMyAdsName:", e); }
+}
+
 function getAdOnlineHomeHtml(a){
   const st = getSellerStatus(a.sellerUid || "", a.sellerEmail || "");
   const verifiedBadge = getSellerVerifiedFromCache(a.sellerUid || "", a.sellerEmail || "", !!a.sellerVerified) ? getSellerVerifiedBadgeHtml(19) : '';
@@ -13413,6 +13432,7 @@ onAuthStateChanged(auth, async user=>{
     currentUserRole="user";
   }
   syncAdminBodyClass();
+  if(currentUser && typeof autoSyncMyAdsName === "function") autoSyncMyAdsName();
   updateHeader();
   listenHeaderNotifications();
   listenHeaderBalance();
