@@ -5749,7 +5749,7 @@ window.renderMarketAds = function renderMarketAds(){
           + tagsHtml
           + '<div class="ad-footer-row">'
             + '<div class="ad-views">&#128065; '+formatViewsCount(a.views)+' baxış</div>'
-            + '<div class="user" data-wa-html="'+attr(waHtml)+'" data-aprv-html="'+attr(aprvHtml)+'"><span class="seller-name-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+a.seller+'</span>'+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
+            + '<div class="user" data-wa-html="'+attr(waHtml)+'" data-aprv-html="'+attr(aprvHtml)+'"><span class="seller-name-link" onclick="event.stopPropagation();openSellerProfile(\''+attr(a.sellerUid||'')+'\',\''+attr(a.sellerEmail||'')+'\')">'+esc((window.getSellerDisplayName?getSellerDisplayName(a.sellerUid||'',a.sellerEmail||'',a.seller):a.seller)||a.seller)+'</span>'+(window.getAdOnlineHomeHtml?window.getAdOnlineHomeHtml(a):'')+waHtml+aprvHtml+'</div>'
           + '</div>'
         + '</div>'
         + '</button>';
@@ -6963,12 +6963,19 @@ function cacheSellerStatus(u){
     email: email || prev.email || "",
     online: Object.prototype.hasOwnProperty.call(u, "online") ? !!u.online : !!prev.online,
     lastSeen: Object.prototype.hasOwnProperty.call(u, "lastSeen") ? (u.lastSeen || null) : (prev.lastSeen || null),
+    userName: (u.userName && String(u.userName).trim()) ? String(u.userName).trim() : (prev.userName || ""),
     // presence sənədində sellerVerified yoxdursa, əvvəlki users dəyərini silmə
     sellerVerified: hasVerified ? !!u.sellerVerified : !!prev.sellerVerified
   };
   if(data.uid) sellerStatusCache.set("uid:" + data.uid, data);
   if(data.email) sellerStatusCache.set("email:" + data.email, data);
 }
+// Satıcının GÖSTƏRİLƏN adı: canlı presence.userName üstündür (elan sənədindəki köhnə ad yox).
+function getSellerDisplayName(uid="", email="", fallback=""){
+  const st = getSellerStatus(uid, email);
+  return (st && st.userName) ? st.userName : (fallback || "");
+}
+window.getSellerDisplayName = getSellerDisplayName;
 function getSellerStatus(uid="", email=""){
   return sellerStatusCache.get("uid:" + uid) || sellerStatusCache.get("email:" + String(email||"").toLowerCase()) || null;
 }
@@ -6984,7 +6991,11 @@ function refreshSellerBadges(){
     const userEl = btn.querySelector(".user");
     if(!userEl) return;
     const sellerNameSpan = userEl.querySelector(".seller-name-link");
-    const sellerName = sellerNameSpan ? sellerNameSpan.outerHTML : (userEl.dataset.sellerName || "");
+    let sellerName = sellerNameSpan ? sellerNameSpan.outerHTML : (userEl.dataset.sellerName || "");
+    if(sellerNameSpan && typeof getSellerDisplayName === "function"){
+      const live = getSellerDisplayName(sUid, sEmail, "");
+      if(live && sellerNameSpan.textContent !== live){ sellerNameSpan.textContent = live; sellerName = sellerNameSpan.outerHTML; }
+    }
     const waHtml = userEl.dataset.waHtml || "";
     const aprvHtml = userEl.dataset.aprvHtml || "";
     const onlineHtml = (typeof getAdOnlineHomeHtml === "function") ? getAdOnlineHomeHtml({sellerUid:sUid, sellerEmail:sEmail, sellerVerified:btn.dataset.sellerverified==="1"}) : "";
@@ -7007,7 +7018,10 @@ function getSellerVerifiedBadgeHtml(size=20){
 function updateProductDetailSellerBadge(){
   const pdSellerEl = document.getElementById("pdSeller");
   if(!pdSellerEl || !window.currentDetailProduct) return;
-  const sellerName = window.currentDetailProduct.seller || "Hesablar.net";
+  const _fallbackName = window.currentDetailProduct.seller || "Hesablar.net";
+  const sellerName = (typeof getSellerDisplayName === "function")
+    ? (getSellerDisplayName(window.currentDetailProduct.sellerUid||"", window.currentDetailProduct.sellerEmail||"", _fallbackName) || _fallbackName)
+    : _fallbackName;
   const isVerified = getSellerVerifiedFromCache(window.currentDetailProduct.sellerUid||"", window.currentDetailProduct.sellerEmail||"", !!window.currentDetailProduct.sellerVerified);
   const verBadge = isVerified ? getSellerVerifiedBadgeHtml(20) : '';
   pdSellerEl.innerHTML = esc(sellerName) + verBadge;
@@ -7106,12 +7120,13 @@ async function updateOwnOnlineStatus(isOnline=true){
     // sellerVerified statusunu users kolleksiyasından al
     const uSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
     const sellerVerified = !!(uSnap?.exists() && uSnap.data()?.sellerVerified);
+    const _uname = (uSnap?.exists() && uSnap.data()?.userId) ? String(uSnap.data().userId) : "";
     const patch = {
-      uid: currentUser.uid,
-      email: (currentUser.email||"").toLowerCase(),
       online: !!isOnline,
       lastSeen: serverTimestamp(),
-      sellerVerified
+      sellerVerified,
+      updatedAt: serverTimestamp(),
+      ...(_uname ? {userName:_uname} : {})
     };
     await setDoc(doc(db,"presence",currentUser.uid), patch, {merge:true});
   }catch(e){ console.warn("online update:", e); }
