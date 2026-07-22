@@ -12396,7 +12396,17 @@ async function completeOrder(id){
         }
       });
     }
-    if(o.adId) await updateDoc(doc(db,"ads",o.adId),{status:"Satıldı",updatedAt:serverTimestamp()}).catch(()=>{});
+    // [STOCK-FIX] Elan yalnız stok TAM bitəndə "Satıldı" olur.
+    // Əvvəl: 1 sifariş tamamlananda 9 ədəd stoku qalan elan da bazardan itirdi.
+    if(o.adId){
+      try{
+        const _aS = await getDoc(doc(db,"ads",o.adId));
+        const _aD = _aS.exists() ? (_aS.data()||{}) : null;
+        if(_aD && (_aD.sold === true || Number(_aD.stock == null ? 0 : _aD.stock) <= 0)){
+          await updateDoc(doc(db,"ads",o.adId),{status:"Satıldı",updatedAt:serverTimestamp()}).catch(()=>{});
+        }
+      }catch(_){}
+    }
 
     // Satıcının açıq satış sayğacı (sellerStats/{uid}) — profil üçün
     if(o.sellerUid){
@@ -13105,14 +13115,23 @@ async function sellerConfirmOrder(id){
     await updateDoc(oRef, newData);
     // Qeyd: pul köçürməsi/tamamlama alıcının təsdiqinə bağlıdır — satıcı
     // tərəfdən status "Tamamlandı" yazılmır (pulsuz tamamlanmanın qarşısı).
-    // Satıcı öz elanını "Satıldı" olaraq işarələyir
+    // [STOCK-FIX] Elan yalnız stok TAM bitəndə "Satıldı" olur.
+    // Stok qalıbsa elan bazarda qalmalıdır.
+    let _adRemoved = false;
     if(o.adId){
-      await updateDoc(doc(db,"ads",o.adId),{
-        status: "Satıldı",
-        updatedAt: serverTimestamp()
-      }).catch(()=>{});
+      try{
+        const _aS = await getDoc(doc(db,"ads",o.adId));
+        const _aD = _aS.exists() ? (_aS.data()||{}) : null;
+        if(_aD && (_aD.sold === true || Number(_aD.stock == null ? 0 : _aD.stock) <= 0)){
+          await updateDoc(doc(db,"ads",o.adId),{
+            status: "Satıldı",
+            updatedAt: serverTimestamp()
+          }).catch(()=>{});
+          _adRemoved = true;
+        }
+      }catch(_){}
     }
-    toast("Təhvil təsdiqləndi. Elan bazardan çıxarıldı.");
+    toast(_adRemoved ? "Təhvil təsdiqləndi. Elan bazardan çıxarıldı." : "Təhvil təsdiqləndi.");
   }catch(e){ console.error(e); toast("Xəta baş verdi."); }
 }
 
