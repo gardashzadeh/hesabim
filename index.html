@@ -2225,6 +2225,10 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
 .ad-banner .ad-img svg{width:95px;height:95px}
 .ad-banner .ad-img > svg[style]{width:95px!important;height:95px!important}
 .ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important;filter:none}
+/* Elan şəkli tam görünsün (kəsilməsin), boş sahə blur fonla dolsun — bütün elanlara tətbiq */
+.ad-banner .ad-img{position:relative;padding:0!important;background:#0d1117}
+.ad-banner .ad-img .ad-img-bg{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:blur(20px) brightness(.5)!important;transform:scale(1.2);border-radius:0!important;z-index:0}
+.ad-banner .ad-img .ad-img-fg{position:relative!important;z-index:1;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
 /* Ana səhifə kartında kateqoriya etiketi (satıcı profili kartlarındakı kimi) */
 .ad-cat-badge{
   position:absolute;left:10px;top:10px;z-index:2;
@@ -5726,7 +5730,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-adnumber="'+attr(a.adNumber||'')+'" '
         + 'onclick="window._openAdDetail(this)">'
         + '<div class="ad-banner">'
-          + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+safeIcon(a.icon)+'</div>'
+          + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+bannerImgHtml(a.icon)+'</div>'
           + (a.category ? '<span class="ad-cat-badge">'+esc(a.category)+'</span>' : '')
           + '<span class="ad-fav-btn'+(_savedIdSet.has(a.adId||a.title)?' active':'')+'" role="button" tabindex="0" onclick="event.stopPropagation();window.quickToggleSaveAd(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();window.quickToggleSaveAd(this)}" aria-label="Yadda saxla">'
             + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
@@ -7418,6 +7422,18 @@ function safeIcon(raw, fallback){
   }
   return fb;
 }
+// Ana səhifə elan banneri: şəkil tam görünsün (kəsilməsin) + arxa fon blur ilə doldurulsun
+function bannerImgHtml(raw){
+  const inner = safeIcon(raw);
+  const m = inner.match(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/i);
+  if(m){
+    const u = m[1].replace(/"/g,'%22');
+    return '<img class="ad-img-bg" src="'+u+'" alt="" aria-hidden="true" loading="lazy">'
+         + '<img class="ad-img-fg" src="'+u+'" alt="" loading="lazy">';
+  }
+  return inner;
+}
+window.bannerImgHtml = bannerImgHtml;
 // renderMarketAds adi script blokundadır — module-dan export lazımdır
 window.safeIcon = safeIcon;
 function isAdmin(){ return currentUser && currentUserRole === "admin"; }
@@ -14143,6 +14159,7 @@ function toggleTheme(){
 }
 .ads .ad:hover .ad-banner .ad-img img,
 .ads .ad:hover .ad-banner .ad-img svg{transform:scale(1.07)}
+.ads .ad:hover .ad-banner .ad-img .ad-img-bg{transform:scale(1.25)}
 
 /* Badge-lər — şüşə effekti */
 .ad-number-badge,.ad-fav-btn{
