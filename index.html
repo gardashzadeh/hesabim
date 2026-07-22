@@ -9274,7 +9274,7 @@ window.updateProfileInfo = async function(){
   const name=document.getElementById("profileName")?.value.trim() || "";
   const surname=document.getElementById("profileSurname")?.value.trim() || "";
   const birthDate=document.getElementById("profileBirthDate")?.value || "";
-  const _isAdmin = currentUser?.uid === "B4BLhevMihY5FE8WRv1tk1DuHNm2";
+  const _isAdmin = (typeof isAdmin === "function") && isAdmin();
   const newUserId=(document.getElementById("profileUserId")?.value.trim() || "");
   if(!name || !surname || !birthDate){ toast("Ad, soyad və doğum tarixi boş qalmasın."); return; }
   if(!newUserId){ toast("İstifadəçi ID boş qalmasın."); return; }
