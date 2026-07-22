@@ -9274,12 +9274,17 @@ window.updateProfileInfo = async function(){
   const name=document.getElementById("profileName")?.value.trim() || "";
   const surname=document.getElementById("profileSurname")?.value.trim() || "";
   const birthDate=document.getElementById("profileBirthDate")?.value || "";
-  const newUserId=(document.getElementById("profileUserId")?.value.trim() || "").toLowerCase();
+  const _isAdmin = currentUser?.uid === "B4BLhevMihY5FE8WRv1tk1DuHNm2";
+  const newUserId=(document.getElementById("profileUserId")?.value.trim() || "");
   if(!name || !surname || !birthDate){ toast("Ad, soyad və doğum tarixi boş qalmasın."); return; }
   if(!newUserId){ toast("İstifadəçi ID boş qalmasın."); return; }
-  if(!/^[a-z0-9_]{3,20}$/.test(newUserId)){ toast("ID yalnız kiçik hərf, rəqəm və _ ola bilər (3-20 simvol)."); return; }
+  if(_isAdmin){
+    if(!/^[A-Za-z0-9_.]{3,20}$/.test(newUserId) || /^\.|\.$|\.\./.test(newUserId)){ toast("ID hərf, rəqəm, _ və . ola bilər (3-20 simvol, . başda/sonda və ard-arda olmaz)."); return; }
+  } else {
+    if(!/^[a-z0-9_]{3,20}$/.test(newUserId)){ toast("ID yalnız kiçik hərf, rəqəm və _ ola bilər (3-20 simvol)."); return; }
+  }
   const reserved = ['admin','administrator','support','destek','moderator','mod','root','system','hesablar','hesablarnet','official'];
-  if(reserved.includes(newUserId)){ toast("Bu ID rezerv olunub, başqa ID seç."); return; }
+  if(!_isAdmin && reserved.includes(newUserId.toLowerCase())){ toast("Bu ID rezerv olunub, başqa ID seç."); return; }
 
   try{
     // Mövcud userId-ni oxu
