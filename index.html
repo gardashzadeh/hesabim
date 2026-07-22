@@ -2227,7 +2227,7 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
 .ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important;filter:none}
 /* Elan şəkli tam görünsün (kəsilməsin), boş sahə blur fonla dolsun — bütün elanlara tətbiq */
 .ad-banner .ad-img{position:relative;padding:0!important;background:#0d1117}
-.ad-banner .ad-img .ad-img-bg{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:blur(20px) brightness(.5)!important;transform:scale(1.2);border-radius:0!important;z-index:0}
+.ad-banner .ad-img .ad-img-bg{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:blur(22px) brightness(.82) saturate(1.15)!important;transform:scale(1.35);border-radius:0!important;z-index:0}
 .ad-banner .ad-img .ad-img-fg{position:relative!important;z-index:1;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
 /* Ana səhifə kartında kateqoriya etiketi (satıcı profili kartlarındakı kimi) */
 .ad-cat-badge{
@@ -9824,10 +9824,24 @@ window.createOrdersFromCart = async function(items){
         if(!snap) continue;
         if(!snap.exists())                                      throw new Error("AD_GONE::"+(item.name||item.adId));
         const a = snap.data()||{};
-        // "Satılıb" yalnız stok da bitibsə — satıcı stoku doldurubsa alına bilər
-        if(a.sold && Number(a.stock || 0) <= 0)                  throw new Error("AD_SOLD::"+(item.name||""));
+        // ── Aşağıdakı yoxlamalar Firestore Rules-un order-create şərtlərini
+        //    EYNİLƏ təkrarlayır. Belədə uğursuz alışda opak "permission-denied"
+        //    yerinə konkret səbəb (kod) atılır və konsolda görünür.
+        // Rules: get(ads).status == 'Təsdiqləndi'
+        if(a.status !== "Təsdiqləndi")                          throw new Error("AD_NOT_APPROVED::"+(item.name||"")+" (status="+(a.status||"yox")+")");
+        // Rules: get(ads).sold == false  (stok qalsa belə satılmış elan alına bilməz)
+        if(a.sold === true)                                     throw new Error("AD_SOLD::"+(item.name||""));
+        // Rules: buyerUid != sellerUid
         if(a.sellerUid === currentUser.uid)                     throw new Error("SELF_BUY::"+(item.name||""));
-        if(Number(a.price||0) !== moneyToNumber(item.price))    throw new Error("PRICE_CHANGED::"+(item.name||""));
+        // Rules: get(ads).price (number) == order.price
+        if(typeof a.price !== "number")                         throw new Error("AD_PRICE_TYPE::"+(item.name||"")+" (qiymət DB-də ədəd deyil: "+JSON.stringify(a.price)+")");
+        if(a.price !== moneyToNumber(item.price))               throw new Error("PRICE_CHANGED::"+(item.name||"")+" (DB="+a.price+", səbət="+moneyToNumber(item.price)+")");
+        // Rules: get(ads).sellerUid == order.sellerUid — DB dəyəri həqiqət sayılır
+        const _dbSeller = a.sellerUid || "";
+        if(_dbSeller && item.sellerUid && _dbSeller !== item.sellerUid){
+          // səbətdəki köhnə uid-i DB dəyəri ilə əvəz et (mismatch permission-denied verməsin)
+          item.sellerUid = _dbSeller;
+        }
         // Stok yoxlaması
         const _have = Number(a.stock == null ? 1 : a.stock);
         const _want = _wantByAd[item.adId] || 1;
@@ -9896,7 +9910,7 @@ window.createOrdersFromCart = async function(items){
           deliveryType: _deliveryType,
           holdDays: _holdDays,
           ...(_deliveryType === "trade" ? { tradeInfo: null, tradeStatus: "Alıcı trade linki gözlənilir" } : {}),
-          sellerUid: item.sellerUid || adData?.sellerUid || "",
+          sellerUid: adData?.sellerUid || item.sellerUid || "",
           sellerEmail: item.sellerEmail || adData?.sellerEmail || "Hesablar.net",
           sellerName: adData?.sellerName || adData?.sellerUsername || adData?.sellerUserId || item.seller || item.sellerEmail || adData?.sellerEmail || "Satıcı",
           buyerUid: currentUser.uid,
@@ -10122,6 +10136,14 @@ window.createOrdersFromCart = async function(items){
     }
     if(msg.startsWith("PRICE_CHANGED::")){
       toast("❌ Elan qiyməti dəyişib. Səbəti təzələ: " + msg.split("::")[1]);
+      return;
+    }
+    if(msg.startsWith("AD_NOT_APPROVED::")){
+      toast("❌ Bu elan admin tərəfindən təsdiqlənməyib (status 'Təsdiqləndi' deyil): " + msg.split("::")[1]);
+      return;
+    }
+    if(msg.startsWith("AD_PRICE_TYPE::")){
+      toast("❌ Bu elanın qiyməti bazada ədəd kimi saxlanılmayıb — satıcı/admin qiyməti yenidən yazmalıdır: " + msg.split("::")[1]);
       return;
     }
     if(isQuotaErr(e)){ toast("⏳ Sistem gündəlik limitə çatıb. Bir neçə saatdan sonra yenidən yoxla — pulun çıxılmayıb."); return; }
@@ -14159,7 +14181,7 @@ function toggleTheme(){
 }
 .ads .ad:hover .ad-banner .ad-img img,
 .ads .ad:hover .ad-banner .ad-img svg{transform:scale(1.07)}
-.ads .ad:hover .ad-banner .ad-img .ad-img-bg{transform:scale(1.25)}
+.ads .ad:hover .ad-banner .ad-img .ad-img-bg{transform:scale(1.4)}
 
 /* Badge-lər — şüşə effekti */
 .ad-number-badge,.ad-fav-btn{
