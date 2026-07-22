@@ -9852,9 +9852,12 @@ window.createOrdersFromCart = async function(items){
       // QEYD: wallet update rules yalnız ['balance','totalSpent','updatedAt']
       // sahələrinə icazə verir. uid/email göndərsək affectedKeys pozulur və
       // permission-denied verir — ona görə yalnız icazəli sahələri yazırıq.
+      // Pul dəyərləri qəpiyə yuvarlaqlaşdırılır ki, float qalığı (məs.
+      // 121.80-3.99=117.81000..) balansda toplanmasın.
+      const _round2 = n => Math.round((Number(n)||0) * 100) / 100;
       tx.set(buyerRef,{
-        balance: bal-total,
-        totalSpent: Number(w.totalSpent||0)+total,
+        balance: _round2(bal-total),
+        totalSpent: _round2(Number(w.totalSpent||0)+total),
         updatedAt: serverTimestamp()
       },{merge:true});
 
