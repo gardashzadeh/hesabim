@@ -10826,6 +10826,25 @@ window.openChatFromProduct=async function(p){
   window.showTab("messages");
   setTimeout(()=>openChat(id),250);
 };
+// [YENİ] Alışlarım bölməsindən — sifarişə əsaslanan yazışma.
+// Sifariş sənədindəki satıcı + məhsul məlumatları ilə chat açır.
+window.openChatFromOrder=async function(o){
+  await refreshUser();
+  if(!currentUser){ openModal("loginModal"); return; }
+  if(o.sellerUid && o.sellerUid === currentUser.uid){ toast("Özünə mesaj yaza bilməzsən."); return; }
+  const p = {
+    sellerUid: o.sellerUid || "",
+    sellerEmail: o.sellerEmail || "",
+    adId: o.adId || "",
+    id: o.adId || "",
+    title: o.productTitle || "Sifariş",
+    price: o.price || ""
+  };
+  const id = await ensureChatForProduct(p);
+  if(!id) return;
+  window.showTab("messages");
+  setTimeout(()=>openChat(id),250);
+};
 // Satıcı profilindən birbaşa yazışma — konkret elan olmadan da işləyir.
 window.openChatWithSeller=async function(sellerUid, sellerEmail){
   await refreshUser();
@@ -12822,6 +12841,10 @@ function listenPurchases(){
         btns = `<span style="color:#ef4444;font-size:12px">Ləğv edildi</span>`;
       }
       const confirmedInfo = `<small style="color:#475569">${o.buyerConfirmed?'✓ Sən':'○ Sən'} / ${o.sellerConfirmed?'✓ Satıcı':'○ Satıcı'}</small>`;
+      // [YENİ] Satıcıya birbaşa mesaj — hər sifarişin yanında (satıcı varsa və özün deyilsənsə)
+      if(o.sellerUid && o.sellerUid !== currentUser.uid && o.sellerUid !== "site_admin"){
+        btns += `<button class="hbtn" data-msg-seller="${o.id}" style="margin-top:6px;width:auto;padding:6px 12px;font-size:12px;background:#1c2330;border:1px solid #38bdf866;color:#38bdf8">💬 Satıcıya yaz</button>`;
+      }
       return `<tr><td><b>${esc(o.productTitle)}</b><br>${confirmedInfo}</td><td><small>${esc(o.sellerEmail||'Hesablar.net')}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}</td><td><div class="order-actions">${btns}</div></td></tr>`;
     }).join('')+'</tbody></table>';
     el.querySelectorAll("[data-buyer-confirm]").forEach(b=>b.onclick=async()=>{
@@ -12836,6 +12859,11 @@ function listenPurchases(){
     });
     el.querySelectorAll("[data-dispute]").forEach(b=>b.onclick=()=>disputeOrder(b.dataset.dispute));
     el.querySelectorAll("[data-view-creds]").forEach(b=>b.onclick=()=>viewOrderCredentials(b.dataset.viewCreds));
+    // [YENİ] "Satıcıya yaz" — sifarişin elan konteksti ilə chat açır
+    el.querySelectorAll("[data-msg-seller]").forEach(b=>b.onclick=()=>{
+      const o = arr.find(x=>x.id===b.dataset.msgSeller);
+      if(o) window.openChatFromOrder(o);
+    });
   },err=>{ console.error(err); el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Yüklənmədi.</div>'; });
 }
 
