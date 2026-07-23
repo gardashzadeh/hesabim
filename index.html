@@ -15078,6 +15078,14 @@ body.light-mode select#marketSaleMode{
   border-color:#ff5100!important;
   color:#fff!important;
 }
+/* [IMG-FIX] Ana səhifə kart şəkilləri TAM görünsün — ən son qayda, hər şeyi üstələyir */
+.ads .ad .ad-banner .ad-img img:not(.ad-img-bg){
+  object-fit:contain!important;
+  object-position:center!important;
+}
+.ads .ad .ad-banner .ad-img .ad-img-bg{
+  object-fit:cover!important;
+}
 </style>
 </body>
 </html>
