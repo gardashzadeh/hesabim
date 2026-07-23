@@ -3759,6 +3759,13 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
 <section class="panel" style="margin-top:12px">
   <div class="panel-head">
     <h2>ELAN BAZARI</h2>
+    <div class="market-search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="marketSearchInput" placeholder="Elan bazarında axtar..." autocomplete="off"
+             oninput="window.setMarketSearch(this.value)">
+      <button type="button" id="marketSearchClear" aria-label="Təmizlə"
+              onclick="document.getElementById('marketSearchInput').value='';window.setMarketSearch('');">&times;</button>
+    </div>
     <div class="panel-head-actions">
       <div class="sort-control">
         <label for="marketSort" class="sort-control-label">Sırala</label>
@@ -4038,7 +4045,8 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
           <h3>Yeni elan yerləşdir</h3>
           <div class="cabinet-form">
             <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;">Elan başlığı <span style="color:#ef4444">*</span></label>
-            <input id="adTitle" placeholder="Elan başlığı">
+            <input id="adTitle" placeholder="Elan başlığı (maks. 35 simvol)" maxlength="35" oninput="var c=document.getElementById('adTitleCount'); if(c){c.textContent=this.value.length+'/35'; c.style.color=this.value.length>=35?'#ef4444':'#64748b';}">
+            <div id="adTitleCount" style="text-align:right;font-size:11px;color:#64748b;margin:-6px 2px 6px 0">0/35</div>
 
             <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Kateqoriya <span style="color:#ef4444">*</span></label>
             <select id="adCategory" onchange="syncAdFormToCategory()">
@@ -4846,6 +4854,19 @@ window.openLegal = function(page){
 <script>
 let cart = JSON.parse(localStorage.getItem("gs_cart") || "[]");
 let currentCategory = "Hamısı";
+
+// [SEARCH] Elan bazarı axtarışı
+window.marketSearchQuery = "";
+let _marketSearchTimer = null;
+window.setMarketSearch = function(v){
+  const wrap = document.querySelector(".market-search-wrap");
+  if(wrap) wrap.classList.toggle("has-text", !!(v && v.trim()));
+  clearTimeout(_marketSearchTimer);
+  _marketSearchTimer = setTimeout(() => {
+    window.marketSearchQuery = v || "";
+    if(window.renderMarketAds) window.renderMarketAds();
+  }, 200);
+};
 let currentSort = "newest";
 window.approvedFirestoreAds = [];
 
@@ -5623,6 +5644,18 @@ window.renderMarketAds = function renderMarketAds(){
   });
 
   const combined = [...approved, ...base];
+
+  // [SEARCH] Elan bazarı axtarışı — başlıq, təsvir, oyun, satıcı, kateqoriya, teqlər üzrə
+  const _q = (window.marketSearchQuery || "").trim().toLowerCase();
+  const filtered = !_q ? combined : combined.filter(a => {
+    const hay = [
+      a.title, a.rawDesc || a.desc, a.game, a.seller, a.category,
+      a.platform, a.region, a.server, a.rank, a.adNumber,
+      (a.tags || []).join(" ")
+    ].join(" ").toLowerCase();
+    return _q.split(/\s+/).every(w => hay.includes(w));
+  });
+  combined.length = 0; combined.push(...filtered);
 
   if(currentSort === "price_asc"){
     combined.sort((a,b)=>a.priceValue - b.priceValue);
@@ -9465,6 +9498,7 @@ window.editMyAd = async function(id,arr){
   const a=(arr||[]).find(x=>x.id===id); if(!a) return;
   window.showTab("add");
   document.getElementById("adTitle").value=a.title || "";
+  (function(){ const t=document.getElementById("adTitle"), c=document.getElementById("adTitleCount"); if(t&&c){ c.textContent=t.value.length+"/35"; c.style.color=t.value.length>=35?"#ef4444":"#64748b"; } })();
   document.getElementById("adCategory").value=a.category || "Hesab";
   syncAdFormToCategory();
   const _sv = (id,val) => { const el=document.getElementById(id); if(el) el.value=val||""; };
@@ -9566,6 +9600,7 @@ window.submitAd = async function(){
   };
 
   if(!title){ highlight("adTitle"); toast("⚠️ Elan başlığını yazın"); return; }
+  if(title.length > 35){ highlight("adTitle"); toast("⚠️ Elan başlığı maksimum 35 simvol ola bilər (hazırda: "+title.length+")"); return; }
   if(!price){ highlight("adPrice"); toast("⚠️ Qiymət yazın"); return; }
   if(!desc){  highlight("adDesc");  toast("⚠️ Ətraflı məlumat yazın"); return; }
 
@@ -15088,6 +15123,34 @@ body.light-mode select#marketSaleMode{
 }
 .ads .ad .ad-banner .ad-img .ad-img-bg{
   object-fit:cover!important;
+}
+/* [SEARCH] Elan bazarı axtarış çubuğu */
+.market-search-wrap{
+  display:flex;align-items:center;gap:8px;
+  flex:1 1 260px;min-width:180px;max-width:420px;
+  background:#0d1117;border:1px solid #1f2733;border-radius:12px;
+  padding:8px 12px;margin:0 12px;
+  transition:border-color .18s ease, box-shadow .18s ease;
+}
+.market-search-wrap:focus-within{
+  border-color:#ff5100;box-shadow:0 0 0 3px rgba(255,81,0,.18);
+}
+.market-search-wrap svg{width:16px;height:16px;color:#64748b;flex-shrink:0}
+.market-search-wrap input{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:#e5e7eb;font-size:13px;font-family:inherit;
+}
+.market-search-wrap input::placeholder{color:#64748b}
+.market-search-wrap #marketSearchClear{
+  background:transparent;border:none;color:#64748b;font-size:18px;line-height:1;
+  cursor:pointer;padding:0 2px;display:none;
+}
+.market-search-wrap.has-text #marketSearchClear{display:block}
+.market-search-wrap #marketSearchClear:hover{color:#e5e7eb}
+body.light-mode .market-search-wrap{background:#fff;border-color:#e2e8f0}
+body.light-mode .market-search-wrap input{color:#0f172a}
+@media(max-width:900px){
+  .market-search-wrap{flex-basis:100%;max-width:none;margin:8px 0 0;order:5}
 }
 /* [GRID-5] Bir sırada 5 elan — kartlar daralır, yazılar buna uyğun kompaktlaşır */
 @media(min-width:1400px){
