@@ -9587,7 +9587,8 @@ window.submitAd = async function(){
     } else {
       // Platform üsulunda şərtlər qəbul edilməlidir
       const termsChk = document.getElementById("adPlatformTerms");
-      if(termsChk && !termsChk.checked){
+      // [FIX] Redaktədə şərtlər artıq ilk yerləşdirmədə qəbul olunub — yenidən tələb etmə
+      if(termsChk && !termsChk.checked && !editingId){
         authStatus("Sayt vasitəsilə satmaq üçün qaydaları qəbul etməlisən.");
         if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
         return;
@@ -9608,6 +9609,13 @@ window.submitAd = async function(){
         ? (NO_MAIL_CREDS_CATS.indexOf(document.getElementById("adCategory")?.value || "") > -1)
         : false;
       const _isDigitalCat = _noMailCat;
+      // [FIX] Redaktə rejimi: hesab məlumatları təhlükəsizlik səbəbindən formaya
+      // geri yüklənmir (secure/creds-də şifrəli saxlanılır). 4 sahə də boşdursa,
+      // köhnə məlumatlar olduğu kimi qalır — məcburi yoxlamanı keç.
+      const _allCredsEmpty = !mailEmail && !mailPassword && !accLogin && !accPassword;
+      if(editingId && _allCredsEmpty){
+        accountCredentials = null; // secure/creds toxunulmur, köhnə qalır
+      } else {
       const _missing = [];
       if(!_isDigitalCat && !mailEmail)    _missing.push("Mail ünvanı");
       if(!_isDigitalCat && !mailPassword) _missing.push("Mail şifrəsi");
@@ -9624,6 +9632,7 @@ window.submitAd = async function(){
       }
       // AES-256 ilə şifrələ — Firestore-da açıq saxlanılmasın
       accountCredentials = await encryptCreds({mailEmail, mailPassword, login:accLogin, password:accPassword, extraInfo});
+      }
     }
 
     const adPayload = {
@@ -9657,6 +9666,9 @@ window.submitAd = async function(){
       delete editPayload.sellerUid;
       delete editPayload.sellerEmail;
       delete editPayload.sellerUserId;
+      // [FIX] Redaktədə hesab məlumatları yenidən daxil edilməyibsə köhnələri
+      // qalır — hasCredentials-i false ilə əzmə.
+      if(!accountCredentials) delete editPayload.hasCredentials;
       // Redaktədən sonra elan yenidən moderasiyaya düşür — Rules satıcıya
       // yalnız "Gözləmədə"/"Satıldı" statusuna icazə verir, bu uyğundur.
       await updateDoc(doc(db,"ads",editingId), editPayload);
