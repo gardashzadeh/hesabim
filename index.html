@@ -2214,7 +2214,10 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
 .ad-banner{
   position:relative;
   width:100%;
-  height:180px;
+  /* [IMG-FIX] sabit 180px əvəzinə 16:9 nisbət — bannerlər (1280×720 və s.)
+     kadra tam oturur, kəsilmə ehtiyacı qalmır */
+  height:auto;
+  aspect-ratio:16/9;
 }
 .ad-banner .ad-img{
   width:100%;height:100%;
@@ -2299,7 +2302,7 @@ body.light-mode .ad-cat-badge{background:rgba(255,255,255,.85);border-color:#dde
 .ad-footer-row .user{margin-top:0}
 
 @media(max-width:700px){
-  .ad-banner{height:144px}
+  .ad-banner{height:auto;aspect-ratio:16/9}
 }
 
 /* Banner sahəsində real şəkil/foto olmayanda — hələlik sayt loqosu yer tutucu kimi */
