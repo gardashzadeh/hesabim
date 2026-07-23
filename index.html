@@ -5646,16 +5646,21 @@ window.renderMarketAds = function renderMarketAds(){
   const combined = [...approved, ...base];
 
   // [SEARCH] Elan bazarı axtarışı — başlıq, təsvir, oyun, satıcı, kateqoriya, teqlər üzrə
+  // (DÜZƏLİŞ: filter yalnız sorğu varsa işləyir — əvvəl boş sorğuda siyahı
+  //  özü-özünə kopyalanarkən sıfırlanırdı və heç bir elan görünmürdü)
   const _q = (window.marketSearchQuery || "").trim().toLowerCase();
-  const filtered = !_q ? combined : combined.filter(a => {
-    const hay = [
-      a.title, a.rawDesc || a.desc, a.game, a.seller, a.category,
-      a.platform, a.region, a.server, a.rank, a.adNumber,
-      (a.tags || []).join(" ")
-    ].join(" ").toLowerCase();
-    return _q.split(/\s+/).every(w => hay.includes(w));
-  });
-  combined.length = 0; combined.push(...filtered);
+  if(_q){
+    const filtered = combined.filter(a => {
+      const hay = [
+        a.title, a.rawDesc || a.desc, a.game, a.seller, a.category,
+        a.platform, a.region, a.server, a.rank, a.adNumber,
+        (a.tags || []).join(" ")
+      ].join(" ").toLowerCase();
+      return _q.split(/\s+/).every(w => hay.includes(w));
+    });
+    combined.length = 0;
+    filtered.forEach(x => combined.push(x));
+  }
 
   if(currentSort === "price_asc"){
     combined.sort((a,b)=>a.priceValue - b.priceValue);
