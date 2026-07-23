@@ -333,7 +333,7 @@ input,select,textarea{font-family:inherit}
 .tab.active{background:linear-gradient(#ff5100,#ff005b);color:#fff}
 .ads{display:grid;grid-template-columns:repeat(1,1fr);gap:12px;padding:0 12px 12px}
 @media(min-width:900px){.ads{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1400px){.ads{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:1400px){.ads{grid-template-columns:repeat(5,1fr);gap:10px}}
 @media(min-width:1800px){.ads{grid-template-columns:repeat(5,1fr)}}
 .ad{background:#181919;border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:11px;border:1px solid transparent;transition:border-color 0.2s}
 .ad:hover{border-color:var(--orange)}
@@ -5570,7 +5570,7 @@ window.renderMarketAds = function renderMarketAds(){
     //  stok > 0 olan elan satılmış sayılmır.)
     .filter(a => !a.sold || Number(a.stock || 0) > 0)
     .map(a => ({
-    icon: (()=>{ try{ const imgSrc=window.cldImg((a.imageUrls&&a.imageUrls.length)?a.imageUrls[0]:a.imageUrl, 800); if(imgSrc) return '<img src="'+String(imgSrc).replace(/"/g,'%22')+'" alt="'+safeText(a.title)+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">'; } catch(e){} try{ const auto=window.autoGameAdIcon&&window.autoGameAdIcon(a); if(auto) return auto; }catch(e){} return getCategoryDefaultIcon(a.category||"",a.platform||""); })(),
+    icon: (()=>{ try{ const imgSrc=window.cldImg((a.imageUrls&&a.imageUrls.length)?a.imageUrls[0]:a.imageUrl, 800); if(imgSrc) return '<img src="'+String(imgSrc).replace(/"/g,'%22')+'" alt="'+safeText(a.title)+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px" loading="lazy">'; } catch(e){} try{ const auto=window.autoGameAdIcon&&window.autoGameAdIcon(a); if(auto) return auto; }catch(e){} return getCategoryDefaultIcon(a.category||"",a.platform||""); })(),
     title:safeText(a.title),
     desc:safeText(adFullDesc(a)),
     price: Number(a.price || 0).toFixed(2) + " ₼",
@@ -15088,6 +15088,31 @@ body.light-mode select#marketSaleMode{
 }
 .ads .ad .ad-banner .ad-img .ad-img-bg{
   object-fit:cover!important;
+}
+/* [GRID-5] Bir sırada 5 elan — kartlar daralır, yazılar buna uyğun kompaktlaşır */
+@media(min-width:1400px){
+  .ads .ad .ad-body{padding:10px 11px 10px!important}
+  .ads .ad .ad-seller-row b{
+    font-size:13px!important;line-height:1.3!important;
+    display:-webkit-box!important;-webkit-line-clamp:1;-webkit-box-orient:vertical;
+    overflow:hidden!important;
+  }
+  .ads .ad .ad-seller-avatar{width:22px!important;height:22px!important;font-size:11px!important}
+  .ads .ad .aprice{font-size:16px!important}
+  .ads .ad .aprice + span, .ads .ad .old-price{font-size:11px!important}
+  .ads .ad .ad-cart-btn{width:32px!important;height:32px!important}
+  .ads .ad .ad-cart-btn svg{width:15px!important;height:15px!important}
+  .ads .ad .ad-footer-row{margin-top:8px!important;padding-top:8px!important;gap:6px!important}
+  .ads .ad .ad-views{font-size:10.5px!important}
+  .ads .ad .user{font-size:10.5px!important;min-width:0!important}
+  .ads .ad .user .seller-name-link{
+    max-width:90px!important;overflow:hidden!important;
+    text-overflow:ellipsis!important;white-space:nowrap!important;
+    display:inline-block!important;vertical-align:bottom!important;
+  }
+  .ads .ad .ad-cat-badge{font-size:8.5px!important;padding:2px 6px!important}
+  .ads .ad .ad-fav-btn{width:28px!important;height:28px!important}
+  .ads .ad .ad-fav-btn svg{width:14px!important;height:14px!important}
 }
 </style>
 </body>
