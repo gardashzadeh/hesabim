@@ -7093,7 +7093,19 @@ function updateProductDetailSellerOnline(){
   onlineDot.style.display  = "none";
   onlineText.style.display = "none";
   onlineText.style.color = "#22c55e";
-  const st = getSellerStatus(window.currentDetailProduct.sellerUid || "", window.currentDetailProduct.sellerEmail || "");
+  // DÜZƏLİŞ: elan sahibi öz elanına baxırsa, presence oxunuşundan asılı olmadan "Online" göstər.
+  // Əvvəl presence yazısı gecikəndə/uğursuz olanda köhnə lastSeen ("14 gün əvvəl") görünürdü.
+  const _pd = window.currentDetailProduct;
+  const _me = (typeof currentUser !== "undefined" && currentUser) ? currentUser : null;
+  if(_me && ((_pd.sellerUid && _pd.sellerUid === _me.uid) ||
+             (_pd.sellerEmail && _me.email && String(_pd.sellerEmail).toLowerCase() === String(_me.email).toLowerCase()))){
+    onlineDot.style.display  = "block";
+    onlineText.style.display = "inline";
+    onlineText.style.color = "#22c55e";
+    onlineText.textContent = "● Online";
+    return;
+  }
+  const st = getSellerStatus(_pd.sellerUid || "", _pd.sellerEmail || "");
   if(!st) return;
   if(isSellerOnline(st)){
     onlineDot.style.display  = "block";
@@ -7142,10 +7154,21 @@ async function updateOwnOnlineStatus(isOnline=true){
       ...(_uname ? {userName:_uname} : {})
     };
     await setDoc(doc(db,"presence",currentUser.uid), patch, {merge:true});
-  }catch(e){ console.warn("online update:", e); }
+  }catch(e){
+    console.warn("online update:", e);
+    // DÜZƏLİŞ: tam patch (sellerVerified/userName sahələri) Firestore Rules tərəfindən
+    // rədd edilərsə, lastSeen köhnə qalırdı ("14 gün əvvəl" problemi).
+    // Minimal payload ilə təkrar cəhd et ki, heç olmasa online/lastSeen yenilənsin.
+    try{
+      await setDoc(doc(db,"presence",currentUser.uid),
+        { online: !!isOnline, lastSeen: serverTimestamp() }, {merge:true});
+    }catch(e2){ console.error("presence yazıla bilmədi (Firestore Rules-u yoxla):", e2); }
+  }
 }
 function startOwnPresence(){
   if(!currentUser) return;
+  // Lokal keşi dərhal doldur — server yazısı gecikəndə belə öz statusun "Online" görünsün
+  cacheSellerStatus({uid: currentUser.uid, email: currentUser.email || "", online: true, lastSeen: Date.now()});
   updateOwnOnlineStatus(true);
   if(window._presenceInterval) clearInterval(window._presenceInterval);
   window._presenceInterval = setInterval(()=>updateOwnOnlineStatus(true), 60 * 1000);
