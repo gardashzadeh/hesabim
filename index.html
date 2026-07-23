@@ -4538,12 +4538,11 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
           </div>
           <div class="seller-card-body">
             <div style="display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap;">
-              <span class="seller-card-name" id="pdSeller">Hesablar.net</span>
+              <span class="seller-card-name" id="pdSeller">Hesablar.net</span><span id="pdSellerSales" style="font-size:12px;color:#94a3b8;font-weight:600;white-space:nowrap;">(0)</span>
               <span id="pdSellerOnlineText" style="display:none;font-size:11px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
             </div>
             <div class="seller-card-meta">
               <span class="rating">★★★★★ 100%</span>
-              <span class="seller-sales-count" id="pdSellerSales">0 satış</span>
             </div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
@@ -5879,11 +5878,11 @@ function openProductDetail(p){
     const _suid = currentDetailProduct.sellerUid || "";
     // Köhnə keşlənmiş rəqəmi göstərib sonra "aşağı düşürmək" olmasın deyə,
     // yalnız sellerStats-dan gələn real dəyəri göstəririk.
-    sellerSalesEl.textContent = "… satış";
+    sellerSalesEl.textContent = "(…)";
     if(_suid && typeof window.fetchSellerSalesCount === "function"){
       window.fetchSellerSalesCount(_suid).then(n=>{
         if(typeof n === "number"){
-          sellerSalesEl.textContent = n + " satış";
+          sellerSalesEl.textContent = "(" + n + ")";
           try{
             const c = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
             c[sellerKey] = n;
@@ -5891,15 +5890,15 @@ function openProductDetail(p){
           }catch(e){}
         } else {
           const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
-          sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
+          sellerSalesEl.textContent = "(" + (counts[sellerKey] || 0) + ")";
         }
       }).catch(()=>{
         const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
-        sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
+        sellerSalesEl.textContent = "(" + (counts[sellerKey] || 0) + ")";
       });
     } else {
       const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
-      sellerSalesEl.textContent = (counts[sellerKey] || 0) + " satış";
+      sellerSalesEl.textContent = "(" + (counts[sellerKey] || 0) + ")";
     }
   }
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
@@ -13741,6 +13740,13 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
     const joinDate = _joinTs
       ? new Date(_joinTs*1000).toLocaleDateString("az-AZ",{day:"2-digit",month:"2-digit",year:"numeric"})
       : "";
+
+    // DÜZƏLİŞ: profil uid-siz açılıbsa (məs. ana səhifə satıcı siyahısından),
+    // uid-i satıcının elanlarından götür — yoxsa satış sayı həmişə 0 görünürdü.
+    if(!sellerUid){
+      const _adWithUid = ads.find(a => a.sellerUid);
+      if(_adWithUid) sellerUid = _adWithUid.sellerUid;
+    }
 
     // Satış sayı — açıq sellerStats/{uid} sənədindən
     let salesCount = 0;
