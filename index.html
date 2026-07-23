@@ -15129,6 +15129,73 @@ body.light-mode select#marketSaleMode{
 .ads .ad .ad-banner .ad-img .ad-img-bg{
   object-fit:cover!important;
 }
+/* [MOB-TABLE] Alışlarım / Satışlarım — mobildə cədvəl əvəzinə kart görünüşü */
+@media(max-width:760px){
+  #cabSales .cabinet-table, #cabPurchases .cabinet-table{
+    display:block!important;overflow:visible!important;border:none!important;
+  }
+  #cabSales .cabinet-table thead, #cabPurchases .cabinet-table thead{display:none!important}
+  #cabSales .cabinet-table tbody, #cabPurchases .cabinet-table tbody{display:block!important}
+  #cabSales .cabinet-table tr, #cabPurchases .cabinet-table tr{
+    display:block!important;
+    background:#10141b;border:1px solid #1f2733;border-radius:14px;
+    padding:12px 14px;margin-bottom:12px;
+  }
+  #cabSales .cabinet-table td, #cabPurchases .cabinet-table td{
+    display:block!important;width:100%!important;box-sizing:border-box;
+    border:none!important;padding:4px 0!important;
+    white-space:normal!important;font-size:13px!important;
+    word-break:break-word;overflow-wrap:anywhere;
+  }
+  /* Sütun etiketləri */
+  #cabSales .cabinet-table td::before, #cabPurchases .cabinet-table td::before{
+    display:block;font-size:10px;letter-spacing:.8px;text-transform:uppercase;
+    color:#64748b;margin-bottom:2px;font-weight:600;
+  }
+  #cabSales .cabinet-table td:nth-child(1)::before{content:"Məhsul"}
+  #cabSales .cabinet-table td:nth-child(2)::before{content:"Alıcı"}
+  #cabPurchases .cabinet-table td:nth-child(1)::before{content:"Məhsul"}
+  #cabPurchases .cabinet-table td:nth-child(2)::before{content:"Satıcı"}
+  #cabSales .cabinet-table td:nth-child(3)::before,
+  #cabPurchases .cabinet-table td:nth-child(3)::before{content:"Qiymət"}
+  #cabSales .cabinet-table td:nth-child(4)::before,
+  #cabPurchases .cabinet-table td:nth-child(4)::before{content:"Status"}
+  #cabSales .cabinet-table td:nth-child(5)::before,
+  #cabPurchases .cabinet-table td:nth-child(5)::before{content:"Əməliyyat"}
+  /* Məhsul adı — kartın başlığı kimi */
+  #cabSales .cabinet-table td:nth-child(1),
+  #cabPurchases .cabinet-table td:nth-child(1){
+    font-weight:700!important;font-size:14px!important;color:#f1f5f9!important;
+  }
+  /* Əməliyyat hissəsi ayırıcı xətlə */
+  #cabSales .cabinet-table td:nth-child(5),
+  #cabPurchases .cabinet-table td:nth-child(5){
+    border-top:1px solid rgba(255,255,255,.06)!important;
+    margin-top:6px;padding-top:10px!important;
+  }
+  /* Hücrə içindəki formalar/inputlar tam enə yayılsın */
+  #cabSales .cabinet-table td div[style*="max-width"],
+  #cabPurchases .cabinet-table td div[style*="max-width"]{max-width:none!important}
+  #cabSales .cabinet-table td input,
+  #cabSales .cabinet-table td textarea,
+  #cabPurchases .cabinet-table td input,
+  #cabPurchases .cabinet-table td textarea{width:100%!important;min-width:0!important}
+  #cabSales .cabinet-table td .approve-btn,
+  #cabSales .cabinet-table td .complete-btn,
+  #cabSales .cabinet-table td .dispute-btn,
+  #cabPurchases .cabinet-table td .approve-btn,
+  #cabPurchases .cabinet-table td .complete-btn,
+  #cabPurchases .cabinet-table td .dispute-btn{
+    width:100%!important;margin:4px 0!important;box-sizing:border-box;
+    padding:10px 12px!important;font-size:13px!important;
+  }
+  body.light-mode #cabSales .cabinet-table tr,
+  body.light-mode #cabPurchases .cabinet-table tr{
+    background:#fff;border-color:#e2e8f0;
+  }
+  body.light-mode #cabSales .cabinet-table td:nth-child(1),
+  body.light-mode #cabPurchases .cabinet-table td:nth-child(1){color:#0f172a!important}
+}
 /* [SEARCH] Elan bazarı axtarış çubuğu */
 .market-search-wrap{
   display:flex;align-items:center;gap:8px;
