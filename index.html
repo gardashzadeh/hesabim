@@ -11433,6 +11433,7 @@ function adminShell(){
       </select>
       <input id="adminOrderSearch" placeholder="Email / məhsul axtar..." oninput="clearTimeout(window.__aosT);window.__aosT=setTimeout(_fetchOrdersAdminRender,250)" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px">
       <button type="button" class="approve-btn" onclick="_fetchOrdersAdmin()">🔄 Yenilə</button>
+      <button type="button" class="approve-btn" onclick="autoCompleteStaleOrdersAdmin()" style="background:#0e7490">⏰ 24s keçmişləri tamamla</button>
     </div>
     <div id="adminOrders" class="admin-section"></div>
   </div>
@@ -12563,7 +12564,47 @@ async function completeOrder(id){
     else toast("Sifariş tamamlanmadı.");
   }
 }
-async function cancelOrder(id){
+
+// ═══════════════════════════════════════════════════════════════
+// ADMIN: 24 SAATI KEÇMİŞ SİFARİŞLƏRİ TOPLU TAMAMLA
+// Alıcı sayta girməsə də, çatdırılma faktı olan (satıcı təsdiqi ya məlumat
+// göndərilmiş) və 24 saat keçmiş "Aktiv" sifarişlər burada tamamlanır.
+// Hər sifariş admin completeOrder yolu ilə tamamlanır → satıcıya 90% köçürülür
+// (komissiya tutulur), payoutDone markerlənir → ikiqat ödəniş olmur.
+// Klient-tərəfli avto-təsdiqin (alıcı girməsə işləmirdi) əvəzidir.
+// ═══════════════════════════════════════════════════════════════
+async function autoCompleteStaleOrdersAdmin(){
+  if(!isAdmin()){ toast("Admin icazəsi yoxdur."); return; }
+  const MS_24H = 24*60*60*1000;
+  const now = Date.now();
+  try{
+    const snap = await getDocs(query(collection(db,"orders")));
+    const stale = [];
+    snap.forEach(d=>{
+      const o = d.data()||{};
+      if(o.status !== "Aktiv") return;
+      // Çatdırılma faktı olmalıdır — yoxdursa avto-tamamlama ədalətsiz olar
+      const base = o.credentialsDeliveredAt || o.sellerConfirmedAt;
+      if(!base || !base.seconds) return;
+      if((now - base.seconds*1000) < MS_24H) return;
+      stale.push(d.id);
+    });
+    if(!stale.length){ toast("24 saatı keçmiş, tamamlanmalı sifariş yoxdur."); return; }
+    if(!await showConfirm(stale.length+" sifariş 24 saatı keçib və avtomatik tamamlanacaq (satıcıya 90% köçürüləcək). Davam edilsin?", "⏰")) return;
+    let ok = 0, fail = 0;
+    for(const id of stale){
+      try{ await completeOrder(id); ok++; }
+      catch(e){ console.warn("[autoComplete] "+id, e); fail++; }
+    }
+    toast("✅ "+ok+" sifariş tamamlandı"+(fail?(", "+fail+" alınmadı"):"")+".");
+    _fetchOrdersAdmin();
+  }catch(e){
+    console.error("[autoCompleteStaleOrdersAdmin]", e);
+    toast("Toplu tamamlama alınmadı: "+(e.code||e.message||""));
+  }
+}
+window.autoCompleteStaleOrdersAdmin = autoCompleteStaleOrdersAdmin;
+
   await refreshUser(); if(!currentUser) return;
   try{
     const orderRef=doc(db,"orders",id);
