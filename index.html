@@ -11705,7 +11705,7 @@ async function adminRefundOrder(orderId){
           // Hər sifariş 1 ədəddir — stoku 1 artır (atomik increment)
           stock: increment(1),
           buyerUid:"", buyerEmail:"",
-          lastRefundOrderId: id,
+          lastRefundOrderId: orderId,
           updatedAt:serverTimestamp()
         });
       }
