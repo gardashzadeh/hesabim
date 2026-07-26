@@ -10257,13 +10257,24 @@ async function renderWallet(){
   const el=document.getElementById("cabWallet");
   if(!el || !currentUser) return;
   const w=await ensureWallet(currentUser.uid,currentUser.email);
+  // "Alışda gözləyən" — escrowOut sahəsi checkout-da yazılmır (Rules icazə vermir),
+  // ona görə real dəyəri alıcının hələ tamamlanmamış (Aktiv/Mübahisə) sifarişlərinin
+  // qiymət cəmindən hesablayırıq. Checkout və Rules-a toxunmadan düzgün göstərir.
+  let _escrowPending = 0;
+  try{
+    const _oSnap = await getDocs(query(collection(db,"orders"), where("buyerUid","==",currentUser.uid)));
+    _oSnap.forEach(d=>{
+      const o = d.data()||{};
+      if(o.status === "Aktiv" || o.status === "Mübahisə") _escrowPending += Number(o.price||0);
+    });
+  }catch(e){ console.warn("[renderWallet] escrow hesablanmadı:", e); _escrowPending = Number(w.escrowOut||0); }
   el.innerHTML=`
     <h3>Balansım</h3>
     <div class="wallet-grid">
       <div class="wallet-card"><span>Cari balans</span><b>${walletNumber(w.balance)}</b></div>
       <div class="wallet-card"><span>Gözləyən artırma</span><b>${walletNumber(w.pendingIn)}</b></div>
       <div class="wallet-card"><span>Gözləyən çıxarış</span><b>${walletNumber(w.pendingOut)}</b></div>
-      <div class="wallet-card"><span>Alışda gözləyən</span><b>${walletNumber(w.escrowOut)}</b></div>
+      <div class="wallet-card"><span>Alışda gözləyən</span><b>${walletNumber(_escrowPending)}</b></div>
     </div>
     <div class="wallet-note">
       <b>Manual balans artırma:</b><br>
