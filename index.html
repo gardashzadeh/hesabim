@@ -6546,11 +6546,24 @@ document.addEventListener("keydown",function(e){
   }
 });
 
+// [RENDER-FIX] render() (statik oyunlar/e-pinlər) DOMContentLoaded-a bağlı idi.
+// Əgər skript gec yüklənib event artıq keçibsə, listener heç işə düşmür və
+// skeleton-lar əbədi boş qalırdı ("bəzən boş yüklənir"). İndi: DOM hazırdırsa
+// dərhal, yoxsa event-də çağırılır.
+(function _ensureRender(){
+  function _doRenderInit(){
+    render();
+    document.getElementById("cartToggleBtn")?.addEventListener("click", () => {
+      document.getElementById("cartPanel")?.classList.toggle("show");
+    });
+  }
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", _doRenderInit);
+  }else{
+    _doRenderInit();
+  }
+})();
 document.addEventListener("DOMContentLoaded",()=>{
-  render();
-  document.getElementById("cartToggleBtn")?.addEventListener("click", () => {
-    document.getElementById("cartPanel")?.classList.toggle("show");
-  });
   // Google Sitelinks Searchbox — URL-də ?q=... varsa avtomatik axtarış qutusuna yaz
   try{
     const urlParams = new URLSearchParams(window.location.search);
@@ -9910,6 +9923,7 @@ window.createOrdersFromCart = async function(items){
           // Rules-un order-create şərtlərini eyni ilə təkrarla (opak deny yox,
           // konkret səbəb).
           if(a.status !== "Təsdiqləndi")            throw new Error("AD_NOT_APPROVED::"+(item.name||"")+" (status="+(a.status||"yox")+")");
+          if(isAdExpired(a))                         throw new Error("AD_EXPIRED::"+(item.name||""));
           if(a.sold === true)                        throw new Error("AD_SOLD::"+(item.name||""));
           if(a.sellerUid === currentUser.uid)        throw new Error("SELF_BUY::"+(item.name||""));
           if(typeof a.price !== "number")            throw new Error("AD_PRICE_TYPE::"+(item.name||"")+" (qiymət DB-də ədəd deyil: "+JSON.stringify(a.price)+")");
@@ -10213,6 +10227,12 @@ window.createOrdersFromCart = async function(items){
     // Transaction atomikdir: xəta olubsa NƏ pul çıxıb, NƏ sifariş yaranıb.
     if(msg === "INSUFFICIENT_BALANCE"){ toast("Balans kifayət etmir. Əvvəl balans artır."); openCabinet(); window.showTab("wallet"); return; }
     if(msg.startsWith("AD_GONE::")){ toast("❌ Elan artıq mövcud deyil: " + msg.split("::")[1]); return; }
+    if(msg.startsWith("AD_EXPIRED::")){
+      toast("❌ Bu elanın vaxtı bitib: " + msg.split("::")[1]);
+      cart = cart.filter(x=>x.name !== msg.split("::")[1]);
+      localStorage.setItem("gs_cart", JSON.stringify(cart)); updateCart();
+      return;
+    }
     if(msg.startsWith("AD_SOLD::")){
       toast("❌ Bu elan artıq satılıb: " + msg.split("::")[1]);
       cart = cart.filter(x=>x.name !== msg.split("::")[1]);
@@ -13636,6 +13656,13 @@ function listenPublicAds(){
     });
     window.approvedFirestoreAds=arr;
     if(window.renderMarketAds) window.renderMarketAds();
+  }, err=>{
+    // [RETRY] Dinləyici xəta versə (şəbəkə/long-polling), skeleton ilişməsin.
+    // 3 saniyə sonra bir dəfə təkrar bağlanır. Bu, "bəzən boş yüklənir"
+    // problemini azaldır.
+    console.warn("[listenPublicAds] xəta, 3s sonra təkrar:", err && err.code);
+    if(unsubPublicAds){ try{ unsubPublicAds(); }catch(_){} unsubPublicAds=null; }
+    setTimeout(()=>{ try{ listenPublicAds(); }catch(_){} }, 3000);
   });
 }
 
@@ -13736,14 +13763,21 @@ onAuthStateChanged(auth, async user=>{
   }
 });
 
-document.addEventListener("DOMContentLoaded",()=>{
-  updateHeader();
-  listenHeaderNotifications();
-  wire();
-  listenPublicAds();
-  listenSellerStats();
-  listenSellerOnlineStatuses();
-});
+(function _ensureMarketInit(){
+  function _marketInit(){
+    updateHeader();
+    listenHeaderNotifications();
+    wire();
+    listenPublicAds();
+    listenSellerStats();
+    listenSellerOnlineStatuses();
+  }
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", _marketInit);
+  }else{
+    _marketInit();
+  }
+})();
 
 // ============================================================
 // 1. SATICI İCTİMAİ PROFİL
