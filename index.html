@@ -11426,7 +11426,7 @@ function adminShell(){
     <div id="adminOrders" class="admin-section"></div>
   </div>
   <div id="adminCatDeals" class="admin-cat" style="display:none">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button type="button" class="approve-btn" onclick="_fetchDealsAdmin()">🔄 Yenilə</button></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button type="button" class="approve-btn" onclick="_fetchDealsAdmin(true)">🔄 Yenilə</button></div>
     <div id="adminDeals" class="admin-section"></div>
   </div>
   <div id="adminCatAds" class="admin-cat" style="display:none">
@@ -11724,11 +11724,11 @@ window.adminRefundOrder = adminRefundOrder;
 // ═══════════════════════════════════════════════════════════════
 // YENİ TAB: SATIŞ İZLƏMƏ — hər ödənişli sifarişin tam həyat dövrü
 // ═══════════════════════════════════════════════════════════════
-async function _fetchDealsAdmin(){
+async function _fetchDealsAdmin(forceRefresh){
   const el=document.getElementById("adminDeals"); if(!el||!isAdmin()) return;
   el.innerHTML='<div class="cabinet-empty">Yüklənir...</div>';
   try{
-    let all = window.__adminAllOrders;
+    let all = forceRefresh ? null : window.__adminAllOrders;
     if(!all){
       const snap=await getDocs(query(collection(db,"orders")));
       all=[]; snap.forEach(d=>all.push({id:d.id,...d.data()}));
