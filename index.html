@@ -12505,11 +12505,25 @@ async function completeOrder(id){
           completedAt:serverTimestamp(),
           completedBy:currentUser.uid,
           completedByEmail:currentUser.email||"",
+          // Admin "Tamamla" ilə pul BİRBAŞA köçürülür → payout artıq edilmiş sayılır.
+          // Bu markerlər olmadan satıcı sonradan "Ödəniş tələb et" ilə İKİNCİ dəfə
+          // pul ala bilərdi (ikiqat ödəniş). İndi requestPayout `payoutRequested`
+          // yoxlamasında dayanır.
+          payoutRequested:true,
+          payoutRequestedAt:serverTimestamp(),
+          payoutDone:true,
+          payoutPaidAt:serverTimestamp(),
           updatedAt:serverTimestamp()
         });
         tx.update(buyerRef,{escrowOut:Math.max(0,Number(b.escrowOut||0)-Number(o2.price||0)),updatedAt:serverTimestamp()});
         if(selRef){
-          tx.set(selRef,{uid:o2.sellerUid,email:o2.sellerEmail||"",balance:Number(s.balance||0)+Number(o2.price||0),totalEarned:Number(s.totalEarned||0)+Number(o2.price||0),updatedAt:serverTimestamp()},{merge:true});
+          // KOMİSSİYA: satıcıya 90% köçürülür (10% sayt komissiyası).
+          // Formula payout yolu (processPayoutAdmin/requestPayout) ilə EYNİDİR:
+          // komissiya yuvarlaqlaşır, payout qiymətdən çıxılır → cəm dəqiq.
+          const _price = Number(o2.price||0);
+          const _commission = Math.round(_price*10)/100;
+          const _payout = Math.round((_price - _commission)*100)/100;
+          tx.set(selRef,{uid:o2.sellerUid,email:o2.sellerEmail||"",balance:Number(s.balance||0)+_payout,totalEarned:Number(s.totalEarned||0)+_payout,updatedAt:serverTimestamp()},{merge:true});
         }
       });
     }
