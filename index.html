@@ -1333,6 +1333,42 @@ body{
 @media(max-width:560px){.admin-trade-grid{grid-template-columns:1fr}.admin-trade-card{padding:12px}.admin-trade-creds pre{font-size:12px}}
 
 
+/* ADMIN — HESABAT (maliyyə) */
+.rep-toolbar{display:flex;flex-direction:column;gap:10px;margin:6px 0 16px}
+.rep-range{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.rep-range label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#64748b}
+.rep-range input[type=date]{height:38px;background:#090b0d;border:1px solid #252b32;border-radius:9px;color:#e2e8f0;padding:0 10px;font-family:inherit;font-size:13px;color-scheme:dark}
+.rep-presets{display:flex;gap:6px;flex-wrap:wrap}
+.rep-presets button{height:30px;padding:0 12px;border-radius:999px;border:1px solid #2d2f2f;background:#151616;color:#c8ccd0;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.rep-presets button:hover{border-color:#ff5100;color:#fff}
+.rep-presets button.active{background:linear-gradient(#ff5100,#ff005b);border-color:transparent;color:#fff}
+.rep-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rep-head h3{margin:0}
+.rep-kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:14px 0}
+.rep-card{background:#0b0f14;border:1px solid #1f2937;border-radius:12px;padding:12px 14px}
+.rep-card span{display:block;color:#64748b;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.rep-card b{display:block;font-family:'Space Grotesk',monospace;font-size:20px;color:#f8fafc;line-height:1.15}
+.rep-card small{display:block;color:#64748b;font-size:11px;margin-top:4px}
+.rep-card.accent{border-color:#ff510055;background:linear-gradient(160deg,rgba(255,81,0,.10),transparent)}
+.rep-card.accent b{color:#ff5100}
+.rep-card.green b{color:#22c55e}
+.rep-card.orange b{color:#f59e0b}
+.rep-card.red b{color:#ef4444}
+.rep-net{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#0b0f14;border:1px solid #1f2937;border-left:3px solid #22c55e;border-radius:12px;padding:14px 16px;margin-top:6px}
+.rep-net span{color:#94a3b8;font-size:13px;font-weight:700}
+.rep-net b{font-family:'Space Grotesk',monospace;font-size:24px}
+.rep-bar{height:8px;background:#1f2937;border-radius:999px;overflow:hidden;min-width:60px}
+.rep-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff5100,#ff005b)}
+.rep-two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+body.light-mode .rep-card,body.light-mode .rep-net{background:#fff;border-color:#e2e8f0}
+body.light-mode .rep-card b{color:#1a1d23}
+body.light-mode .rep-range input[type=date]{background:#f5f7fa;border-color:#dde1e7;color:#1a1d23;color-scheme:light}
+body.light-mode .rep-presets button{background:#fff;border-color:#dde1e7;color:#2d3748}
+body.light-mode .rep-presets button.active{color:#fff;border-color:transparent}
+body.light-mode .rep-bar{background:#eef0f5}
+@media(max-width:820px){.rep-two{grid-template-columns:1fr}}
+@media(max-width:560px){.rep-range label,.rep-range input[type=date]{width:100%}.rep-kpi{grid-template-columns:1fr 1fr}.rep-card b{font-size:17px}}
+
 /* ADMIN PANEL EXTENSION */
 .admin-section{margin-top:14px;padding-top:12px;border-top:1px solid #252b32}
 .admin-section h3{margin:0 0 10px;font-size:17px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
@@ -11437,6 +11473,7 @@ function adminShell(){
     <button type="button" data-admincat="ads" onclick="showAdminCat('ads')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Elanlar</button>
     <button type="button" data-admincat="finance" onclick="showAdminCat('finance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>Maliyyə</button>
     <button type="button" data-admincat="users" onclick="showAdminCat('users')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 00-3-3.87M15 3.13A4 4 0 0115 11"/></svg>İstifadəçilər</button>
+    <button type="button" data-admincat="hesabat" onclick="showAdminCat('hesabat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Hesabat</button>
     <button type="button" data-admincat="reports" onclick="showAdminCat('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="supportcat" onclick="showAdminCat('supportcat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8z"/></svg>Dəstək</button>
     <button type="button" data-admincat="msgs" onclick="showAdminCat('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Yazışmalar</button>
@@ -11475,6 +11512,28 @@ function adminShell(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button type="button" class="approve-btn" onclick="_fetchUsersAdmin()">🔄 Yenilə</button></div>
     <div id="adminUsers" class="admin-section"></div>
   </div>
+  <div id="adminCatHesabat" class="admin-cat" style="display:none">
+    <div class="rep-toolbar">
+      <div class="rep-range">
+        <label>Başlanğıc<input type="date" id="repFrom"></label>
+        <label>Son<input type="date" id="repTo"></label>
+        <button type="button" class="approve-btn" onclick="adminReportRun()">📊 Hesabatı göstər</button>
+        <button type="button" class="approve-btn" style="background:#0e7490" onclick="adminReportRun(true)">🔄 Yenidən yüklə</button>
+        <button type="button" class="approve-btn" style="background:#334155" onclick="adminReportCSV()">⬇️ CSV yüklə</button>
+      </div>
+      <div class="rep-presets">
+        <button type="button" data-rep-preset="today">Bu gün</button>
+        <button type="button" data-rep-preset="yesterday">Dünən</button>
+        <button type="button" data-rep-preset="7">Son 7 gün</button>
+        <button type="button" data-rep-preset="30">Son 30 gün</button>
+        <button type="button" data-rep-preset="month">Bu ay</button>
+        <button type="button" data-rep-preset="lastmonth">Keçən ay</button>
+        <button type="button" data-rep-preset="year">Bu il</button>
+        <button type="button" data-rep-preset="all">Bütün dövr</button>
+      </div>
+    </div>
+    <div id="adminReportBody" class="admin-section"></div>
+  </div>
   <div id="adminCatReports" class="admin-cat" style="display:none">
     <div id="adminReports" class="admin-section"></div>
   </div>
@@ -11502,8 +11561,232 @@ function adminShell(){
   </div>`;
 }
 
+/* ═══════════════ ADMIN — MALİYYƏ HESABATI (tarix aralığı) ═══════════════ */
+function repTS(v){
+  if(!v) return 0;
+  try{
+    if(v.seconds) return v.seconds*1000;
+    if(v.toDate) return v.toDate().getTime();
+    const d=new Date(v); return isNaN(d.getTime())?0:d.getTime();
+  }catch(e){ return 0; }
+}
+function repDayKey(ms){
+  const d=new Date(ms);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function repMoney(n){ return Number(n||0).toFixed(2)+" ₼"; }
+
+window.adminReportSetRange = function(from,to){
+  const f=document.getElementById("repFrom"), t=document.getElementById("repTo");
+  if(f) f.value = from ? repDayKey(from) : "";
+  if(t) t.value = to ? repDayKey(to) : "";
+};
+
+window.adminReportPreset = function(p){
+  const now=new Date(); const y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
+  let from=null,to=null;
+  if(p==="today"){ from=new Date(y,m,d); to=new Date(y,m,d); }
+  else if(p==="yesterday"){ from=new Date(y,m,d-1); to=new Date(y,m,d-1); }
+  else if(p==="7"){ from=new Date(y,m,d-6); to=new Date(y,m,d); }
+  else if(p==="30"){ from=new Date(y,m,d-29); to=new Date(y,m,d); }
+  else if(p==="month"){ from=new Date(y,m,1); to=new Date(y,m,d); }
+  else if(p==="lastmonth"){ from=new Date(y,m-1,1); to=new Date(y,m,0); }
+  else if(p==="year"){ from=new Date(y,0,1); to=new Date(y,m,d); }
+  else if(p==="all"){ from=null; to=null; }
+  adminReportSetRange(from?from.getTime():null, to?to.getTime():null);
+  document.querySelectorAll("[data-rep-preset]").forEach(b=>b.classList.toggle("active", b.dataset.repPreset===p));
+  adminReportRun();
+};
+
+async function adminReportInit(){
+  document.querySelectorAll("[data-rep-preset]").forEach(b=>{
+    b.onclick=()=>adminReportPreset(b.dataset.repPreset);
+  });
+  const now=new Date();
+  adminReportSetRange(new Date(now.getFullYear(),now.getMonth(),1).getTime(), now.getTime());
+  document.querySelector('[data-rep-preset="month"]')?.classList.add("active");
+  await adminReportRun(true);
+}
+window.adminReportInit = adminReportInit;
+
+async function adminReportLoad(force){
+  if(!force && window.__repData && (Date.now()-window.__repData.at < 120000)) return window.__repData;
+  const out={orders:[],balance:[],payouts:[],at:Date.now()};
+  // Sifarişlər: mümkünsə mövcud keşdən (əlavə Firestore oxunuşu olmasın)
+  if(!force && Array.isArray(window.__adminAllOrders) && window.__adminAllOrders.length){
+    out.orders = window.__adminAllOrders;
+  }else{
+    const s=await getDocs(query(collection(db,"orders")));
+    s.forEach(x=>out.orders.push({id:x.id,...x.data()}));
+    window.__adminAllOrders = out.orders;
+  }
+  try{
+    const s2=await getDocs(query(collection(db,"balanceRequests")));
+    s2.forEach(x=>out.balance.push({id:x.id,...x.data()}));
+  }catch(e){ console.warn("report balance:",e); }
+  try{
+    const s3=await getDocs(query(collection(db,"payoutRequests")));
+    s3.forEach(x=>out.payouts.push({id:x.id,...x.data()}));
+  }catch(e){ console.warn("report payouts:",e); }
+  window.__repData=out;
+  return out;
+}
+
+window.adminReportRun = async function(force){
+  const el=document.getElementById("adminReportBody");
+  if(!el || !isAdmin()) return;
+  const fv=document.getElementById("repFrom")?.value || "";
+  const tv=document.getElementById("repTo")?.value || "";
+  const from = fv ? new Date(fv+"T00:00:00").getTime() : 0;
+  const to   = tv ? new Date(tv+"T23:59:59.999").getTime() : Number.MAX_SAFE_INTEGER;
+  if(from>to){ el.innerHTML='<div class="cabinet-empty">⚠️ Başlanğıc tarix son tarixdən böyük ola bilməz.</div>'; return; }
+
+  el.innerHTML='<div class="cabinet-empty">⏳ Hesabat hazırlanır...</div>';
+  let data;
+  try{ data = await adminReportLoad(force===true); }
+  catch(e){
+    console.error("adminReportRun:",e);
+    el.innerHTML='<div class="cabinet-empty">'+(isQuotaErr(e)?"⏳ Firestore gündəlik limiti bitib.":"Hesabat yüklənmədi.")+'</div>';
+    return;
+  }
+
+  const inRange = ms => ms>=from && ms<=to;
+  const orders = data.orders||[];
+
+  // Tamamlanmış satışlar — tamamlanma tarixinə görə
+  const done = orders.filter(o=>o.status==="Tamamlandı" && inRange(repTS(o.completedAt)||repTS(o.createdAt)));
+  // Yaradılma tarixinə görə sifarişlər
+  const created = orders.filter(o=>inRange(repTS(o.createdAt)));
+
+  const volume = done.reduce((s,o)=>s+Number(o.price||0),0);
+  const commission = done.reduce((s,o)=>s+(Number(o.commission)|| (Math.round(Number(o.price||0)*10)/100)),0);
+  const netSeller = volume-commission;
+  const avg = done.length ? volume/done.length : 0;
+  const cancelled = created.filter(o=>o.status==="Ləğv edildi");
+  const disputes  = created.filter(o=>o.status==="Mübahisə");
+  const activeO   = created.filter(o=>o.status==="Aktiv");
+  const refundVol = cancelled.reduce((s,o)=>s+Number(o.price||0),0);
+
+  const bal = (data.balance||[]);
+  const dep = bal.filter(r=>r.type==="deposit" && r.status==="Təsdiqləndi" && inRange(repTS(r.processedAt)||repTS(r.createdAt)));
+  const wdr = bal.filter(r=>r.type==="withdraw" && r.status==="Təsdiqləndi" && inRange(repTS(r.processedAt)||repTS(r.createdAt)));
+  const depSum = dep.reduce((s,r)=>s+Number(r.amount||0),0);
+  const wdrSum = wdr.reduce((s,r)=>s+Number(r.amount||0),0);
+  const pendW  = bal.filter(r=>r.type==="withdraw" && r.status==="Gözləmədə");
+  const pendWSum = pendW.reduce((s,r)=>s+Number(r.amount||0),0);
+
+  const paidOuts = (data.payouts||[]).filter(p=>p.status==="Ödənildi" && inRange(repTS(p.paidAt)||repTS(p.createdAt)));
+  const paidOutSum = paidOuts.reduce((s,p)=>s+Number(p.payout||0),0);
+  const pendOuts = (data.payouts||[]).filter(p=>p.status==="Gözləmədə");
+  const pendOutSum = pendOuts.reduce((s,p)=>s+Number(p.payout||0),0);
+
+  // Günlük bölgü
+  const byDay={};
+  done.forEach(o=>{
+    const k=repDayKey(repTS(o.completedAt)||repTS(o.createdAt));
+    byDay[k]=byDay[k]||{n:0,v:0,c:0};
+    byDay[k].n++; byDay[k].v+=Number(o.price||0);
+    byDay[k].c+=Number(o.commission)|| (Math.round(Number(o.price||0)*10)/100);
+  });
+  const days=Object.keys(byDay).sort((a,b)=>b.localeCompare(a));
+  const maxV=Math.max(1,...days.map(k=>byDay[k].v));
+
+  // Top satıcılar
+  const bySeller={};
+  done.forEach(o=>{
+    const k=o.sellerEmail||o.sellerUid||"—";
+    bySeller[k]=bySeller[k]||{n:0,v:0,c:0};
+    bySeller[k].n++; bySeller[k].v+=Number(o.price||0);
+    bySeller[k].c+=Number(o.commission)|| (Math.round(Number(o.price||0)*10)/100);
+  });
+  const sellers=Object.entries(bySeller).sort((a,b)=>b[1].v-a[1].v).slice(0,10);
+
+  // Top məhsullar
+  const byProd={};
+  done.forEach(o=>{
+    const k=o.productTitle||"—";
+    byProd[k]=byProd[k]||{n:0,v:0};
+    byProd[k].n++; byProd[k].v+=Number(o.price||0);
+  });
+  const prods=Object.entries(byProd).sort((a,b)=>b[1].v-a[1].v).slice(0,10);
+
+  window.__repLast={days,byDay,sellers,prods,label:(fv||"başlanğıc")+" — "+(tv||"bu gün")};
+
+  const label = (fv||tv) ? `${fv||"…"} → ${tv||"…"}` : "Bütün dövr";
+
+  el.innerHTML=`
+  <div class="rep-head">
+    <h3>Maliyyə hesabatı</h3>
+    <span class="admin-tag">📅 ${esc(label)}</span>
+    <span class="admin-tag">${done.length} tamamlanmış satış</span>
+  </div>
+
+  <div class="rep-kpi">
+    <div class="rep-card accent"><span>Ümumi dövriyyə</span><b>${repMoney(volume)}</b><small>${done.length} satış</small></div>
+    <div class="rep-card green"><span>Saytın gəliri (10%)</span><b>${repMoney(commission)}</b><small>komissiya</small></div>
+    <div class="rep-card"><span>Satıcılara düşən</span><b>${repMoney(netSeller)}</b><small>net payout</small></div>
+    <div class="rep-card"><span>Orta çek</span><b>${repMoney(avg)}</b><small>1 satış üzrə</small></div>
+    <div class="rep-card"><span>Ödənilmiş payout</span><b>${repMoney(paidOutSum)}</b><small>${paidOuts.length} əməliyyat</small></div>
+    <div class="rep-card ${pendOutSum>0?"orange":""}"><span>Gözləyən payout</span><b>${repMoney(pendOutSum)}</b><small>${pendOuts.length} tələb</small></div>
+    <div class="rep-card"><span>Balans artırma</span><b>${repMoney(depSum)}</b><small>${dep.length} təsdiq</small></div>
+    <div class="rep-card"><span>Çıxarış (təsdiqlənmiş)</span><b>${repMoney(wdrSum)}</b><small>${wdr.length} əməliyyat</small></div>
+    <div class="rep-card ${pendWSum>0?"orange":""}"><span>Gözləyən çıxarış</span><b>${repMoney(pendWSum)}</b><small>${pendW.length} müraciət</small></div>
+    <div class="rep-card"><span>Yeni sifariş</span><b>${created.length}</b><small>${activeO.length} aktiv</small></div>
+    <div class="rep-card ${disputes.length?"red":""}"><span>Mübahisə</span><b>${disputes.length}</b><small>bu aralıqda</small></div>
+    <div class="rep-card ${cancelled.length?"red":""}"><span>Ləğv / refund</span><b>${cancelled.length}</b><small>${repMoney(refundVol)}</small></div>
+  </div>
+
+  <div class="rep-net">
+    <span>Xalis nəticə (komissiya − heç bir xərc çıxılmadan)</span>
+    <b style="color:#22c55e">${repMoney(commission)}</b>
+  </div>
+
+  <h3 style="margin-top:18px">Günlük bölgü</h3>
+  ${days.length?`<table class="cabinet-table"><thead><tr><th>Tarix</th><th>Satış</th><th>Dövriyyə</th><th>Komissiya</th><th style="width:34%">Pay</th></tr></thead><tbody>
+    ${days.map(k=>`<tr><td>${esc(k)}</td><td>${byDay[k].n}</td><td><b>${repMoney(byDay[k].v)}</b></td><td style="color:#22c55e">${repMoney(byDay[k].c)}</td>
+      <td><div class="rep-bar"><i style="width:${Math.max(3,byDay[k].v/maxV*100)}%"></i></div></td></tr>`).join("")}
+  </tbody></table>`:'<div class="cabinet-empty">Bu tarix aralığında tamamlanmış satış yoxdur.</div>'}
+
+  <div class="rep-two">
+    <div>
+      <h3>Ən çox satan satıcılar</h3>
+      ${sellers.length?`<table class="cabinet-table"><thead><tr><th>Satıcı</th><th>Satış</th><th>Dövriyyə</th><th>Komissiya</th></tr></thead><tbody>
+        ${sellers.map(([k,v])=>`<tr><td><small>${esc(k)}</small></td><td>${v.n}</td><td><b>${repMoney(v.v)}</b></td><td style="color:#22c55e">${repMoney(v.c)}</td></tr>`).join("")}
+      </tbody></table>`:'<div class="cabinet-empty">Məlumat yoxdur.</div>'}
+    </div>
+    <div>
+      <h3>Ən çox satılan məhsullar</h3>
+      ${prods.length?`<table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Say</th><th>Dövriyyə</th></tr></thead><tbody>
+        ${prods.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.n}</td><td><b>${repMoney(v.v)}</b></td></tr>`).join("")}
+      </tbody></table>`:'<div class="cabinet-empty">Məlumat yoxdur.</div>'}
+    </div>
+  </div>`;
+};
+
+window.adminReportCSV = function(){
+  const r=window.__repLast;
+  if(!r || !r.days || !r.days.length){ toast("Əvvəlcə hesabatı göstərin."); return; }
+  let csv="Tarix;Satis sayi;Dovriyye;Komissiya\n";
+  r.days.slice().sort().forEach(k=>{
+    const d=r.byDay[k];
+    csv+=`${k};${d.n};${d.v.toFixed(2)};${d.c.toFixed(2)}\n`;
+  });
+  csv+="\nSatici;Satis;Dovriyye;Komissiya\n";
+  r.sellers.forEach(([k,v])=>{ csv+=`${String(k).replace(/;/g,",")};${v.n};${v.v.toFixed(2)};${v.c.toFixed(2)}\n`; });
+  csv+="\nMehsul;Say;Dovriyye\n";
+  r.prods.forEach(([k,v])=>{ csv+=`${String(k).replace(/;/g,",")};${v.n};${v.v.toFixed(2)}\n`; });
+  try{
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="hesabat_"+(r.label||"").replace(/[^\w-]+/g,"_")+".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("CSV yükləndi");
+  }catch(e){ toast("Yüklənmədi: "+e.message); }
+};
+
 window.showAdminCat = function(cat){
-  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
+  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", hesabat:"adminCatHesabat", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
   Object.entries(cats).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = key===cat ? "" : "none";
@@ -11519,6 +11802,7 @@ window.showAdminCat = function(cat){
     if(cat==="ads" && firstOpen){ _fetchPendingAds(); _fetchAllAdsAdmin(); }
     if(cat==="finance" && firstOpen) _fetchBalanceAdmin();
     if(cat==="users" && firstOpen) _fetchUsersAdmin();
+    if(cat==="hesabat" && firstOpen) adminReportInit();
     if(cat==="supportcat"){
       if(typeof renderAdminSupport === "function") renderAdminSupport();
       if(firstOpen){ _fetchChatsAdmin(); _fetchTicketsAdmin(); }
