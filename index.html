@@ -1369,6 +1369,12 @@ body.light-mode .rep-bar{background:#eef0f5}
 @media(max-width:820px){.rep-two{grid-template-columns:1fr}}
 @media(max-width:560px){.rep-range label,.rep-range input[type=date]{width:100%}.rep-kpi{grid-template-columns:1fr 1fr}.rep-card b{font-size:17px}}
 
+.nez-note{background:#0b0f14;border:1px solid #1f2937;border-left:3px solid #a78bfa;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.6;color:#94a3b8}
+.nez-chip{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:#111827;border:1px solid #334155;color:#cbd5e1}
+.nez-chip.risk{background:#2a0f0f;border-color:#7f1d1d;color:#fca5a5}
+.rep-card.purple b{color:#a78bfa}
+body.light-mode .nez-note{background:#fff;border-color:#e2e8f0;border-left-color:#a78bfa;color:#4a5568}
+body.light-mode .nez-chip{background:#f5f7fa;border-color:#dde1e7;color:#4a5568}
 /* ADMIN PANEL EXTENSION */
 .admin-section{margin-top:14px;padding-top:12px;border-top:1px solid #252b32}
 .admin-section h3{margin:0 0 10px;font-size:17px;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
@@ -11474,6 +11480,7 @@ function adminShell(){
     <button type="button" data-admincat="finance" onclick="showAdminCat('finance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>Maliyyə</button>
     <button type="button" data-admincat="users" onclick="showAdminCat('users')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 00-3-3.87M15 3.13A4 4 0 0115 11"/></svg>İstifadəçilər</button>
     <button type="button" data-admincat="hesabat" onclick="showAdminCat('hesabat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Hesabat</button>
+    <button type="button" data-admincat="nezaret" onclick="showAdminCat('nezaret')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/></svg>Nəzarət<span id="nezBadge" style="display:none;margin-left:6px;background:#f59e0b;color:#111;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="reports" onclick="showAdminCat('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="supportcat" onclick="showAdminCat('supportcat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8z"/></svg>Dəstək</button>
     <button type="button" data-admincat="msgs" onclick="showAdminCat('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Yazışmalar</button>
@@ -11533,6 +11540,23 @@ function adminShell(){
       </div>
     </div>
     <div id="adminReportBody" class="admin-section"></div>
+  </div>
+  <div id="adminCatNezaret" class="admin-cat" style="display:none">
+    <div class="rep-toolbar">
+      <div class="rep-range">
+        <button type="button" class="approve-btn" onclick="adminNezaretRun(true)">🔄 Yenilə</button>
+        <button type="button" class="approve-btn" style="background:#334155" onclick="adminNezaretCSV()">⬇️ CSV</button>
+        <label style="flex:1;min-width:180px">Axtar (email / məhsul)<input type="text" id="nezSearch" placeholder="axtar..." oninput="clearTimeout(window.__nzT);window.__nzT=setTimeout(adminNezaretRun,250)" style="height:38px;background:#090b0d;border:1px solid #252b32;border-radius:9px;color:#e2e8f0;padding:0 10px;font-family:inherit;font-size:13px"></label>
+      </div>
+      <div class="rep-presets" id="nezFilters">
+        <button type="button" class="active" data-nez-f="all">Hamısı</button>
+        <button type="button" data-nez-f="escrow">Escrow-da</button>
+        <button type="button" data-nez-f="auto">Adminsiz köçürülüb</button>
+        <button type="button" data-nez-f="waitpay">Payout gözləyən</button>
+        <button type="button" data-nez-f="risk">⚠️ Riskli tip</button>
+      </div>
+    </div>
+    <div id="adminNezaretBody" class="admin-section"></div>
   </div>
   <div id="adminCatReports" class="admin-cat" style="display:none">
     <div id="adminReports" class="admin-section"></div>
@@ -11785,8 +11809,153 @@ window.adminReportCSV = function(){
   }catch(e){ toast("Yüklənmədi: "+e.message); }
 };
 
+
+/* ═══════════ ADMIN — PUL AXINI NƏZARƏTİ (yalnız müşahidə, heç nə bloklanmır) ═══════════ */
+// Riskli sayılan kateqoriya açar sözləri — ortaq/abunə hesablar
+window.NEZ_RISK_WORDS = ["netflix","canva","spotify","chatgpt","youtube","disney","adobe","office","microsoft 365","abunə","abune","ortaq","shared","premium","subscription","prime","hbo","duolingo","figma","capcut","picsart","telegram premium","discord nitro"];
+
+function nezIsRisky(o){
+  const t = ((o.productTitle||"")+" "+(o.category||"")+" "+(o.adCategory||"")).toLowerCase();
+  return window.NEZ_RISK_WORDS.some(w=>t.includes(w));
+}
+// Pulun satıcıya HANSI yolla getdiyini müəyyən edir
+function nezReleasePath(o){
+  if(o.status==="Ləğv edildi") return {k:"cancel", t:"Ləğv", c:"#94a3b8"};
+  if(o.status==="Mübahisə")    return {k:"dispute", t:"Mübahisə", c:"#ef4444"};
+  if(o.status!=="Tamamlandı")  return {k:"escrow", t:"Escrow-da (pul saytda)", c:"#f59e0b"};
+  if(o.escrowStatus==="Satıcı ödənişi gözləyir" && !o.payoutDone) return {k:"waitpay", t:"Admin payout gözləyir", c:"#ff5100"};
+  if(o.payoutRequested && !o.payoutDone) return {k:"waitpay", t:"Payout tələbi gözləyir", c:"#ff5100"};
+  if(o.escrowStatus==="Satıcıya köçürüldü" && o.completedBy && o.completedBy===(currentUser&&currentUser.uid)) return {k:"admin", t:"Admin köçürdü", c:"#22c55e"};
+  if(o.payoutDone && o.payoutRequested) return {k:"admin", t:"Payout ilə ödənildi", c:"#22c55e"};
+  return {k:"auto", t:"⚡ Adminsiz köçürüldü (worker)", c:"#a78bfa"};
+}
+function nezPayout(o){
+  const p=Number(o.price||0);
+  const c=Number(o.commission)|| (Math.round(p*10)/100);
+  return Math.round((p-c)*100)/100;
+}
+function nezAgeText(ms){
+  if(!ms) return "—";
+  const d=Date.now()-ms;
+  const h=Math.floor(d/3600000);
+  if(h<24) return h+" saat";
+  return Math.floor(h/24)+" gün";
+}
+
+window.adminNezaretRun = async function(force){
+  const el=document.getElementById("adminNezaretBody");
+  if(!el || !isAdmin()) return;
+  document.querySelectorAll("#nezFilters button").forEach(b=>{
+    if(!b.__bound){ b.__bound=true; b.onclick=()=>{ window.__nezF=b.dataset.nezF; document.querySelectorAll("#nezFilters button").forEach(x=>x.classList.toggle("active",x===b)); adminNezaretRun(); }; }
+  });
+  if(force===true) el.innerHTML='<div class="cabinet-empty">⏳ Yüklənir...</div>';
+
+  let orders=[], bal=[], pay=[];
+  try{
+    if(force===true || !Array.isArray(window.__adminAllOrders) || !window.__adminAllOrders.length){
+      const s=await getDocs(query(collection(db,"orders")));
+      orders=[]; s.forEach(x=>orders.push({id:x.id,...x.data()}));
+      window.__adminAllOrders=orders;
+    } else orders = window.__adminAllOrders;
+    try{ const s2=await getDocs(query(collection(db,"balanceRequests"),where("status","==","Gözləmədə"))); s2.forEach(x=>bal.push({id:x.id,...x.data()})); }catch(e){ console.warn("nez bal:",e); }
+    try{ const s3=await getDocs(query(collection(db,"payoutRequests"),where("status","==","Gözləmədə"))); s3.forEach(x=>pay.push({id:x.id,...x.data()})); }catch(e){ console.warn("nez pay:",e); }
+  }catch(e){
+    console.error("adminNezaretRun:",e);
+    el.innerHTML='<div class="cabinet-empty">'+(isQuotaErr(e)?"⏳ Firestore gündəlik limiti bitib.":"Yüklənmədi.")+'</div>';
+    return;
+  }
+
+  // ── Təsnifat
+  const rows = orders.map(o=>{
+    const p=nezReleasePath(o);
+    return {o, p, risky:nezIsRisky(o), payout:nezPayout(o),
+            ts:(o.completedAt&&o.completedAt.seconds?o.completedAt.seconds*1000:0)||(o.createdAt&&o.createdAt.seconds?o.createdAt.seconds*1000:0)};
+  });
+  const sum = a => a.reduce((s,r)=>s+Number(r.o.price||0),0);
+  const sumP= a => a.reduce((s,r)=>s+r.payout,0);
+
+  const escrow  = rows.filter(r=>r.p.k==="escrow");
+  const waitpay = rows.filter(r=>r.p.k==="waitpay");
+  const auto    = rows.filter(r=>r.p.k==="auto");
+  const autoRisk= auto.filter(r=>r.risky);
+  const disp    = rows.filter(r=>r.p.k==="dispute");
+  const refundW = rows.filter(r=>r.o.escrowStatus==="Geri ödəniş gözlənilir (admin)");
+  const wdr     = bal.filter(r=>r.type==="withdraw");
+  const wdrSum  = wdr.reduce((s,r)=>s+Number(r.amount||0),0);
+  const paySum  = pay.reduce((s,r)=>s+Number(r.payout||0),0);
+  // Son 30 gündə adminsiz köçürülmüş riskli məbləğ (hələ zəmanət müddətindədir)
+  const recentRisk = autoRisk.filter(r=>r.ts && (Date.now()-r.ts) < 30*24*3600*1000);
+
+  const badge=document.getElementById("nezBadge");
+  if(badge){ const n=waitpay.length+refundW.length+wdr.length; badge.textContent=n; badge.style.display=n?"":"none"; }
+
+  const f = window.__nezF || "all";
+  const q = (document.getElementById("nezSearch")?.value||"").toLowerCase().trim();
+  let list = rows;
+  if(f==="escrow") list=escrow;
+  else if(f==="auto") list=auto;
+  else if(f==="waitpay") list=waitpay;
+  else if(f==="risk") list=rows.filter(r=>r.risky);
+  else list=rows.filter(r=>["escrow","waitpay","auto","dispute"].includes(r.p.k));
+  if(q) list=list.filter(r=>((r.o.productTitle||"")+" "+(r.o.sellerEmail||"")+" "+(r.o.buyerEmail||"")).toLowerCase().includes(q));
+  list.sort((a,b)=>b.ts-a.ts);
+  const shown=list.slice(0,200);
+  window.__nezLast=list;
+
+  el.innerHTML=`
+  <div class="rep-head"><h3>Pul axını nəzarəti</h3><span class="admin-tag">yalnız müşahidə — heç nə bloklanmır</span></div>
+
+  <div class="rep-kpi">
+    <div class="rep-card accent"><span>Escrow-da (pul saytda)</span><b>${repMoney(sum(escrow))}</b><small>${escrow.length} aktiv sifariş</small></div>
+    <div class="rep-card ${waitpay.length?"orange":""}"><span>Sənin təsdiqini gözləyir</span><b>${repMoney(sumP(waitpay))}</b><small>${waitpay.length} sifariş</small></div>
+    <div class="rep-card ${auto.length?"purple":""}"><span>⚡ Adminsiz köçürülüb</span><b>${repMoney(sumP(auto))}</b><small>${auto.length} sifariş — worker</small></div>
+    <div class="rep-card ${recentRisk.length?"red":""}"><span>⚠️ Riskli tip, son 30 gün</span><b>${repMoney(sumP(recentRisk))}</b><small>${recentRisk.length} ortaq hesab</small></div>
+    <div class="rep-card"><span>Payout tələbləri</span><b>${repMoney(paySum)}</b><small>${pay.length} gözləyən</small></div>
+    <div class="rep-card ${wdr.length?"orange":""}"><span>Gözləyən çıxarış</span><b>${repMoney(wdrSum)}</b><small>${wdr.length} müraciət — son qapı səndədir</small></div>
+    <div class="rep-card ${disp.length?"red":""}"><span>Mübahisə</span><b>${disp.length}</b><small>${repMoney(sum(disp))}</small></div>
+    <div class="rep-card ${refundW.length?"red":""}"><span>Refund gözləyən</span><b>${refundW.length}</b><small>${repMoney(sum(refundW))}</small></div>
+  </div>
+
+  <div class="nez-note">
+    ℹ️ <b>Diqqət:</b> "Adminsiz köçürülüb" — alıcı "Təsdiqlə" basanda Escrow Worker satıcının <b>sayt balansını</b> avtomatik artırıb.
+    Pul hələ saytdadır: <b>çıxarış üçün sənin təsdiqin mütləqdir</b>. Aşağıdakı siyahı hansı tip məhsullarda bunun baş verdiyini göstərir.
+  </div>
+
+  <h3 style="margin-top:16px">Sifarişlər <small style="font-weight:400;color:#64748b">(${list.length} nəticə${list.length>200?", ilk 200 göstərilir":""})</small></h3>
+  ${shown.length?`<table class="cabinet-table"><thead><tr>
+    <th>Tarix</th><th>Məhsul</th><th>Tip</th><th>Satıcı</th><th>Məbləğ</th><th>Satıcıya</th><th>Vəziyyət</th><th>Yaş</th>
+  </tr></thead><tbody>
+  ${shown.map(r=>`<tr${r.risky?' style="background:rgba(239,68,68,.05)"':''}>
+    <td><small>${adminDateTime(r.o.completedAt||r.o.createdAt)}</small></td>
+    <td>${esc(r.o.productTitle||"—")}</td>
+    <td>${r.risky?'<span class="nez-chip risk">⚠️ Ortaq/abunə</span>':'<span class="nez-chip">Adi</span>'}</td>
+    <td><small>${esc(r.o.sellerEmail||"—")}</small></td>
+    <td><b>${repMoney(r.o.price)}</b></td>
+    <td>${r.p.k==="escrow"?"—":repMoney(r.payout)}</td>
+    <td><span style="color:${r.p.c};font-weight:700;font-size:12px">${r.p.t}</span></td>
+    <td><small>${nezAgeText(r.ts)}</small></td>
+  </tr>`).join("")}
+  </tbody></table>`:'<div class="cabinet-empty">Bu filtrə uyğun sifariş yoxdur.</div>'}`;
+};
+
+window.adminNezaretCSV = function(){
+  const list=window.__nezLast||[];
+  if(!list.length){ toast("Məlumat yoxdur."); return; }
+  let csv="Tarix;Mehsul;Tip;Satici;Alici;Mebleg;Saticiya;Veziyyet\n";
+  list.forEach(r=>{
+    const cl=s=>String(s||"").replace(/[;\n\r]/g," ");
+    csv+=`${adminDateTime(r.o.completedAt||r.o.createdAt)};${cl(r.o.productTitle)};${r.risky?"Ortaq/abune":"Adi"};${cl(r.o.sellerEmail)};${cl(r.o.buyerEmail)};${Number(r.o.price||0).toFixed(2)};${r.payout.toFixed(2)};${cl(r.p.t)}\n`;
+  });
+  try{
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="nezaret_"+new Date().toISOString().slice(0,10)+".csv";
+    document.body.appendChild(a); a.click(); a.remove(); toast("CSV yükləndi");
+  }catch(e){ toast("Yüklənmədi"); }
+};
+
 window.showAdminCat = function(cat){
-  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", hesabat:"adminCatHesabat", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
+  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", hesabat:"adminCatHesabat", nezaret:"adminCatNezaret", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
   Object.entries(cats).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = key===cat ? "" : "none";
@@ -11803,6 +11972,7 @@ window.showAdminCat = function(cat){
     if(cat==="finance" && firstOpen) _fetchBalanceAdmin();
     if(cat==="users" && firstOpen) _fetchUsersAdmin();
     if(cat==="hesabat" && firstOpen) adminReportInit();
+    if(cat==="nezaret") adminNezaretRun(firstOpen);
     if(cat==="supportcat"){
       if(typeof renderAdminSupport === "function") renderAdminSupport();
       if(firstOpen){ _fetchChatsAdmin(); _fetchTicketsAdmin(); }
