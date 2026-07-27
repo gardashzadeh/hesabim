@@ -11544,9 +11544,21 @@ function adminShell(){
   <div id="adminCatNezaret" class="admin-cat" style="display:none">
     <div class="rep-toolbar">
       <div class="rep-range">
-        <button type="button" class="approve-btn" onclick="adminNezaretRun(true)">🔄 Yenilə</button>
+        <label>Başlanğıc<input type="date" id="nezFrom"></label>
+        <label>Son<input type="date" id="nezTo"></label>
+        <button type="button" class="approve-btn" onclick="adminNezaretRun()">📅 Tətbiq et</button>
+        <button type="button" class="approve-btn" style="background:#0e7490" onclick="adminNezaretRun(true)">🔄 Yenilə</button>
         <button type="button" class="approve-btn" style="background:#334155" onclick="adminNezaretCSV()">⬇️ CSV</button>
         <label style="flex:1;min-width:180px">Axtar (email / məhsul)<input type="text" id="nezSearch" placeholder="axtar..." oninput="clearTimeout(window.__nzT);window.__nzT=setTimeout(adminNezaretRun,250)" style="height:38px;background:#090b0d;border:1px solid #252b32;border-radius:9px;color:#e2e8f0;padding:0 10px;font-family:inherit;font-size:13px"></label>
+      </div>
+      <div class="rep-presets" id="nezDates">
+        <button type="button" data-nez-preset="today">Bu gün</button>
+        <button type="button" data-nez-preset="7">Son 7 gün</button>
+        <button type="button" data-nez-preset="30">Son 30 gün</button>
+        <button type="button" data-nez-preset="month">Bu ay</button>
+        <button type="button" data-nez-preset="lastmonth">Keçən ay</button>
+        <button type="button" data-nez-preset="year">Bu il</button>
+        <button type="button" class="active" data-nez-preset="all">Bütün dövr</button>
       </div>
       <div class="rep-presets" id="nezFilters">
         <button type="button" class="active" data-nez-f="all">Hamısı</button>
@@ -11842,12 +11854,38 @@ function nezAgeText(ms){
   return Math.floor(h/24)+" gün";
 }
 
+window.adminNezaretPreset = function(pr){
+  const now=new Date(); const y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
+  let from=null,to=null;
+  if(pr==="today"){ from=new Date(y,m,d); to=new Date(y,m,d); }
+  else if(pr==="7"){ from=new Date(y,m,d-6); to=new Date(y,m,d); }
+  else if(pr==="30"){ from=new Date(y,m,d-29); to=new Date(y,m,d); }
+  else if(pr==="month"){ from=new Date(y,m,1); to=new Date(y,m,d); }
+  else if(pr==="lastmonth"){ from=new Date(y,m-1,1); to=new Date(y,m,0); }
+  else if(pr==="year"){ from=new Date(y,0,1); to=new Date(y,m,d); }
+  const f=document.getElementById("nezFrom"), t=document.getElementById("nezTo");
+  if(f) f.value = from ? repDayKey(from.getTime()) : "";
+  if(t) t.value = to ? repDayKey(to.getTime()) : "";
+  document.querySelectorAll("#nezDates button").forEach(b=>b.classList.toggle("active", b.dataset.nezPreset===pr));
+  adminNezaretRun();
+};
+
 window.adminNezaretRun = async function(force){
   const el=document.getElementById("adminNezaretBody");
   if(!el || !isAdmin()) return;
   document.querySelectorAll("#nezFilters button").forEach(b=>{
     if(!b.__bound){ b.__bound=true; b.onclick=()=>{ window.__nezF=b.dataset.nezF; document.querySelectorAll("#nezFilters button").forEach(x=>x.classList.toggle("active",x===b)); adminNezaretRun(); }; }
   });
+  document.querySelectorAll("#nezDates button").forEach(b=>{
+    if(!b.__bound){ b.__bound=true; b.onclick=()=>adminNezaretPreset(b.dataset.nezPreset); }
+  });
+  // Tarix aralığı
+  const _fv=document.getElementById("nezFrom")?.value||"";
+  const _tv=document.getElementById("nezTo")?.value||"";
+  const nFrom = _fv ? new Date(_fv+"T00:00:00").getTime() : 0;
+  const nTo   = _tv ? new Date(_tv+"T23:59:59.999").getTime() : Number.MAX_SAFE_INTEGER;
+  const nezLabel = (_fv||_tv) ? ((_fv||"…")+" → "+(_tv||"…")) : "Bütün dövr";
+  if(nFrom>nTo){ el.innerHTML='<div class="cabinet-empty">⚠️ Başlanğıc tarix son tarixdən böyük ola bilməz.</div>'; return; }
   if(force===true) el.innerHTML='<div class="cabinet-empty">⏳ Yüklənir...</div>';
 
   let orders=[], bal=[], pay=[];
@@ -11866,11 +11904,20 @@ window.adminNezaretRun = async function(force){
   }
 
   // ── Təsnifat
-  const rows = orders.map(o=>{
+  let rows = orders.map(o=>{
     const p=nezReleasePath(o);
     return {o, p, risky:nezIsRisky(o), payout:nezPayout(o),
             ts:(o.completedAt&&o.completedAt.seconds?o.completedAt.seconds*1000:0)||(o.createdAt&&o.createdAt.seconds?o.createdAt.seconds*1000:0)};
   });
+  const rowsAll = rows;
+  const inNez = ms => ms>=nFrom && ms<=nTo;
+  const rangeOn = (nFrom>0 || nTo<Number.MAX_SAFE_INTEGER);
+  if(rangeOn){
+    rows = rows.filter(r=>inNez(r.ts));
+    bal  = bal.filter(r=>inNez(repTS(r.createdAt)));
+    pay  = pay.filter(r=>inNez(repTS(r.createdAt)));
+  }
+
   const sum = a => a.reduce((s,r)=>s+Number(r.o.price||0),0);
   const sumP= a => a.reduce((s,r)=>s+r.payout,0);
 
@@ -11887,7 +11934,12 @@ window.adminNezaretRun = async function(force){
   const recentRisk = autoRisk.filter(r=>r.ts && (Date.now()-r.ts) < 30*24*3600*1000);
 
   const badge=document.getElementById("nezBadge");
-  if(badge){ const n=waitpay.length+refundW.length+wdr.length; badge.textContent=n; badge.style.display=n?"":"none"; }
+  if(badge){
+    // Badge həmişə BÜTÜN dövr üzrə — tarix filtri gözləyən işləri gizlətməsin
+    const nAll = rowsAll.filter(r=>r.p.k==="waitpay").length
+               + rowsAll.filter(r=>r.o.escrowStatus==="Geri ödəniş gözlənilir (admin)").length;
+    badge.textContent=nAll; badge.style.display=nAll?"":"none";
+  }
 
   const f = window.__nezF || "all";
   const q = (document.getElementById("nezSearch")?.value||"").toLowerCase().trim();
@@ -11900,10 +11952,10 @@ window.adminNezaretRun = async function(force){
   if(q) list=list.filter(r=>((r.o.productTitle||"")+" "+(r.o.sellerEmail||"")+" "+(r.o.buyerEmail||"")).toLowerCase().includes(q));
   list.sort((a,b)=>b.ts-a.ts);
   const shown=list.slice(0,200);
-  window.__nezLast=list;
+  window.__nezLast=list; window.__nezLabel=nezLabel;
 
   el.innerHTML=`
-  <div class="rep-head"><h3>Pul axını nəzarəti</h3><span class="admin-tag">yalnız müşahidə — heç nə bloklanmır</span></div>
+  <div class="rep-head"><h3>Pul axını nəzarəti</h3><span class="admin-tag">📅 ${esc(nezLabel)}</span><span class="admin-tag">yalnız müşahidə — heç nə bloklanmır</span></div>
 
   <div class="rep-kpi">
     <div class="rep-card accent"><span>Escrow-da (pul saytda)</span><b>${repMoney(sum(escrow))}</b><small>${escrow.length} aktiv sifariş</small></div>
@@ -11949,7 +12001,7 @@ window.adminNezaretCSV = function(){
   try{
     const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-    a.download="nezaret_"+new Date().toISOString().slice(0,10)+".csv";
+    a.download="nezaret_"+String(window.__nezLabel||"").replace(/[^\w-]+/g,"_")+".csv";
     document.body.appendChild(a); a.click(); a.remove(); toast("CSV yükləndi");
   }catch(e){ toast("Yüklənmədi"); }
 };
