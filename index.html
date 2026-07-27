@@ -10057,6 +10057,11 @@ window.createOrdersFromCart = async function(items){
           tx.set(orderRef, orderPayload);
 
           // Stoku azalt / son ədəddirsə satılmış işarələ
+          // [STOCK-BIND] HAL 1 (stok qalır) artıq sifariş möhürü daşıyır:
+          //   lastStockOrderId = bu sifarişin id-si.
+          // Rules stok azalmasını bu möhürlə real sifarişə bağlayır və
+          // anti-replay tətbiq edir (eyni orderId ilə təkrar azaltma yox).
+          // HAL 2 (son ədəd) əvvəlki kimi `orderId` sahəsi ilə keçir.
           const _left = Math.max(0, _have - 1);
           tx.update(doc(db,"ads",item.adId), {
             stock: _left,
@@ -10065,7 +10070,9 @@ window.createOrdersFromCart = async function(items){
               soldAt: serverTimestamp(),
               buyerUid: currentUser.uid,
               orderId: orderRef.id
-            } : {} ),
+            } : {
+              lastStockOrderId: orderRef.id
+            } ),
             updatedAt: serverTimestamp()
           });
 
