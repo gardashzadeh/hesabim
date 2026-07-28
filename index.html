@@ -4655,7 +4655,7 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
               <span id="pdSellerOnlineText" style="display:none;font-size:11px;color:#22c55e;font-weight:700;letter-spacing:.3px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(34,197,94,.2);white-space:nowrap;">● Onlayn</span>
             </div>
             <div class="seller-card-meta">
-              <span class="rating">★★★★★ 100%</span>
+              <span class="rating" id="pdSellerRating">☆☆☆☆☆</span>
             </div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="#1e2d3d" stroke-width="1.5" style="width:16px;height:16px;flex:none;margin-left:auto"><path d="M9 18l6-6-6-6"/></svg>
@@ -5804,6 +5804,7 @@ window.renderMarketAds = function renderMarketAds(){
       tags: tags,
       imageUrls: imageUrls,
       adNumber: btn.dataset.adnumber,
+      warranty: btn.dataset.warranty || "forever",
       icon: btn.querySelector(".ad-img").innerHTML
     });
   };
@@ -5866,6 +5867,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-tags="'+tagsB64+'" '
         + 'data-imgs="'+imgsB64+'" '
         + 'data-adnumber="'+attr(a.adNumber||'')+'" '
+        + 'data-warranty="'+attr(a.warranty||'forever')+'" '
         + 'onclick="window._openAdDetail(this)">'
         + '<div class="ad-banner">'
           + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+bannerImgHtml(a.icon)+'</div>'
@@ -6038,6 +6040,32 @@ function openProductDetail(p){
     } else {
       const counts = JSON.parse(localStorage.getItem("gs_seller_sales_counts") || "{}");
       sellerSalesEl.textContent = "(" + (counts[sellerKey] || 0) + ")";
+    }
+  }
+  // Satıcı reytinqi — real rəylərdən ulduz + say (satıcı profili ilə eyni mənbə).
+  // Ulduzların görünüşü dəyişmir; yalnız orta reytinqə görə dolu ulduz sayı və (say) yenilənir.
+  const sellerRatingEl = document.getElementById("pdSellerRating");
+  if(sellerRatingEl){
+    const _ruid = currentDetailProduct.sellerUid || "";
+    sellerRatingEl.textContent = "☆☆☆☆☆";
+    if(_ruid){
+      (async ()=>{
+        try{
+          const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",_ruid)));
+          let total = 0, cnt = 0;
+          if(revSnap && !revSnap.empty){
+            revSnap.forEach(d=>{ const r = d.data()||{}; total += (Number(r.rating)||5); cnt++; });
+          }
+          if(cnt > 0){
+            const filled = Math.round(total / cnt);
+            sellerRatingEl.textContent = "★".repeat(filled) + "☆".repeat(5 - filled) + " (" + cnt + ")";
+          } else {
+            sellerRatingEl.textContent = "☆☆☆☆☆ (0)";
+          }
+        }catch(e){ sellerRatingEl.textContent = "☆☆☆☆☆ (0)"; }
+      })();
+    } else {
+      sellerRatingEl.textContent = "☆☆☆☆☆ (0)";
     }
   }
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
