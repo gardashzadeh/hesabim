@@ -3664,7 +3664,7 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
 
 <header class="header">
   <div class="shell">
-    <button class="logo" onclick="goHome(event)"><img src="img/sekil_01.webp" alt="Hesablar.net" style="height:154px;width:auto;object-fit:contain;display:block" fetchpriority="high" decoding="async"></button>
+    <button class="logo" onclick="goHome(event)"><img src="img/sekil_01.webp" alt="Hesablar.net" style="height:185px;width:auto;object-fit:contain;display:block" fetchpriority="high" decoding="async"></button>
     <form class="search" onsubmit="event.preventDefault();filterCards()">
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
@@ -3734,6 +3734,27 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
 
 <main class="shell main">
 <div class="layout-full">
+  <style>
+    .hero-slider{position:relative;overflow:hidden;border-radius:22px}
+    .hero-track{display:flex;transition:transform .55s cubic-bezier(.4,0,.2,1);will-change:transform}
+    .hero-slide{min-width:100%;flex:0 0 100%}
+    .hero-slide .hero{margin:0;border-radius:0}
+    .hero-slide-img{display:block;width:100%;height:360px;object-fit:cover}
+    .hero-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(10,12,16,.55);color:#fff;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:.2s;padding:0}
+    .hero-arrow:hover{background:rgba(255,81,0,.85);border-color:transparent}
+    .hero-prev{left:14px}
+    .hero-next{right:14px}
+    .hero-dots{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:5;display:flex;gap:8px}
+    .hero-dot{width:9px;height:9px;border-radius:50%;border:none;padding:0;cursor:pointer;background:rgba(255,255,255,.35);transition:.25s}
+    .hero-dot.active{background:#ff5100;width:24px;border-radius:5px}
+    @media(max-width:768px){
+      .hero-slide-img{height:auto;min-height:160px}
+      .hero-arrow{width:34px;height:34px;font-size:20px}
+    }
+  </style>
+  <div class="hero-slider" id="heroSlider">
+   <div class="hero-track" id="heroTrack">
+    <div class="hero-slide">
   <section class="hero hero-mockup">
     <div class="hero-bg-left" id="heroBgLeft"></div>
     <div class="hero-bg-right" id="heroBgRight"></div>
@@ -3760,6 +3781,45 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
       </div>
     </div>
   </section>
+    </div><!-- /slayd 1 -->
+    <div class="hero-slide">
+      <img src="img/slayd2.webp" alt="Kampaniya" class="hero-slide-img" loading="lazy">
+    </div><!-- /slayd 2 -->
+   </div><!-- /hero-track -->
+   <button class="hero-arrow hero-prev" onclick="heroSlide(-1)" aria-label="Əvvəlki">‹</button>
+   <button class="hero-arrow hero-next" onclick="heroSlide(1)" aria-label="Növbəti">›</button>
+   <div class="hero-dots" id="heroDots"></div>
+  </div><!-- /hero-slider -->
+  <script>
+  (function(){
+    const track=document.getElementById("heroTrack");
+    const sliderEl=document.getElementById("heroSlider");
+    const dotsWrap=document.getElementById("heroDots");
+    if(!track||!sliderEl) return;
+    const total=track.children.length;
+    let idx=0, timer=null;
+    function go(i){
+      idx=(i+total)%total;
+      track.style.transform="translateX(-"+(idx*100)+"%)";
+      if(dotsWrap) dotsWrap.querySelectorAll(".hero-dot").forEach((d,j)=>d.classList.toggle("active",j===idx));
+    }
+    function start(){ stop(); timer=setInterval(()=>go(idx+1),4000); }
+    function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+    window.heroSlide=function(dir){ go(idx+dir); start(); };
+    if(dotsWrap){
+      for(let i=0;i<total;i++){
+        const d=document.createElement("button");
+        d.className="hero-dot"+(i===0?" active":"");
+        d.setAttribute("aria-label","Slayd "+(i+1));
+        d.addEventListener("click",()=>{ go(i); start(); });
+        dotsWrap.appendChild(d);
+      }
+    }
+    sliderEl.addEventListener("mouseenter",stop);
+    sliderEl.addEventListener("mouseleave",start);
+    start();
+  })();
+  </script>
 
   <section class="panel">
     <div class="panel-head"><h2>POPULYAR OYUNLAR</h2><button onclick="filterCategory('Hamısı');document.getElementById('ads')?.scrollIntoView({behavior:'smooth'})">Hamısına Bax</button></div>
@@ -5508,11 +5568,9 @@ function render(){
       <button class="game searchable" data-game="${safeText(x[4]||'')}" data-category="Oyun" data-idx="${i}">
         <div class="game-img" data-game="${safeText(x[4]||'')}">${x[0]}</div><b>${safeText(x[1])}</b>
       </button>`).join("");
+    // Populyar oyun ikonları yalnız vitrindir — kliklə heç yerə yönləndirmir.
     gamesEl.querySelectorAll("button[data-idx]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const x=games[Number(btn.dataset.idx)]; if(!x) return;
-        openProductDetail({title:x[1],price:"Elanlara bax",category:x[3],desc:x[2],seller:"Hesablar.net",icon:x[0]});
-      });
+      btn.style.cursor="default";
     });
   }
 
