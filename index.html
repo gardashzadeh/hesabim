@@ -6573,6 +6573,11 @@ function goHome(e){
   document.body.classList.remove("pd-open");
   document.body.style.overflow="";
   document.documentElement.style.overflow="";
+  // URL-i ana səhifəyə qaytar — yoxsa /elan/... qalır və refresh-də elan yenidən açılır
+  if(location.pathname.indexOf("/elan/") === 0){
+    history.pushState({}, "", "/");
+    document.title = "Hesablar.net — Oyun Hesabı, Skin, Gift Card və Balans Alışı Azərbaycan";
+  }
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -7237,17 +7242,24 @@ refreshSellerBadges();
 async function updateOwnOnlineStatus(isOnline=true){
   if(!currentUser) return;
   try{
-    // sellerVerified statusunu users kolleksiyasından al
+    // sellerVerified/userName statusunu users kolleksiyasından al
     const uSnap = await getDoc(doc(db,"users",currentUser.uid)).catch(()=>null);
-    const sellerVerified = !!(uSnap?.exists() && uSnap.data()?.sellerVerified);
-    const _uname = (uSnap?.exists() && uSnap.data()?.userId) ? String(uSnap.data().userId) : "";
+    const uOk = !!(uSnap && uSnap.exists());   // oxuma UĞURLU olubmu?
     const patch = {
       online: !!isOnline,
       lastSeen: serverTimestamp(),
-      sellerVerified,
-      updatedAt: serverTimestamp(),
-      ...(_uname ? {userName:_uname} : {})
+      updatedAt: serverTimestamp()
     };
+    // DÜZƏLİŞ: users oxunuşu UĞURSUZ olsa (məs. gündəlik kvota xətası),
+    // sellerVerified/userName sahələrini presence-ə YAZMA. Əvvəl uSnap==null
+    // olanda sellerVerified=false yazılırdı → badge yanlışlıqla itirdi,
+    // userName boş qalıb ad köhnə dəyərə "qayıdırdı". İndi yalnız oxuma
+    // uğurlu olanda bu sahələr yenilənir; əks halda köhnə presence dəyəri qalır.
+    if(uOk){
+      patch.sellerVerified = !!uSnap.data()?.sellerVerified;
+      const _uname = uSnap.data()?.userId ? String(uSnap.data().userId) : "";
+      if(_uname) patch.userName = _uname;
+    }
     await setDoc(doc(db,"presence",currentUser.uid), patch, {merge:true});
   }catch(e){
     console.warn("online update:", e);
