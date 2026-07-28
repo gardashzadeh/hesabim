@@ -5578,13 +5578,11 @@ function render(){
     epinsEl.innerHTML=epins.map((x,i)=>`
       <button class="epin searchable" data-category="Gift Card & E-Pin" data-idx="${i}">
         <div class="epin-img">${x[0]}</div>
-        <div class="epin-body"><b>${safeText(x[1])}</b><div class="price">${safeText(x[2])}</div><div class="old">${safeText(x[3])}</div></div>
+        <div class="epin-body"><b>${safeText(x[1])}</b></div>
       </button>`).join("");
+    // E-Pin kartları yalnız vitrindir — kliklə heç yerə yönləndirmir.
     epinsEl.querySelectorAll("button[data-idx]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const x=epins[Number(btn.dataset.idx)]; if(!x) return;
-        openProductDetail({title:x[1],price:x[2],category:"Gift Card & E-Pin",desc:"Rəqəmsal kod. Ödənişdən sonra çatdırılır.",seller:"Hesablar.net",icon:x[0]});
-      });
+      btn.style.cursor="default";
     });
   }
 
