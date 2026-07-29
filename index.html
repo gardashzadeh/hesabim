@@ -6044,6 +6044,7 @@ function openProductDetail(p){
   }
   // Satıcı reytinqi sağ kartda — birbaşa getDocs ilə (satıcı profili ilə eyni üsul).
   // renderReviews-in boş/dolu çağırış ardıcıllığından ASILI DEYİL.
+  window.__ratingFixV = "v7-getdocs-direct";
   const sellerRatingEl = document.getElementById("pdSellerRating");
   if(sellerRatingEl){
     sellerRatingEl.textContent = "☆☆☆☆☆";
