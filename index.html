@@ -6042,39 +6042,29 @@ function openProductDetail(p){
       sellerSalesEl.textContent = "(" + (counts[sellerKey] || 0) + ")";
     }
   }
-  // Satıcı reytinqi — real rəylərdən ulduz + say (satıcı profili ilə eyni mənbə).
+  // Satıcı reytinqi sağ kartda — birbaşa getDocs ilə (satıcı profili ilə eyni üsul).
+  // renderReviews-in boş/dolu çağırış ardıcıllığından ASILI DEYİL.
   const sellerRatingEl = document.getElementById("pdSellerRating");
   if(sellerRatingEl){
     sellerRatingEl.textContent = "☆☆☆☆☆";
-    const _remail = currentDetailProduct.sellerEmail || "";
-    (async ()=>{
-      try{
-        // Namizəd uid-lər: elanın öz uid-i + email üzrə satıcının BÜTÜN elanlarından
-        // tapılan uid-lər. Rəylər hansı uid altında saxlanıbsa, onu tutacaq.
-        const cand = [];
-        if(currentDetailProduct.sellerUid) cand.push(currentDetailProduct.sellerUid);
-        if(_remail){
-          const adsSnap = await getDocs(query(collection(db,"ads"), where("sellerEmail","==",_remail))).catch(()=>null);
-          if(adsSnap) adsSnap.forEach(d=>{ const a=d.data()||{}; if(a.sellerUid && cand.indexOf(a.sellerUid)===-1) cand.push(a.sellerUid); });
-        }
-        let total = 0, cnt = 0;
-        for(const uid of cand){
-          const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",uid))).catch(()=>null);
-          if(revSnap && !revSnap.empty){
-            let t=0,c=0;
-            revSnap.forEach(d=>{ const r=d.data()||{}; t+=(Number(r.rating)||5); c++; });
-            if(c>0){ total=t; cnt=c; break; } // ilk rəy tapılan uid — sayı ikiqat etməmək üçün dayan
+    const _ruid = currentDetailProduct.sellerUid || "";
+    if(_ruid){
+      (async ()=>{
+        try{
+          const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",_ruid)));
+          let total=0, cnt=0;
+          if(revSnap && !revSnap.empty){ revSnap.forEach(d=>{ const r=d.data()||{}; total+=(Number(r.rating)||5); cnt++; }); }
+          if(cnt>0){
+            const filled=Math.round(total/cnt);
+            sellerRatingEl.textContent="★".repeat(filled)+"☆".repeat(5-filled)+" ("+cnt+")";
+          } else {
+            sellerRatingEl.textContent="☆☆☆☆☆ (0)";
           }
-        }
-        if(cnt > 0){
-          const filled = Math.round(total / cnt);
-          sellerRatingEl.textContent = "★".repeat(filled) + "☆".repeat(5 - filled) + " (" + cnt + ")";
-        } else {
-          sellerRatingEl.textContent = "☆☆☆☆☆ (0)";
-        }
-        try{ console.log("[pdRating] uid=", currentDetailProduct.sellerUid, "email=", _remail, "candidates=", cand, "count=", cnt); }catch(_){}
-      }catch(e){ sellerRatingEl.textContent = "☆☆☆☆☆ (0)"; }
-    })();
+        }catch(e){ sellerRatingEl.textContent="☆☆☆☆☆ (0)"; }
+      })();
+    } else {
+      sellerRatingEl.textContent="☆☆☆☆☆ (0)";
+    }
   }
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
   const _icon = currentDetailProduct.icon || "";
