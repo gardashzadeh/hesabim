@@ -7792,6 +7792,7 @@ function renderReviews(list){
   }).join("");
 }
 window.loadProductReviews = function(p){
+  try{ if(window.flushPendingReviews) window.flushPendingReviews(); }catch(_){}
   const product = p || window.currentDetailProduct || {};
   const keys = productReviewKeys(product);
   activeReviewProductKey = keys[0];
@@ -13217,6 +13218,7 @@ async function completeOrder(id){
     }
 
     toast("Sifariş tamamlandı");
+    try{ if(window.flushPendingReviews) await window.flushPendingReviews(); }catch(_){}
   }catch(e){
     console.error(e);
     if(e.message==="ALREADY_DONE") toast("Sifariş artıq tamamlanıb.");
@@ -13805,43 +13807,73 @@ async function submitTradeInfo(id, tradeVal){
 // Alıcı satışı təsdiqləyəndə satıcını qiymətləndirir. Rəy "reviews"
 // kolleksiyasına (satıcı profilində görünən eyni struktura) yazılır və
 // sifariş sənədində buyerRating kimi saxlanılır.
+// ── Rəy YALNIZ sifariş "Tamamlandı" olanda yazıla bilər (Firestore Rules).
+// Ulduz pəncərəsi isə çox vaxt sifariş hələ "Aktiv" ikən açılır. Ona görə
+// qiyməti cihazda müvəqqəti saxlayırıq və sifariş tamamlananda `reviews`-ə yazırıq.
+function _pendingReviewsRead(){
+  try{ return JSON.parse(localStorage.getItem("gs_pending_reviews")||"{}"); }catch(e){ return {}; }
+}
+function _pendingReviewsWrite(obj){
+  try{ localStorage.setItem("gs_pending_reviews", JSON.stringify(obj)); }catch(e){}
+}
+function _stashPendingReview(orderId, data){
+  if(!orderId) return;
+  const all=_pendingReviewsRead(); all[orderId]=data; _pendingReviewsWrite(all);
+}
+// Tamamlanmış sifarişlər üçün gözləyən rəyləri yazır. İstənilən vaxt təhlükəsiz çağırıla bilər.
+window.flushPendingReviews = async function(){
+  if(!currentUser) return;
+  const all=_pendingReviewsRead();
+  const ids=Object.keys(all);
+  if(!ids.length) return;
+  let changed=false;
+  for(const orderId of ids){
+    const p=all[orderId]||{};
+    try{
+      const oSnap=await getDoc(doc(db,"orders",orderId));
+      if(!oSnap.exists()){ delete all[orderId]; changed=true; continue; }
+      const o=oSnap.data()||{};
+      if(o.buyerUid!==currentUser.uid){ delete all[orderId]; changed=true; continue; }
+      if(o.status!=="Tamamlandı") continue; // hələ tez — sonraya saxla
+      const sellerUid=p.sellerUid||o.sellerUid;
+      if(!sellerUid || sellerUid===currentUser.uid){ delete all[orderId]; changed=true; continue; }
+      const userName=(typeof currentUserDisplayName==="function")? await currentUserDisplayName() : (currentUser.email||"Alıcı");
+      const reviewId=currentUser.uid+"_"+sellerUid;
+      const revText=String(p.text||"Alış təsdiqləndi").slice(0,220);
+      try{
+        await setDoc(doc(db,"reviews",reviewId),{
+          userUid:currentUser.uid,
+          userName:String(userName||"").slice(0,100),
+          userEmail:currentUser.email||o.buyerEmail||"",
+          sellerUid,
+          rating:Math.max(1,Math.min(5,Number(p.rating)||5)),
+          text:revText,
+          adId:p.adId||o.adId||"",
+          orderId,
+          createdAt:serverTimestamp()
+        });
+      }catch(ce){
+        // Sənəd artıq varsa (eyni satıcıdan əvvəlki rəy) və ya update qadağandırsa — sükutla keç.
+        console.warn("[review] yazılmadı:", ce&&ce.code?ce.code:ce);
+      }
+      delete all[orderId]; changed=true;
+    }catch(e){ console.warn("[review] flush:", e); }
+  }
+  if(changed) _pendingReviewsWrite(all);
+};
+
 async function submitSellerRating(o, orderId, rating, text, isAuto){
   rating = Math.max(1, Math.min(5, Number(rating)||5));
-  // 1) Sifarişə yaz (alıcı öz sifarişini yeniləyə bilir)
-  try{
-    await updateDoc(doc(db,"orders",orderId),{
-      buyerRating: rating,
-      buyerRatingAt: serverTimestamp(),
-      buyerRatingAuto: !!isAuto,
-      updatedAt: serverTimestamp()
-    });
-  }catch(e){ console.warn("[rating] order yazılmadı:", e); }
-  // 2) Satıcı profilində görünən "reviews" sənədi (best-effort — Rules
-  //    tamamlanmış sifariş tələb edirsə və hələ tamamlanmayıbsa keçilir)
-  if(!o.sellerUid || o.sellerUid === currentUser?.uid) return;
-  try{
-    const userName = (typeof currentUserDisplayName === "function")
-      ? await currentUserDisplayName() : (currentUser?.email||"Alıcı");
-    const reviewId = (o.buyerUid || currentUser.uid) + "_" + o.sellerUid;
-    const revText = String(text || (isAuto ? "Avtomatik təsdiq (24 saat ərzində cavab verilmədi)" : "Alış təsdiqləndi")).slice(0,220);
-    try{
-      await setDoc(doc(db,"reviews",reviewId),{
-        userUid: o.buyerUid || currentUser.uid,
-        userName: String(userName||"").slice(0,100),
-        userEmail: currentUser?.email || o.buyerEmail || "",
-        sellerUid: o.sellerUid,
-        rating,
-        text: revText,
-        adId: o.adId || "",
-        orderId,
-        createdAt: serverTimestamp()
-      });
-    }catch(ce){
-      // Rəy sənədi artıq varsa (eyni satıcıdan əvvəlki alış) — Rules yalnız
-      // rating/text yeniləməsinə icazə verir.
-      await updateDoc(doc(db,"reviews",reviewId),{ rating, text: revText });
-    }
-  }catch(e){ console.warn("[rating] reviews yazılmadı:", e); }
+  if(!o || !o.sellerUid || o.sellerUid === currentUser?.uid) return;
+  // Qiyməti cihazda saxla — sifariş "Tamamlandı" olan kimi yazılacaq.
+  _stashPendingReview(orderId, {
+    sellerUid: o.sellerUid,
+    rating,
+    text: String(text || "Alış təsdiqləndi").slice(0,220),
+    adId: o.adId || ""
+  });
+  // Sifariş artıq tamamlanıbsa — dərhal yaz.
+  await window.flushPendingReviews();
 }
 window.submitSellerRating = submitSellerRating;
 
