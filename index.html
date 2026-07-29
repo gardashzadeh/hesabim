@@ -6043,24 +6043,28 @@ function openProductDetail(p){
     }
   }
   // Satıcı reytinqi — real rəylərdən ulduz + say (satıcı profili ilə eyni mənbə).
-  // Ulduzların görünüşü dəyişmir; yalnız orta reytinqə görə dolu ulduz sayı və (say) yenilənir.
   const sellerRatingEl = document.getElementById("pdSellerRating");
   if(sellerRatingEl){
     sellerRatingEl.textContent = "☆☆☆☆☆";
     const _remail = currentDetailProduct.sellerEmail || "";
     (async ()=>{
       try{
-        // uid varsa onu işlət; yoxdursa satıcı profili kimi email üzrə elanlardan həll et.
-        let _ruid = currentDetailProduct.sellerUid || "";
-        if(!_ruid && _remail){
+        // Namizəd uid-lər: elanın öz uid-i + email üzrə satıcının BÜTÜN elanlarından
+        // tapılan uid-lər. Rəylər hansı uid altında saxlanıbsa, onu tutacaq.
+        const cand = [];
+        if(currentDetailProduct.sellerUid) cand.push(currentDetailProduct.sellerUid);
+        if(_remail){
           const adsSnap = await getDocs(query(collection(db,"ads"), where("sellerEmail","==",_remail))).catch(()=>null);
-          if(adsSnap){ adsSnap.forEach(d=>{ if(!_ruid){ const a=d.data()||{}; if(a.sellerUid) _ruid=a.sellerUid; } }); }
+          if(adsSnap) adsSnap.forEach(d=>{ const a=d.data()||{}; if(a.sellerUid && cand.indexOf(a.sellerUid)===-1) cand.push(a.sellerUid); });
         }
-        if(!_ruid){ sellerRatingEl.textContent = "☆☆☆☆☆ (0)"; return; }
-        const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",_ruid)));
         let total = 0, cnt = 0;
-        if(revSnap && !revSnap.empty){
-          revSnap.forEach(d=>{ const r = d.data()||{}; total += (Number(r.rating)||5); cnt++; });
+        for(const uid of cand){
+          const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",uid))).catch(()=>null);
+          if(revSnap && !revSnap.empty){
+            let t=0,c=0;
+            revSnap.forEach(d=>{ const r=d.data()||{}; t+=(Number(r.rating)||5); c++; });
+            if(c>0){ total=t; cnt=c; break; } // ilk rəy tapılan uid — sayı ikiqat etməmək üçün dayan
+          }
         }
         if(cnt > 0){
           const filled = Math.round(total / cnt);
@@ -6068,6 +6072,7 @@ function openProductDetail(p){
         } else {
           sellerRatingEl.textContent = "☆☆☆☆☆ (0)";
         }
+        try{ console.log("[pdRating] uid=", currentDetailProduct.sellerUid, "email=", _remail, "candidates=", cand, "count=", cnt); }catch(_){}
       }catch(e){ sellerRatingEl.textContent = "☆☆☆☆☆ (0)"; }
     })();
   }
