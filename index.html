@@ -6042,31 +6042,12 @@ function openProductDetail(p){
       sellerSalesEl.textContent = "(" + (counts[sellerKey] || 0) + ")";
     }
   }
-  // Satıcı reytinqi sağ kartda — birbaşa getDocs ilə (satıcı profili ilə eyni üsul).
-  // renderReviews-in boş/dolu çağırış ardıcıllığından ASILI DEYİL.
-  window.__ratingFixV = "v8-diagnostic";
+  // Satıcı reytinqi sağ kartda. getDocs yalnız modul scope-da mövcuddur, ona görə
+  // hesablama window.updateSellerCardRating (modul scope) funksiyasında edilir.
+  window.__ratingFixV = "v9-scoped";
   const sellerRatingEl = document.getElementById("pdSellerRating");
-  if(sellerRatingEl){
-    sellerRatingEl.textContent = "☆☆☆☆☆";
-    const _ruid = currentDetailProduct.sellerUid || "";
-    if(_ruid){
-      (async ()=>{
-        try{
-          const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",_ruid)));
-          let total=0, cnt=0;
-          if(revSnap && !revSnap.empty){ revSnap.forEach(d=>{ const r=d.data()||{}; total+=(Number(r.rating)||5); cnt++; }); }
-          if(cnt>0){
-            const filled=Math.round(total/cnt);
-            sellerRatingEl.textContent="★".repeat(filled)+"☆".repeat(5-filled)+" ("+cnt+")";
-          } else {
-            sellerRatingEl.textContent="BOŞ uid="+String(_ruid).slice(0,6);
-          }
-        }catch(e){ sellerRatingEl.textContent="XETA:"+String((e&&(e.code||e.message))||e).slice(0,40); }
-      })();
-    } else {
-      sellerRatingEl.textContent="UID-YOX";
-    }
-  }
+  if(sellerRatingEl) sellerRatingEl.textContent = "☆☆☆☆☆";
+  if(window.updateSellerCardRating) window.updateSellerCardRating(currentDetailProduct.sellerUid||"");
   // Şəkil varsa göstər, yoxsa kateqoriyaya uyğun HD ikon
   const _icon = currentDetailProduct.icon || "";
   const _hasImg = _icon.includes("<img") || _icon.includes("http");
@@ -7821,6 +7802,26 @@ window.loadProductReviews = function(p){
     toast("Rəylər Firestore-dan yüklənmədi.");
   });
 };
+// Satıcı kartının reytinqini modul scope-da hesablayır (getDocs burada mövcuddur).
+window.updateSellerCardRating = async function(sellerUid){
+  const el = document.getElementById("pdSellerRating");
+  if(!el) return;
+  if(!sellerUid){ el.textContent = "☆☆☆☆☆ (0)"; return; }
+  try{
+    const revSnap = await getDocs(query(collection(db,"reviews"), where("sellerUid","==",sellerUid)));
+    let total=0, cnt=0;
+    if(revSnap && !revSnap.empty){ revSnap.forEach(d=>{ const r=d.data()||{}; total+=(Number(r.rating)||5); cnt++; }); }
+    // Yalnız hələ də eyni satıcı açıqdırsa yaz (istifadəçi başqa elana keçə bilər).
+    if(window.currentDetailProduct && (window.currentDetailProduct.sellerUid||"") !== sellerUid) return;
+    if(cnt>0){
+      const filled=Math.round(total/cnt);
+      el.textContent = "★".repeat(filled)+"☆".repeat(5-filled)+" ("+cnt+")";
+    } else {
+      el.textContent = "☆☆☆☆☆ (0)";
+    }
+  }catch(e){ el.textContent = "☆☆☆☆☆ (0)"; console.warn("[cardRating]", e&&(e.code||e.message)||e); }
+};
+
 window.submitProductReview = async function(){
   await refreshUser();
   if(!currentUser){ openModal("loginModal"); return; }
