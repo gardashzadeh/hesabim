@@ -12291,6 +12291,7 @@ function _fetchOrdersAdminRender(){
       actions += `<button class="approve-btn" data-admin-complete="${o.id}">✓ Tamamla</button>`;
       actions += `<button class="cancel-btn" data-admin-cancel="${o.id}">Ləğv + refund</button>`;
     }
+    actions += `<button class="approve-btn" style="background:#475569" data-admin-holdinfo="${o.id}" data-selleruid="${esc(o.sellerUid||'')}" data-selleremail="${esc(o.sellerEmail||'')}">🕒 Saxlama məlumatı</button>`;
     const statusExtra = needsRefund ? `<br><small style="color:#ff5100">↩️ Refund gözləyir</small>` : "";
     return `<tr><td><b>${esc(o.productTitle)}</b></td><td><small>${esc(o.buyerEmail)}</small></td><td><small>${esc(o.sellerEmail)}</small></td><td>${Number(o.price||0).toFixed(2)} ₼</td><td>${statusHtml(o.status)}${statusExtra}</td><td><small>${adminDateTime(o.createdAt)}</small></td><td><div class="order-actions">${actions}</div></td></tr>`;
   }).join("")}</tbody></table>`:'<div class="cabinet-empty">Sifariş tapılmadı.</div>');
@@ -12310,8 +12311,38 @@ function _fetchOrdersAdminRender(){
     _fetchOrdersAdmin();
   });
   el.querySelectorAll("[data-admin-refund]").forEach(b=>b.onclick=()=>adminRefundOrder(b.dataset.adminRefund));
+  el.querySelectorAll("[data-admin-holdinfo]").forEach(b=>b.onclick=()=>window._showHoldInfo(b.dataset.selleruid, b.dataset.selleremail));
 }
 window._fetchOrdersAdminRender = _fetchOrdersAdminRender;
+
+// ADMIN: satıcının satış sayına görə TÖVSİYƏ olunan pul saxlama müddəti.
+// Diqqət: yalnız göstəricidir — pul avtomatik saxlanmır/buraxılmır, qərarı admin verir.
+window._holdRecommendation = function(n){
+  n = Number(n)||0;
+  if(n <= 10)  return {days:15, label:"15 gün saxla"};
+  if(n <= 30)  return {days:7,  label:"7 gün saxla"};
+  if(n <= 70)  return {days:3,  label:"3 gün saxla"};
+  if(n <= 150) return {days:1,  label:"1 gün saxla"};
+  return {days:0, label:"Dərhal buraxıla bilər"};
+};
+window._showHoldInfo = async function(sellerUid, sellerEmail){
+  let n = 0;
+  try{
+    if(sellerUid && typeof window.fetchSellerSalesCount === "function"){
+      const v = await window.fetchSellerSalesCount(sellerUid);
+      if(typeof v === "number") n = v;
+    } else if(sellerUid){
+      const st = await getDoc(doc(db,"sellerStats",sellerUid)).catch(()=>null);
+      if(st && st.exists()) n = Number(st.data().salesCount||0);
+    }
+  }catch(e){}
+  const rec = window._holdRecommendation(n);
+  const msg = `Satıcı: ${sellerEmail||sellerUid||"—"}\n`
+    + `Tamamlanmış satış: ${n}\n\n`
+    + `📌 Tövsiyə: ${rec.label}\n\n`
+    + `(Bu yalnız göstəricidir — pul avtomatik saxlanmır. Qərarı siz verirsiniz.)`;
+  if(window.showConfirm){ await window.showConfirm(msg, "🕒"); } else { alert(msg); }
+};
 
 // ═══════════════════════════════════════════════════════════════
 // ADMIN: istifadəçi ləğvindən sonra REFUND — atomik:
