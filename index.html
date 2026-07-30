@@ -12289,6 +12289,9 @@ function _fetchOrdersAdminRender(){
     } else if(!["Tamamlandı","Ləğv edildi"].includes(o.status)){
       actions += `<button class="approve-btn" data-admin-complete="${o.id}">✓ Tamamla</button>`;
       actions += `<button class="cancel-btn" data-admin-cancel="${o.id}">Ləğv + refund</button>`;
+    } else if(o.status === "Tamamlandı" && o.escrowStatus !== "Alıcıya qaytarıldı"){
+      // Tamamlanmış sifariş: pul satıcı balansındadır. Admin geri ala bilər.
+      actions += `<button class="cancel-btn" data-admin-clawback="${o.id}">↩️ Refund et</button>`;
     }
     actions += `<button class="approve-btn" style="background:#475569" data-admin-holdinfo="${o.id}" data-selleruid="${esc(o.sellerUid||'')}" data-selleremail="${esc(o.sellerEmail||'')}">🕒 Saxlama məlumatı</button>`;
     const statusExtra = needsRefund ? `<br><small style="color:#ff5100">↩️ Refund gözləyir</small>` : "";
@@ -12310,6 +12313,7 @@ function _fetchOrdersAdminRender(){
     _fetchOrdersAdmin();
   });
   el.querySelectorAll("[data-admin-refund]").forEach(b=>b.onclick=()=>adminRefundOrder(b.dataset.adminRefund));
+  el.querySelectorAll("[data-admin-clawback]").forEach(b=>b.onclick=()=>adminClawbackRefund(b.dataset.adminClawback));
   el.querySelectorAll("[data-admin-holdinfo]").forEach(b=>b.onclick=()=>window._showHoldInfo(b.dataset.selleruid, b.dataset.selleremail));
 }
 window._fetchOrdersAdminRender = _fetchOrdersAdminRender;
@@ -12392,6 +12396,78 @@ async function adminRefundOrder(orderId){
 }
 window.adminRefundOrder = adminRefundOrder;
 
+// ── Tamamlanmış sifariş üçün REFUND: pul artıq satıcının balansındadır.
+// Onu satıcıdan geri götürüb alıcıya qaytarır və elanı bazara açır.
+// Satıcının balansı çatmırsa (pulu çıxarıb), əməliyyat dayanır.
+async function adminClawbackRefund(orderId){
+  if(!isAdmin()){ toast("Admin icazəsi yoxdur."); return; }
+  const oRef = doc(db,"orders",orderId);
+  try{
+    const pre = await getDoc(oRef);
+    if(!pre.exists()){ toast("Sifariş tapılmadı."); return; }
+    const po = pre.data();
+    if(po.status !== "Tamamlandı"){ toast("Bu yalnız tamamlanmış sifariş üçündür."); return; }
+    if(po.escrowStatus === "Alıcıya qaytarıldı"){ toast("Bu sifariş üzrə refund artıq edilib."); return; }
+    const price = Number(po.price||0);
+    const msg = `TAMAMLANMIŞ sifariş geri qaytarılsın?\n\n`
+      + `💰 ${price.toFixed(2)} ₼ SATICIDAN (${po.sellerEmail||""}) geri alınıb\n`
+      + `👤 ALICIYA (${po.buyerEmail||""}) qaytarılacaq.\n`
+      + `📦 Elan yenidən bazara açılacaq.\n\n`
+      + `Diqqət: satıcının balansı çatmırsa əməliyyat dayanacaq.`;
+    if(!await showConfirm(msg, "↩️")) return;
+
+    let adId = "";
+    await runTransaction(db, async (tx)=>{
+      const oSnap = await tx.get(oRef);
+      if(!oSnap.exists()) throw new Error("ORDER_GONE");
+      const o = oSnap.data();
+      if(o.status !== "Tamamlandı") throw new Error("NOT_COMPLETED");
+      if(o.escrowStatus === "Alıcıya qaytarıldı") throw new Error("ALREADY_REFUNDED");
+
+      const sRef = doc(db,"wallets",o.sellerUid);
+      const bRef = doc(db,"wallets",o.buyerUid);
+      const sSnap = await tx.get(sRef);
+      const bSnap = await tx.get(bRef);
+      const sBal = sSnap.exists() ? Number((sSnap.data()||{}).balance||0) : 0;
+      const bBal = bSnap.exists() ? Number((bSnap.data()||{}).balance||0) : 0;
+      // Satıcı balansı çatmalıdır (±0.001 tolerans)
+      if(sBal + 0.001 < price) throw new Error("SELLER_INSUFFICIENT:"+sBal.toFixed(2));
+
+      adId = o.adId || "";
+      tx.set(sRef,{balance: sBal - price, updatedAt:serverTimestamp()},{merge:true});
+      tx.set(bRef,{balance: bBal + price, updatedAt:serverTimestamp()},{merge:true});
+      tx.update(oRef,{
+        escrowStatus:"Alıcıya qaytarıldı",
+        refundedAt:serverTimestamp(),
+        refundedByAdmin:true,
+        updatedAt:serverTimestamp()
+      });
+      if(adId){
+        tx.update(doc(db,"ads",adId),{
+          status:"Təsdiqləndi", sold:false, soldAt:null, orderId:"",
+          stock: increment(1),
+          buyerUid:"", buyerEmail:"",
+          lastRefundOrderId: orderId,
+          updatedAt:serverTimestamp()
+        });
+      }
+    });
+    toast("✅ Refund edildi: pul satıcıdan alınıb alıcıya qaytarıldı, elan açıldı.");
+    _fetchOrdersAdmin();
+  }catch(e){
+    console.error("[adminClawbackRefund]",e);
+    if(String(e.message||"").startsWith("SELLER_INSUFFICIENT")){
+      const bal = String(e.message).split(":")[1]||"0";
+      toast("Satıcının balansı çatmır ("+bal+" ₼) — pulu çıxarıb. Əl ilə həll edin.");
+    }
+    else if(e.message==="ALREADY_REFUNDED") toast("Bu sifariş üzrə refund artıq edilib.");
+    else if(e.message==="NOT_COMPLETED") toast("Bu yalnız tamamlanmış sifariş üçündür.");
+    else if(e.message==="ORDER_GONE") toast("Sifariş tapılmadı.");
+    else toast("Refund alınmadı: "+(e.code||e.message||""));
+  }
+}
+window.adminClawbackRefund = adminClawbackRefund;
+
 // ═══════════════════════════════════════════════════════════════
 // YENİ TAB: SATIŞ İZLƏMƏ — hər ödənişli sifarişin tam həyat dövrü
 // ═══════════════════════════════════════════════════════════════
@@ -12424,8 +12500,10 @@ async function _fetchDealsAdmin(forceRefresh){
             <b style="color:#e2e8f0">${esc(o.productTitle||"Məhsul")}</b>
             <small style="color:#64748b;display:block">${esc(o.category||"")} • ${Number(o.price||0).toFixed(2)} ₼ • ${statusHtml(o.status)}</small>
           </div>
-          <div style="display:flex;gap:6px;align-items:flex-start">
+          <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap">
             ${o.adId?`<button class="approve-btn" style="font-size:11px" data-view-ad="${esc(o.adId)}">📦 Elana bax</button>`:""}
+            ${(o.status==="Tamamlandı" && o.escrowStatus!=="Alıcıya qaytarıldı")?`<button class="cancel-btn" style="font-size:11px" data-deal-refund="${o.id}">↩️ Refund et</button>`:""}
+            ${(o.escrowStatus==="Alıcıya qaytarıldı")?`<small style="color:#22c55e;font-size:11px;align-self:center">↩️ Refund edilib</small>`:""}
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12px;color:#94a3b8;margin-bottom:8px">
@@ -12445,6 +12523,10 @@ async function _fetchDealsAdmin(forceRefresh){
       </div>`;
     }).join("");
 
+    el.querySelectorAll("[data-deal-refund]").forEach(b=>b.onclick=async()=>{
+      await adminClawbackRefund(b.dataset.dealRefund);
+      _fetchDealsAdmin(true);
+    });
     el.querySelectorAll("[data-view-ad]").forEach(b=>b.onclick=async()=>{
       // ⚠️ DÜZƏLİŞ: əvvəl `window.open()` `await getDoc()`-dan SONRA çağırılırdı.
       // await brauzerin "transient user activation" möhlətini bitirir → Chrome/Opera
