@@ -3678,9 +3678,9 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
     </form>
     <div class="howto-wrap">
-      <button class="howto-btn" onclick="openLegal('qaydalar')" title="Necə işləyir?">
+      <button class="howto-btn" onclick="openLegal('qaydalar')" title="Sayt necə işləyir?">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" fill="#ff5100" opacity=".16"/><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" stroke="#ff5100" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9" stroke="#ff5100" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>Necə işləyir?</span>
+        <span>Sayt necə işləyir?</span>
       </button>
     </div>
     <div class="toplinks">
@@ -8340,8 +8340,12 @@ async function resetPassword(){
   }
 }
 
+let googleLoginInProgress = false;
 async function googleLogin(){
-
+  if(googleLoginInProgress) return;
+  googleLoginInProgress = true;
+  const _gbtn = document.getElementById("googleLoginBtn");
+  if(_gbtn) _gbtn.style.pointerEvents = "none";
   try{
     const provider = new GoogleAuthProvider();
 
@@ -8365,8 +8369,15 @@ async function googleLogin(){
     toast("Google ilə giriş uğurludur");
 
   }catch(e){
-    console.error("[googleLogin] XƏTA:", e.code, e.message, e);
-    authStatus("Google giriş xətası: " + (e.code || e.message));
+    if(e.code === "auth/cancelled-popup-request" || e.code === "auth/popup-closed-by-user" || e.code === "auth/user-cancelled"){
+      // İstifadəçi popup-ı bağladı və ya təkrar açılış avtomatik ləğv olundu — zərərsizdir, göstərmirik.
+    }else{
+      console.error("[googleLogin] XƏTA:", e.code, e.message, e);
+      authStatus("Google giriş xətası: " + (e.code || e.message));
+    }
+  }finally{
+    googleLoginInProgress = false;
+    if(_gbtn) _gbtn.style.pointerEvents = "";
   }
 }
 
