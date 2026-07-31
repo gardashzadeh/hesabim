@@ -10505,15 +10505,18 @@ async function renderWallet(){
     </div>
     <div class="wallet-note">
       <b>Manual balans artırma:</b><br>
-      Ödənişi aşağıdakı rekvizitə et, sonra məbləği və çek linkini göndər. Admin təsdiqləyəndən sonra balans avtomatik artacaq.
+      Aşağıdakı kartlardan birinə köçürməni et, sonra məbləği və çek şəklini göndər. Admin təsdiqləyəndən sonra balans avtomatik artacaq.
     </div>
     <div class="pay-info">
-      <div><b>m10 / Kart:</b><br>+994 55 570 70 71</div>
-      <div><b>Təyinat:</b><br>${currentUser.email}</div>
+      <div><b>💳 Kartdan-karta (aşağıdakı kartlardan birinə köçür):</b><br>
+        <span style="display:inline-block;margin-top:6px;font-size:15px;letter-spacing:1px;color:#e2e8f0"><b>5522 0993 6454 8602</b> — ABB</span><br>
+        <span style="display:inline-block;margin-top:4px;font-size:15px;letter-spacing:1px;color:#e2e8f0"><b>5310 1810 5640 6038</b> — Yelobank</span>
+      </div>
+      <div style="margin-top:8px"><b>Təyinat (qeyd):</b><br>${currentUser.email}</div>
     </div>
     <div class="request-form">
       <input id="depositAmount" inputmode="decimal" placeholder="Məbləğ, məsələn 20">
-      <select id="depositMethod"><option>m10</option><option>Kartdan-karta</option><option>Bank köçürməsi</option></select>
+      <select id="depositMethod"><option>Kartdan-karta</option></select>
       <input class="full" id="depositReceiptFile" type="file" accept="image/*">
       <input class="full" id="depositReceipt" placeholder="Çek şəkli/linki (istəyə görə)">
       <button class="fullbtn" type="button" onclick="submitDepositRequest()">Balans artırma müraciəti göndər</button>
