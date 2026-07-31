@@ -219,6 +219,14 @@ input,select,textarea{font-family:inherit}
 .logo svg{width:150px;height:auto}
 .logo-sub{font-size:11px;color:#dedede;margin-top:4px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
 .search{flex:1;max-width:590px;min-width:280px;height:48px;background:#101111;border:1px solid #343636;border-radius:10px;display:flex;overflow:hidden}
+.howto-wrap{flex:1 1 auto;display:flex;justify-content:center;min-width:0;order:0}
+.howto-btn{display:inline-flex;align-items:center;gap:8px;padding:0;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.1px;color:#f0f0f0;white-space:nowrap;transition:color .18s}
+.howto-btn svg{width:18px;height:18px;flex-shrink:0}
+.howto-btn span{color:#f0f0f0}
+.howto-btn:hover span,.howto-btn:hover{color:#fff}
+body.light-mode .howto-btn span{color:#4a5568}
+body.light-mode .howto-btn:hover span{color:#ff5100}
+@media(max-width:900px){.howto-wrap{display:none}}
 .search input{flex:1;background:transparent;border:0;color:#d8d8d8;font-size:14px;padding:0 16px;outline:0}
 .search select{width:145px;background:#171818;color:#d8d8d8;border:0;border-left:1px solid #2d2f2f;padding:0 10px;outline:0}
 .search button{width:58px;background:linear-gradient(#ff5100,#ff005b);border:0;color:#fff;font-size:23px;display:grid;place-items:center}
@@ -3669,6 +3677,12 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
     </form>
+    <div class="howto-wrap">
+      <button class="howto-btn" onclick="openLegal('qaydalar')" title="Sayt necə işləyir?">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" fill="#ff5100" opacity=".16"/><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" stroke="#ff5100" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9" stroke="#ff5100" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Sayt necə işləyir?</span>
+      </button>
+    </div>
     <div class="toplinks">
       <button onclick="showToast('Əlaqə xətti: +994 55 570 70 71')">☎ Əlaqə</button>
     </div>
@@ -3739,7 +3753,7 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
     .hero-track{display:flex;transition:transform .55s cubic-bezier(.4,0,.2,1);will-change:transform}
     .hero-slide{min-width:100%;flex:0 0 100%;position:relative}
     .hero-slide .hero{margin:0;border-radius:0}
-    .hero-slide-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+    .hero-slide-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#060708;display:block}
     .hero-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(10,12,16,.55);color:#fff;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:.2s;padding:0}
     .hero-arrow:hover{background:rgba(255,81,0,.85);border-color:transparent}
     .hero-prev{left:14px}
@@ -3759,26 +3773,6 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
     <div class="hero-bg-right" id="heroBgRight"></div>
     <!-- slider oxları silindi: real slayd sistemi yox idi, saxta toast göstərirdi -->
     <div class="hero-title"><h1>ƏN ETİBARLI <span>ELAN BAZARI</span></h1><p>Minlərlə elan arasından istədiyini seç<br>Təhlükəsiz alış-verişin rahatlığını yaşa!</p></div>
-    <div class="hero-features">
-      <div class="feature">
-        <i>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </i>
-        <div><b>TƏHLÜKƏSİZ ALIŞ-VERİŞ</b><small>7/24 sistem qoruması</small></div>
-      </div>
-      <div class="feature">
-        <i>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </i>
-        <div><b>SÜRƏTLİ ÇATDIRILMA</b><small>Dərhal çatdırılma</small></div>
-      </div>
-      <div class="feature">
-        <i>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        </i>
-        <div><b>%100 MÜŞTƏRİ MƏMNUNİYYƏTİ</b><small>Minlərlə məmnun müştəri</small></div>
-      </div>
-    </div>
   </section>
     </div><!-- /slayd 1 -->
     <div class="hero-slide">
