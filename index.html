@@ -1844,9 +1844,6 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 
 /* SAVED OPEN FIX */
 #productModal{z-index:1000000!important}
-/* [BUMP] Kabinet modalı z-index:999999 daşıyır — irəli çək pəncərəsi
-   onun ÜSTÜNDƏ görünməlidir, yoxsa arxa fonda qalır. */
-#bumpModal{z-index:1000003!important}
 #productModal.show{display:flex!important}
 #productModal .product-detail-box{z-index:1000001!important}
 
@@ -16240,6 +16237,9 @@ body.light-mode .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff;bord
 #sellerProfileModal .modal-box{z-index:1000006!important;position:relative}
 #reportModal{z-index:1000007!important}
 .cabinet-modal{z-index:1000010!important}
+/* [BUMP] "İrəli çək" pəncərəsi kabinetdən (1000010) açılır → üstündə olmalıdır,
+   yoxsa arxa fonda qalır. confirmModal (1000020) isə bunun da üstündə qalsın. */
+#bumpModal{z-index:1000015!important}
 #confirmModal{z-index:1000020!important}
 #supportPanel{z-index:1000030!important}
 
