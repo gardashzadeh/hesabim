@@ -1836,7 +1836,7 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 .profile-form button{grid-column:1/3}
 .order-actions{display:flex;flex-wrap:wrap;gap:6px}
 .order-actions button{height:30px;border-radius:7px;padding:0 9px;color:#fff;font-weight:900}
-.complete-btn{background:#128a45}.cancel-btn{background:#475569}.dispute-btn{background:#a16207}.edit-btn{background:#2563eb}.renew-btn{background:#7c3aed}
+.complete-btn{background:#128a45}.cancel-btn{background:#475569}.dispute-btn{background:#a16207}.edit-btn{background:#2563eb}.renew-btn{background:#7c3aed}.bump-btn{background:#ff5100}
 .saved-card.saved-live{border-color:#334155}
 
 @media(max-width:700px){.profile-form{grid-template-columns:1fr}.profile-form .full,.profile-form button{grid-column:auto}}
@@ -4872,6 +4872,14 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
   </div>
 </div>
 
+<!-- ===== İRƏLİ ÇƏK (BUMP) MODALI ===== -->
+<div class="modal" id="bumpModal">
+  <div class="modal-box" style="max-width:400px">
+    <button class="modal-close" onclick="closeModal('bumpModal')">✕</button>
+    <div id="bumpModalBody"><div style="text-align:center;padding:30px;color:#64748b">Yüklənir...</div></div>
+  </div>
+</div>
+
 <!-- ===== KUPON MODALI (admin yaradır) ===== -->
 <!-- coupon modal removed -->
 
@@ -5731,6 +5739,7 @@ window.renderMarketAds = function renderMarketAds(){
     priceValue: Number(a.price || 0),
     originalPrice: Number(a.originalPrice || 0),
     createdAtMs: a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds*1000 : 0),
+    bumpedAtMs: a.bumpedAt && typeof a.bumpedAt.toMillis === "function" ? a.bumpedAt.toMillis() : (a.bumpedAt && a.bumpedAt.seconds ? a.bumpedAt.seconds*1000 : 0),
     rawDesc:safeText(a.desc || ""),
     game:safeText(a.game || ""),
     seller:safeText(a.sellerUserId || (a.sellerEmail ? a.sellerEmail.split('@')[0] : "Satıcı")),
@@ -5800,7 +5809,9 @@ window.renderMarketAds = function renderMarketAds(){
   } else if(currentSort === "price_desc"){
     combined.sort((a,b)=>b.priceValue - a.priceValue);
   } else {
-    combined.sort((a,b)=>b.createdAtMs - a.createdAtMs);
+    // İrəli çəkilmiş elan başa keçir: effektiv vaxt = max(yaradılma, son irəli çəkmə)
+    const _eff = x => Math.max(Number(x.createdAtMs)||0, Number(x.bumpedAtMs)||0);
+    combined.sort((a,b)=>_eff(b) - _eff(a));
   }
 
   // _openAdDetail: data attributes-dan məlumatı oxuyub openProductDetail-ə ötür
@@ -14305,6 +14316,178 @@ async function requestPayout(id){
   }
 }
 
+/* ===== İRƏLİ ÇƏK (BUMP) — kredit paketi + 6 saat cooldown =====
+   Model: satıcı elana kredit alır (balansından çıxılır), sonra hər krediti
+   istədiyi an işlədib elanı siyahının başına çəkir. İki çəkmə arasında
+   BUMP_COOLDOWN_HOURS saat gözləmə var.
+   DİQQƏT: Firestore Rules tələb olunur (aşağıda izah). Rules olmadan
+   balans azalması "permission-denied" verəcək. */
+const BUMP_PACKAGES = [
+  { credits: 1,  price: 1 },
+  { credits: 5,  price: 3 },
+  { credits: 10, price: 8 }
+];
+const BUMP_COOLDOWN_HOURS = 6;
+const BUMP_COOLDOWN_MS = BUMP_COOLDOWN_HOURS * 60 * 60 * 1000;
+
+function bumpFmtDur(ms){
+  ms = Math.max(0, Number(ms)||0);
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if(h > 0) return h + " saat" + (m > 0 ? " " + m + " dəq" : "");
+  if(m > 0) return m + " dəq";
+  return "1 dəqdən az";
+}
+function bumpTsToMs(ts){
+  if(!ts) return 0;
+  if(typeof ts.toMillis === "function") return ts.toMillis();
+  if(ts.seconds) return ts.seconds * 1000;
+  return 0;
+}
+
+window.openBumpModal = async function(adId){
+  if(!currentUser){ openModal("loginModal"); return; }
+  const box = document.getElementById("bumpModalBody");
+  if(box) box.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b">Yüklənir...</div>';
+  openModal("bumpModal");
+  try{
+    const aSnap = await getDoc(doc(db,"ads",adId));
+    if(!aSnap.exists()){ if(box) box.innerHTML='<p style="color:#ef4444;text-align:center;padding:20px">Elan tapılmadı.</p>'; return; }
+    const a = aSnap.data()||{};
+    if(a.sellerUid !== currentUser.uid && !isAdmin()){
+      if(box) box.innerHTML='<p style="color:#ef4444;text-align:center;padding:20px">Bu elan sənə aid deyil.</p>'; return;
+    }
+    const credits = Number(a.bumpCredits||0);
+    const lastMs  = bumpTsToMs(a.bumpedAt);
+    const cdLeft  = lastMs ? Math.max(0, BUMP_COOLDOWN_MS - (Date.now() - lastMs)) : 0;
+    let bal = 0;
+    try{ const w = await getDoc(doc(db,"wallets",currentUser.uid)); bal = w.exists() ? Number((w.data()||{}).balance||0) : 0; }catch(e){}
+
+    let useBtn;
+    if(credits <= 0)      useBtn = '<button class="fullbtn" disabled style="opacity:.5;cursor:not-allowed">Kredit yoxdur — əvvəlcə al</button>';
+    else if(cdLeft > 0)   useBtn = '<button class="fullbtn" disabled style="opacity:.5;cursor:not-allowed">Gözləmə: '+bumpFmtDur(cdLeft)+'</button>';
+    else                  useBtn = '<button class="fullbtn" onclick="useBumpCredit(\''+adId+'\')">🚀 İndi irəli çək (1 kredit)</button>';
+
+    const pkgs = BUMP_PACKAGES.map(p =>
+      '<button onclick="buyBumpCredits(\''+adId+'\','+p.credits+','+p.price+')" style="flex:1;display:flex;flex-direction:column;gap:2px;align-items:center;padding:12px 6px;background:#0d1117;border:1px solid #1e2d45;border-radius:10px;color:#e2e8f0;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor=\'#ff5100\'" onmouseout="this.style.borderColor=\'#1e2d45\'">'+
+        '<b style="font-size:15px">'+p.credits+' dəfə</b>'+
+        '<span style="font-size:13px;color:#ff5100;font-weight:700">'+p.price+' ₼</span>'+
+      '</button>'
+    ).join("");
+
+    box.innerHTML =
+      '<h3 style="margin:0 0 4px">İrəli çək</h3>'+
+      '<p style="font-size:12px;color:#64748b;margin:0 0 16px">'+esc(a.title||"Elan")+'</p>'+
+      '<div style="background:#0a0e14;border:1px solid #1c2330;border-radius:10px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">'+
+        '<span style="color:#94a3b8;font-size:13px">Mövcud kredit</span>'+
+        '<b style="color:#ff5100;font-size:22px">'+credits+'</b>'+
+      '</div>'+
+      useBtn+
+      '<div style="font-size:11px;color:#5b6678;margin:8px 0 18px;line-height:1.5">Hər kredit elanı siyahının başına çəkir. İki çəkmə arasında '+BUMP_COOLDOWN_HOURS+' saat gözləmə var.</div>'+
+      '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Kredit al</div>'+
+      '<div style="display:flex;gap:8px">'+pkgs+'</div>'+
+      '<p style="font-size:12px;color:#64748b;margin:14px 0 0;text-align:center">Balansın: <b style="color:#e2e8f0">'+bal.toFixed(2)+' ₼</b></p>';
+  }catch(e){
+    console.error("[openBumpModal]", e);
+    if(box) box.innerHTML='<p style="color:#ef4444;text-align:center;padding:20px">Xəta baş verdi.</p>';
+  }
+};
+
+window.buyBumpCredits = async function(adId, credits, price){
+  if(!currentUser){ openModal("loginModal"); return; }
+  credits = Number(credits); price = Number(price);
+  const pkg = BUMP_PACKAGES.find(p => p.credits === credits && p.price === price);
+  if(!pkg){ toast("Paket tapılmadı."); return; }
+  const ok = await (window.showConfirm || window.confirm)(credits+" irəli çəkmə krediti "+price+" ₼-a alınsın?\n\nMəbləğ balansından çıxılacaq.", "🚀");
+  if(!ok) return;
+
+  const walletRef = doc(db,"wallets",currentUser.uid);
+  const adRef     = doc(db,"ads",adId);
+  const bumpRef   = doc(collection(db,"bumps")); // debit möhürü üçün sənəd
+  try{
+    await ensureWallet(currentUser.uid, currentUser.email);
+    await runTransaction(db, async (tx)=>{
+      const wSnap = await tx.get(walletRef);
+      const aSnap = await tx.get(adRef);
+      if(!aSnap.exists()) throw new Error("AD_GONE");
+      const a = aSnap.data()||{};
+      if(a.sellerUid !== currentUser.uid) throw new Error("NOT_OWNER");
+      const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0};
+      const bal = Number(w.balance||0);
+      if(bal < price) throw new Error("INSUFFICIENT_BALANCE");
+      const _round2 = n => Math.round((Number(n)||0) * 100) / 100;
+
+      // 1) Möhür sənədi — Rules bunu yoxlayaraq balans azalmasını təsdiqləyir
+      tx.set(bumpRef, {
+        type: "bump_purchase",
+        adId: adId,
+        userUid: currentUser.uid,
+        userEmail: currentUser.email || "",
+        credits: credits,
+        amount: price,
+        createdAt: serverTimestamp()
+      });
+      // 2) Balans çıxımı + möhür (lastBumpId/lastBumpAmount)
+      tx.set(walletRef, {
+        balance: _round2(bal - price),
+        totalSpent: _round2(Number(w.totalSpent||0) + price),
+        lastBumpId: bumpRef.id,
+        lastBumpAmount: price,
+        updatedAt: serverTimestamp()
+      }, {merge:true});
+      // 3) Elana kredit əlavə et (status-a TOXUNMURUQ — moderasiyaya düşməsin)
+      //    lastBumpId möhürü Rules üçün: kredit artımı real ödənişə bağlanır
+      //    və eyni möhürlə təkrar artırma (replay) qadağan olunur.
+      tx.set(adRef, {
+        bumpCredits: Number(a.bumpCredits||0) + credits,
+        lastBumpId: bumpRef.id
+      }, {merge:true});
+    });
+    toast(credits+" kredit əlavə olundu ✅");
+    openBumpModal(adId); // modalı yenilə
+  }catch(e){
+    console.error("[buyBumpCredits]", e);
+    if(e.message === "INSUFFICIENT_BALANCE") toast("Balans kifayət etmir. Əvvəlcə balans artır.");
+    else if(e.message === "NOT_OWNER")       toast("Bu elan sənə aid deyil.");
+    else if(e.message === "AD_GONE")         toast("Elan tapılmadı.");
+    else toast("Alınmadı: " + (e.code || e.message || "xəta"));
+  }
+};
+
+window.useBumpCredit = async function(adId){
+  if(!currentUser){ openModal("loginModal"); return; }
+  const adRef = doc(db,"ads",adId);
+  try{
+    await runTransaction(db, async (tx)=>{
+      const aSnap = await tx.get(adRef);
+      if(!aSnap.exists()) throw new Error("AD_GONE");
+      const a = aSnap.data()||{};
+      if(a.sellerUid !== currentUser.uid) throw new Error("NOT_OWNER");
+      const credits = Number(a.bumpCredits||0);
+      if(credits < 1) throw new Error("NO_CREDITS");
+      const lastMs = bumpTsToMs(a.bumpedAt);
+      if(lastMs && (Date.now() - lastMs) < BUMP_COOLDOWN_MS) throw new Error("COOLDOWN::"+lastMs);
+      // Yalnız bu iki sahə dəyişir — status/qiymət toxunulmur (moderasiya yenilənmir)
+      tx.set(adRef, {
+        bumpCredits: credits - 1,
+        bumpedAt: serverTimestamp()
+      }, {merge:true});
+    });
+    toast("Elan irəli çəkildi 🚀");
+    openBumpModal(adId);
+  }catch(e){
+    console.error("[useBumpCredit]", e);
+    if(e.message === "NO_CREDITS") toast("Kredit yoxdur. Əvvəlcə kredit al.");
+    else if(String(e.message||"").startsWith("COOLDOWN")){
+      const lastMs = Number(String(e.message).split("::")[1]||0);
+      toast("Gözləmə vaxtı: "+bumpFmtDur(BUMP_COOLDOWN_MS - (Date.now()-lastMs))+" sonra çəkə bilərsən.");
+    }
+    else if(e.message === "NOT_OWNER") toast("Bu elan sənə aid deyil.");
+    else if(e.message === "AD_GONE")   toast("Elan tapılmadı.");
+    else toast("Alınmadı: " + (e.code || e.message || "xəta"));
+  }
+};
+
 function listenMyAds(){
   const el=document.getElementById("cabAds");
   if(!el || !currentUser) return;
@@ -14318,11 +14501,14 @@ function listenMyAds(){
       const expiryText = adExpiryText(a);
       const displayStatus = expired ? "Vaxtı bitib" : a.status;
       const renewBtn = expired ? `<button class="renew-btn" data-renew-ad="${a.id}">Yenilə</button>` : "";
-      return `<tr${expired?' style="opacity:.6"':''}><td><b>${esc(a.title)}</b><br><small>${esc([a.game, adMetaText(a)].filter(Boolean).join(" • "))}</small></td><td>${Number(a.price||0).toFixed(2)} ₼</td><td>${statusHtml(displayStatus)}</td><td><small style="color:${expired?'#ef4444':'#64748b'}">${esc(expiryText)}</small></td><td><div class="order-actions"><button class="edit-btn" data-edit-ad="${a.id}">Redaktə</button>${renewBtn}<button class="delete-btn" data-del-ad="${a.id}">Sil</button></div></td></tr>`;
+      const _bc = Number(a.bumpCredits||0);
+      const bumpBtn = expired ? "" : `<button class="bump-btn" data-bump-ad="${a.id}">🚀 İrəli çək${_bc>0?` (${_bc})`:""}</button>`;
+      return `<tr${expired?' style="opacity:.6"':''}><td><b>${esc(a.title)}</b><br><small>${esc([a.game, adMetaText(a)].filter(Boolean).join(" • "))}</small></td><td>${Number(a.price||0).toFixed(2)} ₼</td><td>${statusHtml(displayStatus)}</td><td><small style="color:${expired?'#ef4444':'#64748b'}">${esc(expiryText)}</small></td><td><div class="order-actions">${bumpBtn}<button class="edit-btn" data-edit-ad="${a.id}">Redaktə</button>${renewBtn}<button class="delete-btn" data-del-ad="${a.id}">Sil</button></div></td></tr>`;
     }).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ elanınız yoxdur.</div>');
     el.querySelectorAll("[data-edit-ad]").forEach(b=>b.onclick=()=>editMyAd(b.dataset.editAd,arr));
     el.querySelectorAll("[data-del-ad]").forEach(b=>b.onclick=()=>deleteMyAd(b.dataset.delAd));
     el.querySelectorAll("[data-renew-ad]").forEach(b=>b.onclick=()=>renewMyAd(b.dataset.renewAd));
+    el.querySelectorAll("[data-bump-ad]").forEach(b=>b.onclick=()=>openBumpModal(b.dataset.bumpAd));
   });
 }
 
