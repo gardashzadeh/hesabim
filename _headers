@@ -4,3 +4,52 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# ════════════════════════════════════════════════════════════════
+# KEŞ QAYDALARI
+# Problem: heç bir Cache-Control yox idi → brauzer index.html-i özü
+# keşləyirdi və istifadəçilər saytın KÖHNƏ versiyasını görürdü
+# ("mənə görünür, ona görünmür" problemi).
+# Həll: HTML heç vaxt keşlənmir (hər dəfə serverdən yoxlanılır),
+# şəkil/şrift kimi dəyişməyən fayllar isə uzun müddət keşlənir.
+# ════════════════════════════════════════════════════════════════
+
+# HTML — HEÇ VAXT keşlənmə. Hər açılışda ən son versiya gəlir.
+/
+  Cache-Control: no-cache, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+# Elan səhifələri (bot prerender + SPA) — həmişə təzə
+/elan/*
+  Cache-Control: no-cache, must-revalidate
+
+# Sitemap və robots — qısa keş
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+# Şəkillər — dəyişmir, uzun keş (sürət üçün)
+/img/*
+  Cache-Control: public, max-age=604800
+
+/*.webp
+  Cache-Control: public, max-age=604800
+
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.jpg
+  Cache-Control: public, max-age=604800
+
+/*.svg
+  Cache-Control: public, max-age=604800
+
+/*.ico
+  Cache-Control: public, max-age=604800
