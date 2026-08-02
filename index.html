@@ -6990,14 +6990,24 @@ async function ensureUserProfile(user, extra={}){
       await setDoc(doc(db,"usernames",autoId),{uid:user.uid, createdAt:serverTimestamp()}).catch(()=>{});
     }catch(e){ console.warn("userId unikallıq yoxlaması:", e); }
 
-    await setDoc(ref,{
-      uid:user.uid,name:extra.name||"",surname:extra.surname||"",
-      fullName:((extra.name||"")+" "+(extra.surname||"")).trim(),
-      birthDate:extra.birthDate||"",email,
-      userId: autoId,
-      role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
-      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
-    });
+    try{
+      await setDoc(ref,{
+        uid:user.uid,name:extra.name||"",surname:extra.surname||"",
+        fullName:((extra.name||"")+" "+(extra.surname||"")).trim(),
+        birthDate:extra.birthDate||"",email,
+        userId: autoId,
+        role: ADMIN_EMAILS.includes(email) ? "admin" : "user",
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
+    }catch(profErr){
+      // Yeni istifadəçi sənədi yaradıla bilmədi (çox vaxt Firestore Rules).
+      // Çağıran funksiya (googleLogin) düzgün mesaj göstərə bilsin deyə işarələ.
+      console.error("[ensureUserProfile] yeni profil yaradıla bilmədi:", profErr && profErr.code, profErr);
+      const tagged = new Error("PROFILE_CREATE_FAILED");
+      tagged.cause = profErr;
+      tagged.code = profErr && profErr.code ? profErr.code : "unknown";
+      throw tagged;
+    }
   }else{
     const d=snap.data()||{};
     // Mövcud istifadəçidə userId boşdursa (köhnə Google hesablar), avtomatik yarat
@@ -8351,33 +8361,85 @@ async function resetPassword(){
   }
 }
 
+// Google auth xəta kodlarını anlaşıqlı Azərbaycanca mesaja çevirir
+function _googleAuthErrorMsg(code){
+  switch(code){
+    case "auth/admin-restricted-operation":
+      return "Yeni qeydiyyat hazırda bağlıdır. (Firebase → Authentication → Settings-də yeni istifadəçi qeydiyyatı söndürülüb.)";
+    case "auth/account-exists-with-different-credential":
+      return "Bu email başqa giriş üsulu ilə qeydiyyatdan keçib. Əvvəlki üsulla daxil olun.";
+    case "auth/operation-not-allowed":
+      return "Google girişi Firebase-də aktiv deyil.";
+    case "auth/unauthorized-domain":
+      return "Bu domen Firebase-də icazəli deyil (Authentication → Settings → Authorized domains).";
+    case "auth/popup-blocked":
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+      return "Popup bağlandı. Yönləndirmə ilə yenidən cəhd edin.";
+    default:
+      return "Google giriş xətası: " + (code || "naməlum");
+  }
+}
+
 async function googleLogin(){
+  const provider = new GoogleAuthProvider();
+  let cred;
 
+  // ── 1) AUTH mərhələsi ──
   try{
-    const provider = new GoogleAuthProvider();
+    cred = await signInWithPopup(auth, provider);
+  }catch(e){
+    console.error("[googleLogin] AUTH XƏTA:", e.code, e.message, e);
+    // Popup bloklanıbsa/bağlanıbsa — redirect ilə təkrar cəhd et
+    if(["auth/popup-blocked","auth/popup-closed-by-user","auth/cancelled-popup-request"].includes(e.code)){
+      try{ await signInWithRedirect(auth, provider); return; }
+      catch(re){ console.error("[googleLogin] REDIRECT XƏTA:", re.code, re); authStatus(_googleAuthErrorMsg(re.code)); return; }
+    }
+    authStatus(_googleAuthErrorMsg(e.code));
+    return;
+  }
 
-    const cred = await signInWithPopup(auth, provider);
+  currentUser = cred.user;
 
-    currentUser = cred.user;
-
+  // ── 2) PROFİL mərhələsi (Firestore) ──
+  try{
     await ensureUserProfile(currentUser,{
       name:(currentUser.displayName||"").split(" ")[0] || "",
       surname:(currentUser.displayName||"").split(" ").slice(1).join(" ") || "",
       birthDate:""
     });
+  }catch(e){
+    console.error("[googleLogin] PROFİL XƏTA:", e.code, e.message, e);
+    // Auth uğurlu oldu, amma profil sənədi yaradıla bilmədi → yarımçıq hesab qalmasın
+    if(e && e.message === "PROFILE_CREATE_FAILED"){
+      const code = e.code || "";
+      if(code === "permission-denied"){
+        authStatus("Profil yaradıla bilmədi: Firestore Rules yeni istifadəçi yazmağa icazə vermir (users/usernames kolleksiyası).");
+      }else{
+        authStatus("Profil yaradıla bilmədi: " + (code || "naməlum"));
+      }
+    }else{
+      authStatus("Google giriş xətası: " + (e.code || e.message));
+    }
+    try{ await signOut(auth); }catch(_){}
+    currentUser = null; currentUserRole = "user"; updateHeader();
+    return;
+  }
 
+  // ── 3) Rol/blok/pul kisəsi ──
+  try{
     await loadCurrentUserRole();
-
     if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; currentUserRole="user"; updateHeader(); authStatus("Hesabınız admin tərəfindən bloklanıb."); return; }
     await ensureWallet(currentUser.uid,currentUser.email);
-
     updateHeader();
     closeModal("loginModal");
     toast("Google ilə giriş uğurludur");
-
   }catch(e){
-    console.error("[googleLogin] XƏTA:", e.code, e.message, e);
-    authStatus("Google giriş xətası: " + (e.code || e.message));
+    console.error("[googleLogin] SON MƏRHƏLƏ XƏTA:", e.code, e.message, e);
+    // Bu mərhələ xətası girişi bloklamamalıdır — istifadəçi daxil olub
+    updateHeader();
+    closeModal("loginModal");
+    toast("Google ilə giriş uğurludur");
   }
 }
 
@@ -10526,8 +10588,11 @@ async function ensureWallet(uid,email){
   const ref=doc(db,"wallets",uid);
   const snap=await getDoc(ref);
   if(!snap.exists()){
-    await setDoc(ref,{uid,email,balance:0,pendingIn:0,pendingOut:0,escrowOut:0,totalSpent:0,totalEarned:0,updatedAt:serverTimestamp()});
-    return {uid,email,balance:0,pendingIn:0,pendingOut:0,escrowOut:0,totalSpent:0,totalEarned:0};
+    // [FIX] Firestore rules cüzdan create-də sahəni "userEmail" gözləyir
+    // (hasOnly ağ siyahısı). Əvvəl "email" yazılırdı → yeni istifadəçidə
+    // permission-denied. userEmail == auth token email olmalıdır.
+    await setDoc(ref,{uid,userEmail:email||"",balance:0,pendingIn:0,pendingOut:0,escrowOut:0,totalSpent:0,totalEarned:0,bumpCredits:0,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    return {uid,userEmail:email||"",balance:0,pendingIn:0,pendingOut:0,escrowOut:0,totalSpent:0,totalEarned:0,bumpCredits:0};
   }
   return snap.data();
 }
@@ -13865,6 +13930,9 @@ function listenPurchases(){
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     // 24 saatlıq avtomatik təsdiq yoxlaması
     try{ autoConfirmStaleOrders(arr); }catch(e){ console.warn("[autoConfirm]", e); }
+    // Gözləyən qiymətləndirmələri yaz — sifariş "Tamamlandı" olan kimi rəy
+    // satıcının profilinə düşsün (sifarişi satıcı/avtomatik axın tamamlasa belə).
+    try{ if(window.flushPendingReviews) window.flushPendingReviews(); }catch(_){}
     if(!arr.length){ el.innerHTML='<h3>Alışlarım</h3><div class="cabinet-empty">Hələ alış yoxdur.</div>'; return; }
     el.innerHTML='<h3>Alışlarım</h3><table class="cabinet-table"><thead><tr><th>Məhsul</th><th>Satıcı</th><th>Qiymət</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>'+arr.map(o=>{
       let btns = '';
@@ -14886,6 +14954,8 @@ onAuthStateChanged(auth, async user=>{
   listenSellerOnlineStatuses();
   if(currentUser){
     startOwnPresence();
+    // Giriş edən kimi keçən sessiyadan qalan gözləyən rəyləri yazmağa çalış
+    try{ if(window.flushPendingReviews) window.flushPendingReviews(); }catch(_){}
     if(typeof startGlobalChatNotifications === "function") startGlobalChatNotifications();
     // MƏCBURİ NÖMRƏ TƏSDİQİ: nömrə bağlanana qədər sayt tam kilidlənir.
     if(!window._isRegistering){
