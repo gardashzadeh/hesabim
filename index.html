@@ -6806,7 +6806,8 @@ import {
   increment,
   orderBy,
   limit,
-  runTransaction
+  runTransaction,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
@@ -7639,7 +7640,22 @@ function authStatus(msg){
   }
 }
 function validEmail(email){ return /^\S+@\S+\.\S+$/.test(email); }
-function esc(v){ return String(v||"").replace(/[<>&"]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[s])); }
+// [XSS-FIX 2026-08-02] Əvvəl ' (tək dırnaq) və ` (backtick) escape EDİLMİRDİ.
+// esc() nəticəsi bir çox yerdə onclick="fn('${esc(x)}')" kimi TƏK DIRNAQLI
+// JS sətri içinə qoyulur → brauzer atributu əvvəlcə HTML-decode edir, sonra
+// JS kimi icra edir. İstifadəçi adı/başlıq kimi sahəyə  x'),alert(1),('  yazmaqla
+// sətir qırılıb ixtiyari JS icra oluna bilirdi (admin sessiyasında da).
+// İndi ' -> &#39; və ` -> &#96; çevrilir → sətir heç vaxt qırılmır.
+function esc(v){
+  return String(v ?? "").replace(/[<>&"'`]/g, s => ({
+    "<": "&lt;",
+    ">": "&gt;",
+    "&": "&amp;",
+    '"': "&quot;",
+    "'": "&#39;",
+    "`": "&#96;"
+  }[s]));
+}
 window.esc = esc; // non-module script-lər üçün export
 // XSS qoruması: icon sahəsi Firestore-dan gəlir, raw HTML kimi render edilir.
 // Yalnız Cloudinary img teqləri və SVG-lər icazəlidir, başqa hər şey fallback ilə əvəzlənir.
@@ -13432,10 +13448,31 @@ async function completeOrder(id){
     }
 
     // Satıcının açıq satış sayğacı (sellerStats/{uid}) — profil üçün
-    if(o.sellerUid){
-      await setDoc(doc(db,"sellerStats",o.sellerUid),{
-        sellerUid:o.sellerUid, salesCount:increment(1), updatedAt:serverTimestamp()
-      },{merge:true}).catch(e=>console.warn("sellerStats:",e));
+    // [STATS-BIND 2026-08-02] Rules artıq hər artımı real, TAMAMLANMIŞ
+    // sifarişə bağlayır və `sellerStats/{uid}/sales/{orderId}` möhürü ilə
+    // təkrar saymanı bloklayır. Ona görə:
+    //   • increment(1) İŞLƏMİR (rules dəyəri qabaqcadan görə bilmir) →
+    //     mövcud dəyər oxunub +1 yazılır;
+    //   • möhür və sayğac EYNİ batch-də getməlidir (existsAfter yoxlaması).
+    // Bu blok sifariş artıq "Tamamlandı" yazıldıqdan SONRA işləyir →
+    // getAfter(orders/...) commit olunmuş statusu görür.
+    if(o.sellerUid && o.adId !== undefined){
+      try{
+        const _statsRef = doc(db,"sellerStats",o.sellerUid);
+        const _cur = await getDoc(_statsRef).catch(()=>null);
+        const _prev = (_cur && _cur.exists()) ? Number((_cur.data()||{}).salesCount||0) : 0;
+        const _b = writeBatch(db);
+        _b.set(doc(db,"sellerStats",o.sellerUid,"sales",id),{
+          orderId:id, buyerUid:o.buyerUid||currentUser.uid, createdAt:serverTimestamp()
+        });
+        _b.set(_statsRef,{
+          sellerUid:o.sellerUid,
+          salesCount:_prev+1,
+          lastSaleOrderId:id,
+          updatedAt:serverTimestamp()
+        },{merge:true});
+        await _b.commit();
+      }catch(e){ console.warn("sellerStats:",e); }
     }
 
     // Hesab məlumatları burada alıcıya avtomatik göndərilmir.
