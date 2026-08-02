@@ -14192,7 +14192,10 @@ window.flushPendingReviews = async function(){
       if(!sellerUid || sellerUid===currentUser.uid){ delete all[orderId]; changed=true; continue; }
       const userName=(typeof currentUserDisplayName==="function")? await currentUserDisplayName() : (currentUser.email||"Alıcı");
       const reviewId=currentUser.uid+"_"+sellerUid;
-      const revText=String(p.text||"Alış təsdiqləndi").slice(0,220);
+      // Rəy mətni qaydaya görə ən azı 3 simvol olmalıdır — qısa/boş halda default.
+      let revText=String(p.text||"").trim();
+      if(revText.length<3) revText="Alış təsdiqləndi";
+      revText=revText.slice(0,220);
       try{
         await setDoc(doc(db,"reviews",reviewId),{
           userUid:currentUser.uid,
@@ -14205,11 +14208,23 @@ window.flushPendingReviews = async function(){
           orderId,
           createdAt:serverTimestamp()
         });
+        // Uğur → gözləyən siyahıdan sil
+        delete all[orderId]; changed=true;
       }catch(ce){
-        // Sənəd artıq varsa (eyni satıcıdan əvvəlki rəy) və ya update qadağandırsa — sükutla keç.
-        console.warn("[review] yazılmadı:", ce&&ce.code?ce.code:ce);
+        const code=ce&&ce.code?ce.code:String(ce);
+        console.warn("[review] yazılmadı:", code, "order:", orderId);
+        // Bu satıcıya rəy ARTIQ varsa (update qadağandır) — təkrar cəhd faydasız, sil.
+        let already=false;
+        try{ const rs=await getDoc(doc(db,"reviews",reviewId)); already=rs.exists(); }catch(_){}
+        if(already){ delete all[orderId]; changed=true; }
+        else {
+          // Müvəqqəti xəta ola bilər (məs. status hələ tam yayılmayıb) — SAXLA,
+          // amma sonsuz təkrarın qarşısını al (maks 6 cəhd).
+          p._tries=(Number(p._tries)||0)+1;
+          if(p._tries>=6){ delete all[orderId]; } else { all[orderId]=p; }
+          changed=true;
+        }
       }
-      delete all[orderId]; changed=true;
     }catch(e){ console.warn("[review] flush:", e); }
   }
   if(changed) _pendingReviewsWrite(all);
@@ -15052,6 +15067,9 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
   const el = document.getElementById("sellerProfileContent");
   el.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b">Yüklənir...</div>';
   try{
+    // Gözləyən öz rəyini əvvəlcə yaz (sifariş "Tamamlandı" olubsa) — yoxsa aşağıda
+    // rəylər oxunanda hələ Firestore-da olmur və profil boş görünür.
+    try{ if(currentUser && window.flushPendingReviews) await window.flushPendingReviews(); }catch(_){}
     // Satıcı profilini yüklə
     let profile = {};
     if(sellerUid){
