@@ -1822,19 +1822,19 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
 /* CLOUDINARY AD IMAGE UPLOAD */
 .ad-upload-preview{min-height:0;margin:6px 0 10px}
 .ad-upload-preview img{width:120px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #252b32;background:#090b0d}
-.ad-slot-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
-.ad-slot{position:relative;aspect-ratio:1/1;min-height:96px;border:2px dashed #333a44;border-radius:12px;background:#090b0d;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .15s}
-.ad-slot:hover{border-color:#ff5100}
-.ad-slot.filled{border-style:solid;border-color:#252b32;cursor:default}
-.ad-slot .plus{font-size:34px;color:#4b5563;font-weight:300;line-height:1;pointer-events:none}
-.ad-slot .plus-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#6b7280;letter-spacing:.3px;pointer-events:none}
-.ad-slot img{width:100%;height:100%;object-fit:cover;display:block}
-.ad-slot .slot-actions{position:absolute;top:4px;right:4px;display:flex;gap:4px}
-.ad-slot .slot-actions button{width:26px;height:26px;border-radius:6px;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;backdrop-filter:blur(4px)}
-.ad-slot .slot-actions button:hover{background:rgba(239,68,68,.85)}
-.ad-slot .slot-actions button.rot:hover{background:rgba(255,81,0,.85)}
-.ad-slot .slot-loading{position:absolute;inset:0;background:rgba(9,11,13,.75);display:flex;align-items:center;justify-content:center;color:#ff5100;font-size:11px}
-#adImageFile{
+.media-slot-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
+.media-slot{position:relative;aspect-ratio:1/1;min-height:96px;border:2px dashed #333a44;border-radius:12px;background:#090b0d;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .15s}
+.media-slot:hover{border-color:#ff5100}
+.media-slot.filled{border-style:solid;border-color:#252b32;cursor:default}
+.media-slot .plus{font-size:34px;color:#4b5563;font-weight:300;line-height:1;pointer-events:none}
+.media-slot .plus-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#6b7280;letter-spacing:.3px;pointer-events:none}
+.media-slot img{width:100%;height:100%;object-fit:cover;display:block}
+.media-slot .slot-actions{position:absolute;top:4px;right:4px;display:flex;gap:4px}
+.media-slot .slot-actions button{width:26px;height:26px;border-radius:6px;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;backdrop-filter:blur(4px)}
+.media-slot .slot-actions button:hover{background:rgba(239,68,68,.85)}
+.media-slot .slot-actions button.rot:hover{background:rgba(255,81,0,.85)}
+.media-slot .slot-loading{position:absolute;inset:0;background:rgba(9,11,13,.75);display:flex;align-items:center;justify-content:center;color:#ff5100;font-size:11px}
+#mediaFileInput{
   height:auto!important;
   padding:10px!important;
   background:#090b0d!important;
@@ -1844,7 +1844,7 @@ body.light-mode .admin-cat-tabs button.active{background:linear-gradient(135deg,
   width:100%;
   cursor:pointer;
 }
-#adImageFile:hover{border-color:#ff5100!important;}
+#mediaFileInput:hover{border-color:#ff5100!important;}
 #depositReceiptFile{
   height:auto!important;
   padding:10px!important;
@@ -2302,7 +2302,7 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   overflow:hidden;
   gap:0;
 }
-.ad-banner{
+.promo-banner{
   position:relative;
   width:100%;
   /* [IMG-FIX] sabit 180px əvəzinə 16:9 nisbət — bannerlər (1280×720 və s.)
@@ -2310,19 +2310,19 @@ body.light-mode .cabinet-menu.mob-open{background:#fff;border-bottom-color:#e2e8
   height:auto;
   aspect-ratio:16/9;
 }
-.ad-banner .ad-img{
+.promo-banner .ad-img{
   width:100%;height:100%;
   border-radius:0;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
-.ad-banner .ad-img svg{width:95px;height:95px}
-.ad-banner .ad-img > svg[style]{width:95px!important;height:95px!important}
-.ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;filter:none}
+.promo-banner .ad-img svg{width:95px;height:95px}
+.promo-banner .ad-img > svg[style]{width:95px!important;height:95px!important}
+.promo-banner .ad-img img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;filter:none}
 /* Elan şəkli tam görünsün (kəsilməsin), boş sahə blur fonla dolsun — bütün elanlara tətbiq */
-.ad-banner .ad-img{position:relative;padding:0!important;background:#0d1117}
-.ad-banner .ad-img .ad-img-bg{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:blur(22px) brightness(.82) saturate(1.15)!important;transform:scale(1.35);border-radius:0!important;z-index:0}
-.ad-banner .ad-img .ad-img-fg{position:relative!important;z-index:1;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
+.promo-banner .ad-img{position:relative;padding:0!important;background:#0d1117}
+.promo-banner .ad-img .ad-img-bg{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:blur(22px) brightness(.82) saturate(1.15)!important;transform:scale(1.35);border-radius:0!important;z-index:0}
+.promo-banner .ad-img .ad-img-fg{position:relative!important;z-index:1;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
 /* Ana səhifə kartında kateqoriya etiketi (satıcı profili kartlarındakı kimi) */
 .ad-cat-badge{
   position:absolute;left:10px;top:10px;z-index:2;
@@ -2393,17 +2393,17 @@ body.light-mode .ad-cat-badge{background:rgba(255,255,255,.85);border-color:#dde
 .ad-footer-row .user{margin-top:0}
 
 @media(max-width:700px){
-  .ad-banner{height:auto;aspect-ratio:16/9}
+  .promo-banner{height:auto;aspect-ratio:16/9}
 }
 
 /* Banner sahəsində real şəkil/foto olmayanda — hələlik sayt loqosu yer tutucu kimi */
-.ad-banner .ad-img{
-  background-image:url("img/sekil_01.webp"), radial-gradient(circle,#2a1a0e,#0c0d0d 90%);
+.promo-banner .ad-img{
+  background-image:url("/img/sekil_01.webp"), radial-gradient(circle,#2a1a0e,#0c0d0d 90%);
   background-size:143px auto, cover;
   background-position:center, center;
   background-repeat:no-repeat, no-repeat;
 }
-.ad-banner .ad-img[data-cat] svg{display:none}
+.promo-banner .ad-img[data-cat] svg{display:none}
 
 /* ===========================================================
    ANA SƏHİFƏ — Hero / Populyar Oyunlar / Etibarlı Satıcılar
@@ -2537,11 +2537,11 @@ body.light-mode .ad-cat-badge{background:rgba(255,255,255,.85);border-color:#dde
 }
 .hero-bg-left{
   left:0;
-  background-image:linear-gradient(90deg,rgba(6,7,8,.15) 0%,rgba(6,7,8,.55) 60%,#060708 100%), url("img/sekil_02.webp");
+  background-image:linear-gradient(90deg,rgba(6,7,8,.15) 0%,rgba(6,7,8,.55) 60%,#060708 100%), url("/img/sekil_02.webp");
 }
 .hero-bg-right{
   right:0;
-  background-image:linear-gradient(270deg,rgba(6,7,8,.15) 0%,rgba(6,7,8,.55) 60%,#060708 100%), url("img/sekil_03.webp");
+  background-image:linear-gradient(270deg,rgba(6,7,8,.15) 0%,rgba(6,7,8,.55) 60%,#060708 100%), url("/img/sekil_03.webp");
 }
 /* Mərkəz mətn — hər iki şəklin arasında, DƏQİQ ortada */
 .hero-mockup .hero-title{
@@ -2685,15 +2685,15 @@ button.primary, .btn-primary,
 }
 
 /* === OYUN KARTLARI — real şəkillər (istifadəçi tərəfindən verilib) === */
-.games-oneline .game-img[data-game="pubg"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_04.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="valorant"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_05.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="lol"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_06.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="freefire"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_07.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="csgo"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_08.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="fortnite"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_09.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="roblox"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_10.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="minecraft"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_11.webp") !important;background-size:cover !important;background-position:center !important;}
-.games-oneline .game-img[data-game="dota"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("img/sekil_12.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="pubg"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_04.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="valorant"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_05.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="lol"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_06.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="freefire"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_07.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="csgo"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_08.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="fortnite"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_09.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="roblox"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_10.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="minecraft"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_11.webp") !important;background-size:cover !important;background-position:center !important;}
+.games-oneline .game-img[data-game="dota"]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35)), url("/img/sekil_12.webp") !important;background-size:cover !important;background-position:center !important;}
 .games-oneline .game-img[data-game] svg{display:none !important}
 .games-oneline .game-img[data-game] img{display:none !important}
 .games-oneline .game-img[data-game]{box-shadow:none !important}
@@ -3363,10 +3363,10 @@ button,input,select,textarea{max-width:100%}
   /* Elan kartları — 2 sütun */
   .ads{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0 10px 10px!important}
   .ad{grid-template-columns:1fr!important;padding:0!important}
-  .ad-banner{aspect-ratio:4/3!important;min-height:0}
-  .ad-banner .ad-img{width:100%!important;height:100%!important;padding:0!important;border-radius:0!important}
-  .ad-banner .ad-img svg{width:64px!important;height:64px!important}
-  .ad-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important}
+  .promo-banner{aspect-ratio:4/3!important;min-height:0}
+  .promo-banner .ad-img{width:100%!important;height:100%!important;padding:0!important;border-radius:0!important}
+  .promo-banner .ad-img svg{width:64px!important;height:64px!important}
+  .promo-banner .ad-img img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;border-radius:0!important}
   .ad-body{padding:10px!important}
 
   /* Bottom nav safe-area */
@@ -3381,7 +3381,7 @@ button,input,select,textarea{max-width:100%}
 @media (max-width: 380px){
   .ads{grid-template-columns:1fr!important}
   .ad{grid-template-columns:82px 1fr!important;padding:9px!important}
-  .ad-banner{aspect-ratio:auto}
+  .promo-banner{aspect-ratio:auto}
   .pd-benefit{min-width:100%!important;flex-basis:100%!important}
   .cabinet-menu button{min-width:105px!important;font-size:12px!important}
   .hbtn{font-size:11px!important;padding:0 10px!important}
@@ -3713,7 +3713,7 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
 
 <header class="header">
   <div class="shell">
-    <button class="logo" onclick="goHome(event)"><img src="img/sekil_01.webp" alt="Hesablar.net" style="height:240px;width:auto;object-fit:contain;display:block" fetchpriority="high" decoding="async"></button>
+    <button class="logo" onclick="goHome(event)"><img src="/img/sekil_01.webp" alt="Hesablar.net" style="height:240px;width:auto;object-fit:contain;display:block" fetchpriority="high" decoding="async"></button>
     <form class="search" onsubmit="event.preventDefault();filterCards()">
       <input id="q" placeholder="Məhsul, kateqoriya və ya elan axtar..." inputmode="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <button type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
@@ -3817,7 +3817,7 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
   </section>
     </div><!-- /slayd 1 -->
     <div class="hero-slide">
-      <img src="img/slayd2.webp" alt="Kampaniya" class="hero-slide-img" loading="lazy">
+      <img src="/img/slayd2.webp" alt="Kampaniya" class="hero-slide-img" loading="lazy">
     </div><!-- /slayd 2 -->
    </div><!-- /hero-track -->
    <button class="hero-arrow hero-prev" onclick="heroSlide(-1)" aria-label="Əvvəlki">‹</button>
@@ -4551,13 +4551,13 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
             <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:2px;margin-top:8px;">Ətraflı məlumat <span style="color:#ef4444">*</span></label>
             <textarea id="adDesc" placeholder="Hesab haqqında ətraflı məlumat yaz..."></textarea>
             <label style="font-size:12px;color:#9ca3af;letter-spacing:.3px;display:block;margin-bottom:4px;">Şəkillər (maksimum 3 ədəd)</label>
-            <div id="adImageSlots" class="ad-slot-grid">
-              <div class="ad-slot" data-slot="0" onclick="pickAdImage(0)"><span class="plus">+</span><span class="plus-label">Şəkil 1</span></div>
-              <div class="ad-slot" data-slot="1" onclick="pickAdImage(1)"><span class="plus">+</span><span class="plus-label">Şəkil 2</span></div>
-              <div class="ad-slot" data-slot="2" onclick="pickAdImage(2)"><span class="plus">+</span><span class="plus-label">Şəkil 3</span></div>
+            <div id="mediaSlotsBox" class="media-slot-grid">
+              <div class="media-slot" data-slot="0" onclick="pickAdImage(0)"><span class="plus">+</span><span class="plus-label">Şəkil 1</span></div>
+              <div class="media-slot" data-slot="1" onclick="pickAdImage(1)"><span class="plus">+</span><span class="plus-label">Şəkil 2</span></div>
+              <div class="media-slot" data-slot="2" onclick="pickAdImage(2)"><span class="plus">+</span><span class="plus-label">Şəkil 3</span></div>
             </div>
-            <input id="adImageFile" type="file" accept="image/*" style="display:none">
-            <div id="adImagePreview" style="display:none"></div>
+            <input id="mediaFileInput" type="file" accept="image/*" style="display:none">
+            <div id="mediaPreviewBox" style="display:none"></div>
             <p class="hint">Xanaya toxunub şəkil seç. Hər biri max 5MB. Şəkli döndərmək və ya silmək olar.</p>
             <button class="fullbtn" type="button" id="adSubmit" onclick="submitAd()">Elanı göndər</button>
           </div>
@@ -4826,7 +4826,7 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
 <footer style="background:#050607;border-top:1px solid #1e2020;padding:40px 0 24px;margin-top:48px">
   <div class="shell" style="display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;align-items:flex-start">
     <div style="flex:0 0 auto">
-      <img src="img/sekil_01.webp" alt="Hesablar.net loqo" style="height:60px;width:auto;margin-bottom:12px" loading="lazy">
+      <img src="/img/sekil_01.webp" alt="Hesablar.net loqo" style="height:60px;width:auto;margin-bottom:12px" loading="lazy">
       <p style="color:#475569;font-size:13px;max-width:260px;line-height:1.6">Azərbaycanda ən etibarlı oyun marketplace-i. Təhlükəsiz alış-veriş, sürətli çatdırılma.</p>
     </div>
     <div style="display:flex;gap:48px;flex-wrap:wrap">
@@ -5060,16 +5060,16 @@ const LOGO_URLS = {
   pubg:       "https://cdn.simpleicons.org/pubg/F2A900",
   valorant:   "https://cdn.simpleicons.org/valorant/FF4655",
   lol:        "https://cdn.simpleicons.org/leagueoflegends/C89B3C",
-  freefire:  "img/sekil_13.svg",
+  freefire:  "/img/sekil_13.svg",
   csgo:       "https://cdn.simpleicons.org/counterstrike/DE9B35",
   googleplay: "https://cdn.simpleicons.org/googleplay/34A853",
   apple:      "https://cdn.simpleicons.org/appstore/007AFF",
   steam:      "https://cdn.simpleicons.org/steam/66C0F4",
   riot:       "https://cdn.simpleicons.org/riotgames/D32936",
-  fortnite:  "img/sekil_14.svg",
+  fortnite:  "/img/sekil_14.svg",
   epicgames:  "https://cdn.simpleicons.org/epicgames/2ECC71",
   roblox:     "https://cdn.simpleicons.org/roblox/E8392A",
-  minecraft:  "img/sekil_15.svg"
+  minecraft:  "/img/sekil_15.svg"
 };
 const logoImg = (key, alt) => `<img class="brand-logo" src="${LOGO_URLS[key]}" alt="${alt || key} loqosu" loading="lazy" decoding="async" onerror="this.outerHTML='<span class=&quot;logo-fallback&quot;>${(alt || key).slice(0,3).toUpperCase()}</span>'">`;
 // Kateqoriyaya görə default ikon
@@ -5690,15 +5690,15 @@ function render(){
 
 /* === Avtomatik elan şəkilləri: oyuna görə === */
 window.GAME_AD_IMAGES = {
-  "pubg": "img/sekil_04.webp",
-  "valorant": "img/sekil_05.webp",
-  "lol": "img/sekil_06.webp",
-  "freefire": "img/sekil_07.webp",
-  "csgo": "img/sekil_08.webp",
-  "fortnite": "img/sekil_09.webp",
-  "roblox": "img/sekil_10.webp",
-  "minecraft": "img/sekil_11.webp",
-  "dota": "img/sekil_12.webp",
+  "pubg": "/img/sekil_04.webp",
+  "valorant": "/img/sekil_05.webp",
+  "lol": "/img/sekil_06.webp",
+  "freefire": "/img/sekil_07.webp",
+  "csgo": "/img/sekil_08.webp",
+  "fortnite": "/img/sekil_09.webp",
+  "roblox": "/img/sekil_10.webp",
+  "minecraft": "/img/sekil_11.webp",
+  "dota": "/img/sekil_12.webp",
 };
 
 // Oyun/kateqoriya adını şəkil açarına çevirir
@@ -5961,7 +5961,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-adnumber="'+attr(a.adNumber||'')+'" '
         + 'data-warranty="'+attr(a.warranty||'forever')+'" '
         + 'onclick="if(event.metaKey||event.ctrlKey||event.shiftKey||event.button===1)return true;event.preventDefault();window._openAdDetail(this)">'
-        + '<div class="ad-banner">'
+        + '<div class="promo-banner">'
           + '<div class="ad-img" data-cat="'+attr(a.category)+'">'+bannerImgHtml(a.icon)+'</div>'
           + (a.category ? '<span class="ad-cat-badge">'+esc(a.category)+'</span>' : '')
           + '<span class="ad-fav-btn'+(_savedIdSet.has(a.adId||a.title)?' active':'')+'" role="button" tabindex="0" onclick="event.stopPropagation();window.quickToggleSaveAd(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();window.quickToggleSaveAd(this)}" aria-label="Yadda saxla">'
@@ -7042,35 +7042,35 @@ async function uploadSingleImageToCloudinary(file){
 
 async function uploadAdImageToCloudinary(){
   // Slot sistemi: şəkillər əvvəlcədən yüklənir, bu funksiya sadəcə URL-ləri qaytarır
-  const slots = window._adImageSlots || [null,null,null];
+  const slots = window._mediaSlotsBox || [null,null,null];
   const urls = slots.filter(s => s && s.url).map(s => s.url);
   return urls;
 }
 
 // === SLOT SYSTEM ===
-window._adImageSlots = [null,null,null]; // {url, rotation}
+window._mediaSlotsBox = [null,null,null]; // {url, rotation}
 window._adPickingSlot = -1;
 
 window.pickAdImage = function(idx){
-  const slot = window._adImageSlots[idx];
+  const slot = window._mediaSlotsBox[idx];
   if(slot && slot.url) return; // Dolu xanaya klik təsirsizdir
   window._adPickingSlot = idx;
-  const inp = document.getElementById("adImageFile");
+  const inp = document.getElementById("mediaFileInput");
   if(inp){ inp.value = ""; inp.click(); }
 };
 
 window.deleteAdImage = function(idx, ev){
   if(ev){ ev.stopPropagation(); }
-  window._adImageSlots[idx] = null;
+  window._mediaSlotsBox[idx] = null;
   renderAdSlots();
 };
 
 window.rotateAdImage = async function(idx, ev){
   if(ev){ ev.stopPropagation(); }
-  const slot = window._adImageSlots[idx];
+  const slot = window._mediaSlotsBox[idx];
   if(!slot || !slot.url) return;
   slot.rotation = ((slot.rotation||0) + 90) % 360;
-  const el = document.querySelector('.ad-slot[data-slot="'+idx+'"]');
+  const el = document.querySelector('.media-slot[data-slot="'+idx+'"]');
   if(el){
     const loading = document.createElement("div");
     loading.className = "slot-loading";
@@ -7108,11 +7108,11 @@ function buildRotatedCloudinaryUrl(url, deg){
 }
 
 function renderAdSlots(){
-  const grid = document.getElementById("adImageSlots");
+  const grid = document.getElementById("mediaSlotsBox");
   if(!grid) return;
-  const slots = window._adImageSlots;
+  const slots = window._mediaSlotsBox;
   for(let i=0;i<3;i++){
-    const el = grid.querySelector('.ad-slot[data-slot="'+i+'"]');
+    const el = grid.querySelector('.media-slot[data-slot="'+i+'"]');
     if(!el) continue;
     const s = slots[i];
     if(s && s.url){
@@ -7135,7 +7135,7 @@ async function _handleSlotFilePicked(file){
   if(idx < 0 || idx > 2) return;
   const err = validateImageFile(file);
   if(err){ toast(err); return; }
-  const el = document.querySelector('.ad-slot[data-slot="'+idx+'"]');
+  const el = document.querySelector('.media-slot[data-slot="'+idx+'"]');
   if(el){
     el.innerHTML = '<div class="slot-loading">Yüklənir...</div>';
     el.classList.add("filled");
@@ -7143,11 +7143,11 @@ async function _handleSlotFilePicked(file){
   try{
     const url = await uploadSingleImageToCloudinary(file);
     if(!url) throw new Error("URL boşdur");
-    window._adImageSlots[idx] = { url: url, originalUrl: url, rotation: 0 };
+    window._mediaSlotsBox[idx] = { url: url, originalUrl: url, rotation: 0 };
   }catch(e){
     console.error("Slot upload xəta:", e);
     toast("⚠️ Şəkil yüklənmədi: " + (e.message||"xəta"));
-    window._adImageSlots[idx] = null;
+    window._mediaSlotsBox[idx] = null;
   }
   renderAdSlots();
 }
@@ -9784,9 +9784,9 @@ window.editMyAd = async function(id,arr){
   const btn=document.getElementById("adSubmit"); if(btn){ btn.textContent="Elanı yenilə"; btn.dataset.editingId=id; }
   window._existingAdImages = Array.isArray(a.imageUrls) && a.imageUrls.length ? a.imageUrls.slice() : (a.imageUrl ? [a.imageUrl] : []);
   // Slotları köhnə şəkillərlə doldur
-  window._adImageSlots = [null,null,null];
+  window._mediaSlotsBox = [null,null,null];
   window._existingAdImages.slice(0,3).forEach(function(u,i){
-    window._adImageSlots[i] = { url: u, originalUrl: u, rotation: 0 };
+    window._mediaSlotsBox[i] = { url: u, originalUrl: u, rotation: 0 };
   });
   if(typeof renderAdSlots === "function") renderAdSlots();
 }
@@ -10024,10 +10024,10 @@ window.submitAd = async function(){
     if(window.setDeliveryMode) window.setDeliveryMode("direct");
     if(window.setDeliveryEta)  window.setDeliveryEta(3);
     clearAdProfessionalFields();
-    if(document.getElementById("adImageFile"))    document.getElementById("adImageFile").value="";
-    if(document.getElementById("adImagePreview")) document.getElementById("adImagePreview").innerHTML="";
+    if(document.getElementById("mediaFileInput"))    document.getElementById("mediaFileInput").value="";
+    if(document.getElementById("mediaPreviewBox")) document.getElementById("mediaPreviewBox").innerHTML="";
     window._existingAdImages = [];
-    window._adImageSlots = [null,null,null];
+    window._mediaSlotsBox = [null,null,null];
     if(typeof renderAdSlots === "function") renderAdSlots();
 
     // Admin paneli yenilə (əgər açıqdırsa)
@@ -14805,7 +14805,7 @@ function wire(){
   document.getElementById("adGiftStore")?.addEventListener("change", updateAdGiftStoreCustomVisibility);
   updateAdGiftStoreCustomVisibility();
   syncAdFormToCategory();
-  document.getElementById("adImageFile")?.addEventListener("change", function(e){
+  document.getElementById("mediaFileInput")?.addEventListener("change", function(e){
     const files = Array.from(e.target.files || []);
     if(!files.length) return;
     _handleSlotFilePicked(files[0]);
@@ -15522,18 +15522,18 @@ function toggleTheme(){
 .ads .ad:active{transform:translateY(-1px)}
 
 /* Banner */
-.ad-banner{overflow:hidden;border-radius:18px 18px 0 0}
-.ad-banner::after{
+.promo-banner{overflow:hidden;border-radius:18px 18px 0 0}
+.promo-banner::after{
   content:"";position:absolute;left:0;right:0;bottom:0;height:58%;
   background:linear-gradient(to top,rgba(11,13,18,.96),rgba(11,13,18,.45) 45%,transparent);
   pointer-events:none;z-index:1;
 }
-.ad-banner .ad-img img,.ad-banner .ad-img svg{
+.promo-banner .ad-img img,.promo-banner .ad-img svg{
   transition:transform .5s cubic-bezier(.2,.7,.3,1),filter .3s ease;
 }
-.ads .ad:hover .ad-banner .ad-img img,
-.ads .ad:hover .ad-banner .ad-img svg{transform:scale(1.07)}
-.ads .ad:hover .ad-banner .ad-img .ad-img-bg{transform:scale(1.4)}
+.ads .ad:hover .promo-banner .ad-img img,
+.ads .ad:hover .promo-banner .ad-img svg{transform:scale(1.07)}
+.ads .ad:hover .promo-banner .ad-img .ad-img-bg{transform:scale(1.4)}
 
 /* Badge-lər — şüşə effekti */
 .ad-number-badge,.ad-fav-btn{
@@ -15948,7 +15948,7 @@ body.light-mode .ads .ad:hover{
   border-color:rgba(255,0,91,.4)!important;
   box-shadow:0 18px 38px -22px rgba(15,23,42,.4),0 10px 30px -22px rgba(255,0,91,.5);
 }
-body.light-mode .ad-banner::after{
+body.light-mode .promo-banner::after{
   background:linear-gradient(to top,rgba(255,255,255,.9),rgba(255,255,255,.25) 50%,transparent);
 }
 body.light-mode .ad-seller-row b{color:#0f172a}
@@ -16008,7 +16008,7 @@ body.light-mode .seller-ad-card > div:first-child{color:#0f172a}
 @media(max-width:700px){
   .ads{gap:12px}
   .ads .ad{border-radius:16px!important}
-  .ad-banner{border-radius:16px 16px 0 0}
+  .promo-banner{border-radius:16px 16px 0 0}
   .ads .ad:hover{transform:none}
   .seller-profile-header{padding:18px 14px!important;gap:12px!important}
   .seller-profile-avatar{width:56px!important;height:56px!important;font-size:21px!important}
@@ -16343,11 +16343,11 @@ body.light-mode select#marketSaleMode{
   color:#fff!important;
 }
 /* [IMG-FIX] Ana səhifə kart şəkilləri TAM görünsün — ən son qayda, hər şeyi üstələyir */
-.ads .ad .ad-banner .ad-img img:not(.ad-img-bg){
+.ads .ad .promo-banner .ad-img img:not(.ad-img-bg){
   object-fit:contain!important;
   object-position:center!important;
 }
-.ads .ad .ad-banner .ad-img .ad-img-bg{
+.ads .ad .promo-banner .ad-img .ad-img-bg{
   object-fit:cover!important;
 }
 /* [MOB-TABLE] Alışlarım / Satışlarım — mobildə cədvəl əvəzinə kart görünüşü */
