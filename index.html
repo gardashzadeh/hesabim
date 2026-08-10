@@ -6827,6 +6827,7 @@ import {
   linkWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInAnonymously,
   sendEmailVerification,
   sendPasswordResetEmail,
   updatePassword,
@@ -6892,6 +6893,43 @@ async function tgNotify(msg){
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
+
+// [SECURE VIEWS] Qonaq baxışları üçün ayrıca Firebase Auth sessiyası.
+// Əsas istifadəçi auth sessiyasına toxunmur və login olunmuş istifadəçinin
+// hesabını anonim hesabla əvəz etmir. Firestore Rules-də mövcud isSignedIn()
+// yoxlaması buna görə dəyişmədən işləyə bilir.
+let viewAuth = null;
+let viewDb = null;
+let viewAuthReady = null;
+try{
+  const viewApp = getApps().find(a => a.name === "viewAuthApp")
+    || initializeApp(firebaseConfig, "viewAuthApp");
+  viewAuth = getAuth(viewApp);
+  viewDb = initializeFirestore(viewApp, {
+    experimentalForceLongPolling: true,
+    useFetchStreams: false
+  });
+}catch(e){
+  console.warn("[Secure Views] anonim auth ilkinləşdirilməsi alınmadı:", e?.message || e);
+}
+
+async function ensureViewAuth(){
+  if(!viewAuth || !viewDb) return false;
+  if(viewAuth.currentUser) return true;
+  if(viewAuthReady) return viewAuthReady;
+  viewAuthReady = (async()=>{
+    try{
+      await signInAnonymously(viewAuth);
+      return !!viewAuth.currentUser;
+    }catch(e){
+      console.warn("[Secure Views] Anonymous Auth aktiv deyil və ya uğursuz oldu:", e?.code || e?.message || e);
+      return false;
+    }finally{
+      viewAuthReady = null;
+    }
+  })();
+  return viewAuthReady;
+}
 // ══════════════════════════════════════════════════════════════════
 // [FIX] Mesajlar 1-2 dəqiqə gecikirdi ("göndərilir…" ilişirdi).
 // Səbəb: Firestore default WebChannel (streaming) kanalını adblock
@@ -6914,12 +6952,37 @@ try{
 
 window.incrementAdView = async function(adId, currentViews = 0){
   if(!adId) return currentViews;
+
+  // Eyni brauzerdən eyni elana maksimum 15 dəqiqədə 1 baxış.
+  // localStorage yalnız əlavə anti-spam qatıdır; Firestore Rules yenə də
+  // yazının views + 1 olmasını server tərəfdə yoxlayır.
   const viewedKey = "gs_viewed_ad_" + adId;
+  const COOLDOWN_MS = 15 * 60 * 1000;
   const fallback = Number(currentViews || 0);
-  if(localStorage.getItem(viewedKey)) return fallback;
+  const now = Date.now();
+
   try{
-    await updateDoc(doc(db,"ads",adId),{views:increment(1),updatedAt:serverTimestamp()});
-    localStorage.setItem(viewedKey,"1");
+    const last = Number(localStorage.getItem(viewedKey) || 0);
+    if(last > 0 && (now - last) < COOLDOWN_MS) return fallback;
+  }catch(_){}
+
+  try{
+    // Login olmuş istifadəçi əsas auth/db ilə, qonaq isə ayrıca anonim
+    // Firebase Auth sessiyası ilə yazır. Beləliklə Rules-də isSignedIn()
+    // qorunması saxlanılır və anonim istifadəçiyə açıq update verilmir.
+    let targetDb = db;
+    if(!auth.currentUser){
+      const ok = await ensureViewAuth();
+      if(!ok) return fallback;
+      targetDb = viewDb;
+    }
+
+    await updateDoc(
+      doc(targetDb, "ads", adId),
+      {views:increment(1), updatedAt:serverTimestamp()}
+    );
+
+    try{ localStorage.setItem(viewedKey, String(now)); }catch(_){}
     return fallback + 1;
   }catch(e){
     console.error("Baxış sayı artırılmadı:", e);
