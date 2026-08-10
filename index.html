@@ -7400,13 +7400,37 @@ window.getSellerStatus = getSellerStatus;
 // gəlir — bu kolleksiya hər kəs üçün oxunaqlıdır (allow read: if true).
 
 function listenSellerOnlineStatuses(){
+  // [SAFE FIX] Yalnız bir global presence listener saxla.
   if(window._sellerOnlineUnsub) return;
   try{
-    window._sellerOnlineUnsub = onSnapshot(collection(db,"presence"), snap=>{
-      snap.forEach(d=>cacheSellerStatus({uid:d.id, ...(d.data()||{})}));
-refreshSellerBadges();
-    }, err=>console.warn("online status listen:", err));
-  }catch(e){ console.warn("online status init:", e); }
+    window._sellerOnlineUnsub = onSnapshot(
+      collection(db,"presence"),
+      snap=>{
+        // Bütün kolleksiyanı hər dəfə yenidən cache-ləmirik.
+        // Yalnız dəyişən sənədləri emal edirik.
+        snap.docChanges().forEach(ch=>{
+          if(ch.type === "removed"){
+            try{
+              if(window._sellerStatusCache && window._sellerStatusCache[ch.doc.id]){
+                delete window._sellerStatusCache[ch.doc.id];
+              }
+            }catch(_){}
+            return;
+          }
+          cacheSellerStatus({uid:ch.doc.id, ...(ch.doc.data()||{})});
+        });
+        refreshSellerBadges();
+      },
+      err=>{
+        console.warn("online status listen:", err);
+        try{ if(window._sellerOnlineUnsub) window._sellerOnlineUnsub(); }catch(_){}
+        window._sellerOnlineUnsub = null;
+      }
+    );
+  }catch(e){
+    console.warn("online status init:", e);
+    window._sellerOnlineUnsub = null;
+  }
 }
 async function updateOwnOnlineStatus(isOnline=true){
   if(!currentUser) return;
@@ -7461,8 +7485,26 @@ function startOwnPresence(){
 function stopOwnPresence(){
   if(window._presenceInterval){ clearInterval(window._presenceInterval); window._presenceInterval=null; }
 }
+
+// [SAFE FIX] Sessiya dəyişəndə presence listener-i də bağla.
+function stopSellerOnlineStatuses(){
+  try{
+    if(window._sellerOnlineUnsub){
+      window._sellerOnlineUnsub();
+    }
+  }catch(_){}
+  window._sellerOnlineUnsub = null;
+}
+window.stopSellerOnlineStatuses = stopSellerOnlineStatuses;
 let unsubMyAds = null, unsubAdmin = null, unsubPublicAds = null;
 let unsubProductReviews = null;
+// Kabinet real-time listener-ləri: hər funksiya üçün yalnız 1 aktiv listener saxlanılır.
+// Eyni tab bir neçə dəfə açılanda köhnə listener bağlanır və Firestore yükü yığılmır.
+let _myTransactionsUnsub = null;
+let _myTicketsUnsub = null;
+let _savedItemsUnsub = null;
+let _salesUnsub = null;
+let _purchasesUnsub = null;
 let adminUnsubs = [];
 // ── Kabinet modalını təhlükəsiz aç: səbət/bildiriş panellərini bağlayır,
 // arxa fonun skrollunu kilidləyir (üst-üstə düşmə bugı üçün).
@@ -10828,24 +10870,30 @@ window.submitTicket = async function(){
 }
 
 function listenMyTransactions(){
+  if(_myTransactionsUnsub){ try{ _myTransactionsUnsub(); }catch(e){} _myTransactionsUnsub=null; }
   const el=document.getElementById("walletTx");
   if(!el || !currentUser) return;
   const q=query(collection(db,"balanceRequests"),where("userUid","==",currentUser.uid));
-  onSnapshot(q,snap=>{
+  _myTransactionsUnsub=onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
     arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     el.innerHTML='<h3>Balans tarixçəsi</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Tip</th><th>Məbləğ</th><th>Metod</th><th>Status</th></tr></thead><tbody>${arr.map(r=>`<tr><td>${r.type==="deposit"?"Artırma":"Çıxarış"}</td><td>${walletNumber(r.amount)}</td><td>${esc(r.method||"-")}</td><td>${statusHtml(r.status)}</td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Hələ balans əməliyyatı yoxdur.</div>');
+  },err=>{
+    console.warn("wallet transactions listen error:",err);
   });
 }
 
 function listenMyTickets(){
+  if(_myTicketsUnsub){ try{ _myTicketsUnsub(); }catch(e){} _myTicketsUnsub=null; }
   const el=document.getElementById("myTickets");
   if(!el || !currentUser) return;
   const q=query(collection(db,"tickets"),where("userUid","==",currentUser.uid));
-  onSnapshot(q,snap=>{
+  _myTicketsUnsub=onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
     arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     el.innerHTML='<h3>Müraciətlərim</h3>'+(arr.length?`<table class="cabinet-table"><thead><tr><th>Tip</th><th>Mövzu</th><th>Status</th><th>Admin cavabı</th></tr></thead><tbody>${arr.map(t=>`<tr><td>${esc(t.type)}</td><td>${esc(t.subject)}</td><td>${statusHtml(t.status)}</td><td>${esc(t.adminReply||"-")}</td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">Müraciət yoxdur.</div>');
+  },err=>{
+    console.warn("tickets listen error:",err);
   });
 }
 
@@ -13416,8 +13464,9 @@ function renderSavedItems(){
     return;
   }
 
+  if(_savedItemsUnsub){ try{ _savedItemsUnsub(); }catch(e){} _savedItemsUnsub=null; }
   const q=query(collection(db,"users",currentUser.uid,"saved"));
-  onSnapshot(q,snap=>{
+  _savedItemsUnsub=onSnapshot(q,snap=>{
     const favs=[];
     snap.forEach(d=>favs.push({id:d.id,...d.data()}));
     drawSavedItems([...favs, ...savedLocalItems()]);
@@ -13736,6 +13785,7 @@ async function disputeOrder(id){
 
 let _salesTicker = null;
 function listenSales(){
+  if(_salesUnsub){ try{ _salesUnsub(); }catch(e){} _salesUnsub=null; }
   const el=document.getElementById("cabSales"); if(!el || !currentUser) return;
   const q=query(collection(db,"orders"),where("sellerUid","==",currentUser.uid));
   let _lastSales = [];
@@ -13746,7 +13796,7 @@ function listenSales(){
     if(!document.getElementById("cabSales")) return;
     if(_lastSales.length) _renderSales(_lastSales);
   }, 60000);
-  onSnapshot(q,snap=>{
+  _salesUnsub=onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     _lastSales = arr;
     _renderSales(arr);
@@ -13924,9 +13974,10 @@ async function sellerSendCredentials(orderId){
 window.sellerSendCredentials = sellerSendCredentials;
 
 function listenPurchases(){
+  if(_purchasesUnsub){ try{ _purchasesUnsub(); }catch(e){} _purchasesUnsub=null; }
   const el=document.getElementById("cabPurchases"); if(!el || !currentUser) return;
   const q=query(collection(db,"orders"),where("buyerUid","==",currentUser.uid));
-  onSnapshot(q,snap=>{
+  _purchasesUnsub=onSnapshot(q,snap=>{
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()})); arr.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     // 24 saatlıq avtomatik təsdiq yoxlaması
     try{ autoConfirmStaleOrders(arr); }catch(e){ console.warn("[autoConfirm]", e); }
@@ -14944,6 +14995,7 @@ onAuthStateChanged(auth, async user=>{
 
   // Auth state hər dəyişdikdə (giriş/çıxış/hesab dəyişimi) köhnə listener-ləri dayandır
   if(typeof stopChatListeners === "function") stopChatListeners();
+  if(typeof stopSellerOnlineStatuses === "function") stopSellerOnlineStatuses();
   activeChatId = null;
   adminActiveChatId = null;
 
