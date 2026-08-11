@@ -6833,7 +6833,9 @@ import {
   updatePassword,
   signOut,
   onAuthStateChanged,
-  reload
+  reload,
+  setPersistence,
+  inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   getFirestore,
@@ -6905,6 +6907,11 @@ try{
     || initializeApp(firebaseConfig, "viewAuthApp");
 
   viewAuth = getAuth(viewApp);
+
+  // Incognito/private rejimdə IndexedDB (default local persistence) bloklana
+  // bilər və signInAnonymously fail olur. Bu app yalnız bir "baxış" hərəkəti
+  // üçün istifadə olunur, sessiyanın saxlanmasına ehtiyac yoxdur → in-memory.
+  setPersistence(viewAuth, inMemoryPersistence).catch(()=>{});
 
   // Ayrı app + ayrıca Firestore instansiyası: əsas login sessiyasını dəyişmir.
   try{
