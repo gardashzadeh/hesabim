@@ -6894,40 +6894,57 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// [SECURE VIEWS] Qonaq baxışları üçün ayrıca Firebase Auth sessiyası.
-// Əsas istifadəçi auth sessiyasına toxunmur və login olunmuş istifadəçinin
-// hesabını anonim hesabla əvəz etmir. Firestore Rules-də mövcud isSignedIn()
-// yoxlaması buna görə dəyişmədən işləyə bilir.
+// [SECURE VIEWS] Qonaq/qeydiyyatsız baxışlar üçün ayrıca Firebase Auth sessiyası.
+// Əsas istifadəçinin login sessiyasına toxunmur.
 let viewAuth = null;
 let viewDb = null;
 let viewAuthReady = null;
+
 try{
   const viewApp = getApps().find(a => a.name === "viewAuthApp")
     || initializeApp(firebaseConfig, "viewAuthApp");
+
   viewAuth = getAuth(viewApp);
-  viewDb = initializeFirestore(viewApp, {
-    experimentalForceLongPolling: true,
-    useFetchStreams: false
-  });
+
+  // Ayrı app + ayrıca Firestore instansiyası: əsas login sessiyasını dəyişmir.
+  try{
+    viewDb = initializeFirestore(viewApp, {
+      experimentalForceLongPolling: true,
+      useFetchStreams: false
+    });
+  }catch(_e){
+    viewDb = getFirestore(viewApp);
+  }
 }catch(e){
-  console.warn("[Secure Views] anonim auth ilkinləşdirilməsi alınmadı:", e?.message || e);
+  console.error("[Secure Views] View Firebase ilkinləşdirilməsi alınmadı:", e);
 }
 
 async function ensureViewAuth(){
   if(!viewAuth || !viewDb) return false;
   if(viewAuth.currentUser) return true;
   if(viewAuthReady) return viewAuthReady;
+
   viewAuthReady = (async()=>{
     try{
+      // Anonymous provider Firebase Console-da aktiv olmalıdır.
       await signInAnonymously(viewAuth);
-      return !!viewAuth.currentUser;
+      const ok = !!viewAuth.currentUser;
+
+      if(ok){
+        console.info("[Secure Views] Qonaq auth aktivdir:", viewAuth.currentUser.uid);
+      }
+      return ok;
     }catch(e){
-      console.warn("[Secure Views] Anonymous Auth aktiv deyil və ya uğursuz oldu:", e?.code || e?.message || e);
+      console.error(
+        "[Secure Views] Qonaq auth alınmadı. Firebase Console > Authentication > Sign-in method > Anonymous aktiv edilməlidir.",
+        e?.code || e?.message || e
+      );
       return false;
     }finally{
       viewAuthReady = null;
     }
   })();
+
   return viewAuthReady;
 }
 // ══════════════════════════════════════════════════════════════════
@@ -6953,9 +6970,8 @@ try{
 window.incrementAdView = async function(adId, currentViews = 0){
   if(!adId) return currentViews;
 
-  // Eyni brauzerdən eyni elana maksimum 15 dəqiqədə 1 baxış.
-  // localStorage yalnız əlavə anti-spam qatıdır; Firestore Rules yenə də
-  // yazının views + 1 olmasını server tərəfdə yoxlayır.
+  // Eyni brauzerdən eyni elana 15 dəqiqədə maksimum 1 baxış.
+  // Bu yalnız anti-spam qatıdır; real say Firestore-dakı views sahəsidir.
   const viewedKey = "gs_viewed_ad_" + adId;
   const COOLDOWN_MS = 15 * 60 * 1000;
   const fallback = Number(currentViews || 0);
@@ -6967,25 +6983,49 @@ window.incrementAdView = async function(adId, currentViews = 0){
   }catch(_){}
 
   try{
-    // Login olmuş istifadəçi əsas auth/db ilə, qonaq isə ayrıca anonim
-    // Firebase Auth sessiyası ilə yazır. Beləliklə Rules-də isSignedIn()
-    // qorunması saxlanılır və anonim istifadəçiyə açıq update verilmir.
     let targetDb = db;
+    let viewerType = "registered";
+
     if(!auth.currentUser){
+      viewerType = "guest";
+
+      // Qonaq istifadəçini ayrıca anonymous Firebase hesabı ilə
+      // autentifikasiya et. Əsas istifadəçinin auth sessiyasına toxunmur.
       const ok = await ensureViewAuth();
-      if(!ok) return fallback;
+      if(!ok){
+        console.warn("[Views] Qonaq üçün Anonymous Auth yaradılmadı.");
+        return fallback;
+      }
+
       targetDb = viewDb;
     }
 
-    await updateDoc(
-      doc(targetDb, "ads", adId),
-      {views:increment(1), updatedAt:serverTimestamp()}
-    );
+    if(!targetDb) return fallback;
+
+    const adRef = doc(targetDb, "ads", adId);
+
+    // updateDoc + increment atomikdir: iki istifadəçi eyni anda baxanda
+    // biri digərinin sayını silmir.
+    await updateDoc(adRef, {
+      views: increment(1),
+      updatedAt: serverTimestamp()
+    });
 
     try{ localStorage.setItem(viewedKey, String(now)); }catch(_){}
+
+    console.info("[Views] baxış artırıldı:", {
+      adId,
+      viewerType,
+      uid: auth.currentUser?.uid || viewAuth?.currentUser?.uid || null
+    });
+
     return fallback + 1;
   }catch(e){
-    console.error("Baxış sayı artırılmadı:", e);
+    console.error("[Views] Baxış sayı artırılmadı:", {
+      adId,
+      code: e?.code || "",
+      message: e?.message || e
+    });
     return fallback;
   }
 };
