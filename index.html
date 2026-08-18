@@ -3736,6 +3736,312 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
   }
 })();
 </script>
+
+<style id="nav-create-ad-final-fix">
+/* ANA SƏHİFƏ NAV: kateqoriyalar kliklənəndə rənglənməsin */
+.nav .nav-cat,
+.nav .nav-cat:hover,
+.nav .nav-cat:active,
+.nav .nav-cat:focus,
+.nav .nav-cat:focus-visible,
+.nav .nav-cat.active,
+.nav .nav-cat.selected{
+  background:transparent!important;
+  color:#9ca3af!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+.nav .nav-cat:hover{
+  box-shadow:0 0 12px rgba(255,81,0,.16)!important;
+  transform:translateY(-1px);
+}
+.nav .nav-cat:focus-visible{
+  outline:none!important;
+  box-shadow:0 0 12px rgba(255,81,0,.20)!important;
+}
+
+/* Elan yerləşdir — düzbucaqlı narıncı düymə.
+   Narıncı rəng düymənin özündə qalır, işıqlanma yalnız kənardadır. */
+.nav .tab-create-ad,
+.nav .tab-create-ad:hover,
+.nav .tab-create-ad:active,
+.nav .tab-create-ad:focus,
+.nav .tab-create-ad:focus-visible{
+  border-radius:3px!important;
+  background:linear-gradient(90deg,#ff5100,#ff005b)!important;
+  color:#fff!important;
+  border:1px solid #ff5100!important;
+  outline:none!important;
+  transform:none!important;
+}
+.nav .tab-create-ad{
+  box-shadow:0 0 0 1px rgba(255,81,0,.12),0 0 10px rgba(255,81,0,.18)!important;
+}
+.nav .tab-create-ad:hover,
+.nav .tab-create-ad:focus-visible{
+  box-shadow:0 0 0 2px rgba(255,81,0,.22),0 0 18px rgba(255,81,0,.38)!important;
+}
+</style>
+
+
+<style id="market-tabs-final">
+/* ELAN BAZARI kateqoriya düymələri: heç vaxt narıncı aktiv rəng almayacaq */
+.tabs > .tab:not(.tab-create-ad),
+.tabs > .tab:not(.tab-create-ad):hover,
+.tabs > .tab:not(.tab-create-ad):active,
+.tabs > .tab:not(.tab-create-ad):focus,
+.tabs > .tab:not(.tab-create-ad):focus-visible,
+.tabs > .tab:not(.tab-create-ad).active {
+  background:#191a1a!important;
+  color:#9ca3af!important;
+  border:1px solid #252929!important;
+  box-shadow:none!important;
+  transform:none!important;
+  outline:none!important;
+}
+
+/* Klik/fokus zamanı da yalnız çox zəif neytral kənar işıq */
+.tabs > .tab:not(.tab-create-ad):hover,
+.tabs > .tab:not(.tab-create-ad):focus-visible {
+  border-color:#343838!important;
+  box-shadow:0 0 8px rgba(255,255,255,.05)!important;
+}
+
+/* Elan yerləşdir: düzbucaqlı narıncı düymə */
+.tabs > .tab-create-ad {
+  min-height:36px!important;
+  padding:9px 18px!important;
+  border-radius:3px!important;
+  background:linear-gradient(90deg,#ff5100,#ff005b)!important;
+  color:#fff!important;
+  border:1px solid #ff5100!important;
+  box-shadow:0 0 0 1px rgba(255,81,0,.12),0 0 12px rgba(255,81,0,.22)!important;
+  transform:none!important;
+}
+.tabs > .tab-create-ad:hover,
+.tabs > .tab-create-ad:focus-visible {
+  background:linear-gradient(90deg,#ff5100,#ff005b)!important;
+  color:#fff!important;
+  border-color:#ff5100!important;
+  box-shadow:0 0 0 2px rgba(255,81,0,.22),0 0 20px rgba(255,81,0,.42)!important;
+  transform:none!important;
+  outline:none!important;
+}
+</style>
+
+
+<style id="sort-category-black-white-fix">
+/* Sıralama və kateqoriya seçimləri — ağ/qara */
+#sortSelect,
+select[id*="sort" i],
+.sort-select,
+#categorySelect,
+select[id*="categor" i],
+.category-select{
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #111!important;
+  box-shadow:none!important;
+}
+
+#sortSelect:hover,
+select[id*="sort" i]:hover,
+.sort-select:hover,
+#categorySelect:hover,
+select[id*="categor" i]:hover,
+.category-select:hover,
+#sortSelect:focus,
+select[id*="sort" i]:focus,
+.sort-select:focus,
+#categorySelect:focus,
+select[id*="categor" i]:focus,
+.category-select:focus{
+  background:#fff!important;
+  color:#111!important;
+  border-color:#111!important;
+  box-shadow:0 0 0 2px rgba(0,0,0,.10)!important;
+  outline:none!important;
+}
+
+/* Açılan native seçim siyah mətnli/ağ fonlu olsun */
+#sortSelect option,
+select[id*="sort" i] option,
+#categorySelect option,
+select[id*="categor" i] option{
+  background:#fff!important;
+  color:#111!important;
+}
+</style>
+
+
+<style id="mobile-howto-balance-final-fix">
+/* MOBİL: "Sayt necə işləyir?" balansın yanında ayrıca göstərilir */
+.mobile-howto-btn{display:none}
+
+@media(max-width:700px){
+  .actions{
+    width:100%!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:6px!important;
+    flex-wrap:wrap!important;
+    row-gap:7px!important;
+  }
+
+  /* Balansdakı kəsik narıncı çərçivə tam ləğv */
+  .actions .header-balance,
+  body.light-mode .actions .header-balance{
+    order:2!important;
+    height:40px!important;
+    min-height:40px!important;
+    flex:0 0 auto!important;
+    padding:0 10px!important;
+    border-radius:8px!important;
+    background:#101111!important;
+    border:1px solid #2c2e2e!important;
+    color:#ff5100!important;
+    box-shadow:none!important;
+    transform:none!important;
+  }
+  .actions .header-balance:hover{
+    border-color:#3a3d3f!important;
+    transform:none!important;
+  }
+  .actions .header-balance svg{
+    stroke:#ff5100!important;
+    color:#ff5100!important;
+  }
+
+  /* Yeni mobil düymə — balansın yanında */
+  .mobile-howto-btn{
+    display:inline-flex!important;
+    order:1!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 9px!important;
+    flex:0 0 auto!important;
+    border:1px solid #2c2e2e!important;
+    border-radius:8px!important;
+    background:#101111!important;
+    color:#e5e7eb!important;
+    font-family:inherit!important;
+    font-size:11px!important;
+    font-weight:700!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+    box-shadow:none!important;
+  }
+  .mobile-howto-btn svg{
+    width:15px!important;
+    height:15px!important;
+    flex:0 0 15px!important;
+  }
+  .mobile-howto-btn:active,
+  .mobile-howto-btn:hover{
+    background:#141617!important;
+    border-color:#3a3d3f!important;
+    color:#fff!important;
+  }
+
+  /* Qalan üst düymələr ikinci sıraya keçir və ölçüləri kiçildilir */
+  #loginBtn,
+  #registerBtn,
+  .actions .hbtn:not(.orange),
+  .actions .hbtn.orange{
+    height:38px!important;
+    min-height:38px!important;
+    padding:0 11px!important;
+    border-radius:8px!important;
+    font-size:11px!important;
+    flex:0 0 auto!important;
+  }
+  #loginBtn{order:3!important}
+  #registerBtn{order:4!important}
+
+  .actions .notify-btn,
+  .actions .cart{
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    min-height:38px!important;
+    flex:0 0 38px!important;
+    border-radius:50%!important;
+  }
+  .actions .notify-btn{order:5!important}
+  .actions .cart{order:6!important}
+
+  /* Bildiriş dropdown-u layout-u pozmasın */
+  .actions .notif-dropdown{order:20!important}
+
+  @media(max-width:380px){
+    .mobile-howto-btn{
+      padding:0 7px!important;
+      font-size:10px!important;
+    }
+    .actions .header-balance{padding:0 8px!important;font-size:11px!important}
+    #loginBtn,#registerBtn,.actions .hbtn:not(.orange),.actions .hbtn.orange{
+      padding:0 9px!important;
+    }
+  }
+}
+</style>
+
+
+<style id="mobile-slider-arrows-small-circles">
+/* Slayd keçidləri — böyük narıncı düymələr əvəzinə kiçik dairələr */
+@media (max-width:700px){
+  .hero-slider .prev,
+  .hero-slider .next,
+  .hero-slider .slider-prev,
+  .hero-slider .slider-next,
+  .hero-slider .slide-prev,
+  .hero-slider .slide-next,
+  .hero-slider .carousel-control-prev,
+  .hero-slider .carousel-control-next{
+    width:34px!important;
+    height:34px!important;
+    min-width:34px!important;
+    min-height:34px!important;
+    padding:0!important;
+    border-radius:50%!important;
+    background:rgba(8,10,13,.78)!important;
+    border:1px solid rgba(255,255,255,.18)!important;
+    color:#fff!important;
+    box-shadow:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    font-size:16px!important;
+  }
+
+  .hero-slider .prev:hover,
+  .hero-slider .next:hover,
+  .hero-slider .slider-prev:hover,
+  .hero-slider .slider-next:hover,
+  .hero-slider .slide-prev:hover,
+  .hero-slider .slide-next:hover,
+  .hero-slider .carousel-control-prev:hover,
+  .hero-slider .carousel-control-next:hover{
+    background:rgba(8,10,13,.92)!important;
+    border-color:rgba(255,255,255,.28)!important;
+    box-shadow:none!important;
+  }
+
+  .hero-slider .prev svg,
+  .hero-slider .next svg,
+  .hero-slider .slider-prev svg,
+  .hero-slider .slider-next svg,
+  .hero-slider .slide-prev svg,
+  .hero-slider .slide-next svg{
+    width:15px!important;
+    height:15px!important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -3758,6 +4064,10 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
     <div class="actions">
       <button id="notifyBtn" class="notify-btn" type="button" title="Bildirişlər" onclick="openNotifications()">🔔<b id="notifyBadge" style="display:none">0</b></button>
       <div id="notifDropdown" class="notif-dropdown"></div>
+      <button id="mobileHowtoBtn" class="mobile-howto-btn" type="button" title="Sayt necə işləyir?" onclick="openLegal('qaydalar')">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" fill="#ff5100" opacity=".14"/><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" stroke="#ff5100" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9" stroke="#ff5100" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Sayt necə işləyir?</span>
+      </button>
       <button id="headerBalanceBtn" class="header-balance" type="button" title="Balansım" style="display:none" onclick="openWalletPage()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor"/></svg>
         <span id="headerBalanceAmount">0.00 ₼</span>
@@ -6486,7 +6796,7 @@ function filterCategory(cat){
     }
   }
 
-  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.innerText.trim()===cat || (cat==="Hamısı" && t.innerText.trim()==="Hamısı")));
+  document.querySelectorAll(".tabs .tab").forEach(t=>t.classList.remove("active"));
   
   // Orijinal kateqoriya filtri — is-hidden ilə
   document.querySelectorAll(".searchable").forEach(el=>{
