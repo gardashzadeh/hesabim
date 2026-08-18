@@ -14759,11 +14759,11 @@ window.openBumpModal = async function(adId){
     if(notLive)         useBtn = '<button class="fullbtn" disabled style="opacity:.5;cursor:not-allowed">Elan bazarda deyil ('+esc(a.status||"?")+')</button>';
     else if(credits<=0) useBtn = '<button class="fullbtn" disabled style="opacity:.5;cursor:not-allowed">Kredit yoxdur — əvvəlcə al</button>';
     else if(cdLeft>0)   useBtn = '<button class="fullbtn" disabled style="opacity:.5;cursor:not-allowed">Gözləmə: '+bumpFmtDur(cdLeft)+'</button>';
-    else                useBtn = '<button class="fullbtn" onclick="useBumpCredit(\''+adId+'\')">🚀 İndi irəli çək (1 kredit)</button>';
+    else                useBtn = '<button type="button" class="fullbtn" onclick="useBumpCredit(\''+adId+'\')">🚀 İndi irəli çək (1 kredit)</button>';
 
     const pkgs = BUMP_PACKAGES.map(p =>
-      '<button onclick="buyBumpCredits('+p.credits+','+p.price+')" style="flex:1;display:flex;flex-direction:column;gap:2px;align-items:center;padding:12px 6px;background:#0d1117;border:1px solid #1e2d45;border-radius:10px;color:#e2e8f0;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor=\'#ff5100\'" onmouseout="this.style.borderColor=\'#1e2d45\'">'+
-        '<b style="font-size:15px">'+p.credits+' dəfə</b>'+
+      '<button type="button" onclick="buyBumpCredits('+p.credits+','+p.price+')" style="flex:1;display:flex;flex-direction:column;gap:2px;align-items:center;padding:12px 6px;background:#0d1117;border:1px solid #1e2d45;border-radius:10px;color:#e2e8f0;cursor:pointer;transition:.15s" onmouseover="this.style.borderColor=\'#ff5100\'" onmouseout="this.style.borderColor=\'#1e2d45\'">'+
+        '<b style="font-size:15px">'+p.credits+' kredit al</b>'+
         '<span style="font-size:13px;color:#ff5100;font-weight:700">'+p.price+' ₼</span>'+
       '</button>'
     ).join("");
@@ -14790,6 +14790,7 @@ window.openBumpModal = async function(adId){
 // Kredit alışı — elana YOX, profilə yazılır
 window.buyBumpCredits = async function(credits, price){
   if(!currentUser){ openModal("loginModal"); return; }
+  if(window._bumpActionBusy) return;
   credits = Number(credits); price = Number(price);
   const pkg = BUMP_PACKAGES.find(p => p.credits === credits && p.price === price);
   if(!pkg){ toast("Paket tapılmadı."); return; }
@@ -14835,44 +14836,79 @@ window.buyBumpCredits = async function(credits, price){
 // Krediti işlət — profildən 1 kredit çıxır, elanın bumpedAt-ı yenilənir
 window.useBumpCredit = async function(adId){
   if(!currentUser){ openModal("loginModal"); return; }
-  const walletRef = doc(db,"wallets",currentUser.uid);
-  const adRef     = doc(db,"ads",adId);
-  try{
-    await runTransaction(db, async (tx)=>{
-      const wSnap = await tx.get(walletRef);
-      const aSnap = await tx.get(adRef);
-      if(!aSnap.exists()) throw new Error("AD_GONE");
-      const a = aSnap.data()||{};
-      if(a.sellerUid !== currentUser.uid) throw new Error("NOT_OWNER");
-      const w = wSnap.exists() ? (wSnap.data()||{}) : {};
-      const credits = Number(w.bumpCredits||0);
-      if(credits < 1) throw new Error("NO_CREDITS");
-      // Cooldown yalnız bu elanın bumpedAt sahəsindən hesablanır.
-      const lastMs = bumpTsToMs(a.bumpedAt);
-      if(lastMs && (Date.now() - lastMs) < BUMP_COOLDOWN_MS) throw new Error("COOLDOWN::"+lastMs);
 
-      // 1) Profildən kredit çıxır + hansı elana sərf olunduğu möhürlənir
+  // Kredit alma funksiyasının bu əməliyyata qarışmasının qarşısını al.
+  if(window._bumpActionBusy) return;
+  window._bumpActionBusy = true;
+
+  const walletRef = doc(db,"wallets",currentUser.uid);
+  const adRef = doc(db,"ads",adId);
+
+  try{
+    const result = await runTransaction(db, async (tx)=>{
+      const [wSnap, aSnap] = await Promise.all([
+        tx.get(walletRef),
+        tx.get(adRef)
+      ]);
+
+      if(!aSnap.exists()) throw new Error("AD_GONE");
+
+      const a = aSnap.data() || {};
+      if(a.sellerUid !== currentUser.uid) throw new Error("NOT_OWNER");
+
+      const w = wSnap.exists() ? (wSnap.data() || {}) : {};
+      const credits = Number(w.bumpCredits || 0);
+
+      if(credits < 1) throw new Error("NO_CREDITS");
+
+      // Cooldown yalnız BU ELAN üçün.
+      const lastMs = bumpTsToMs(a.bumpedAt);
+      if(lastMs && (Date.now() - lastMs) < BUMP_COOLDOWN_MS){
+        throw new Error("COOLDOWN::" + lastMs);
+      }
+
+      // Yalnız 1 kredit çıxılır.
       tx.set(walletRef, {
         bumpCredits: credits - 1,
         lastBumpUsedAdId: adId,
         lastBumpUsedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }, {merge:true});
-      // 2) Elanda YALNIZ bumpedAt dəyişir → status toxunulmur, moderasiya yox
-      tx.set(adRef, { bumpedAt: serverTimestamp() }, {merge:true});
+
+      // Yalnız seçilmiş elan irəli çəkilir.
+      tx.set(adRef, {
+        bumpedAt: serverTimestamp()
+      }, {merge:true});
+
+      return {remaining: credits - 1};
     });
-    toast("Elan irəli çəkildi 🚀");
-    openBumpModal(adId);
+
+    // Uğurlu əməliyyatdan sonra kredit-alma modalını yenidən açmırıq.
+    closeModal("bumpModal");
+    toast("Elan irəli çəkildi 🚀  •  Qalan kredit: " + result.remaining);
+
+    // Kabinet siyahısını canlı listener özü yeniləyəcək.
+    if(typeof listenMyAds === "function") listenMyAds();
+
   }catch(e){
     console.error("[useBumpCredit]", e);
-    if(e.message === "NO_CREDITS") toast("Kredit yoxdur. Əvvəlcə kredit al.");
-    else if(String(e.message||"").startsWith("COOLDOWN")){
-      const lastMs = Number(String(e.message).split("::")[1]||0);
-      toast("Gözləmə vaxtı: "+bumpFmtDur(BUMP_COOLDOWN_MS - (Date.now()-lastMs))+" sonra çəkə bilərsən.");
+
+    if(e.message === "NO_CREDITS"){
+      toast("Kredit yoxdur. Əvvəlcə kredit al.");
+    }else if(String(e.message||"").startsWith("COOLDOWN")){
+      const lastMs = Number(String(e.message).split("::")[1] || 0);
+      toast("Bu elan üçün gözləmə: " +
+        bumpFmtDur(Math.max(0, BUMP_COOLDOWN_MS - (Date.now()-lastMs))) +
+        " sonra yenidən çəkə bilərsən.");
+    }else if(e.message === "NOT_OWNER"){
+      toast("Bu elan sənə aid deyil.");
+    }else if(e.message === "AD_GONE"){
+      toast("Elan tapılmadı.");
+    }else{
+      toast("İrəli çəkmək alınmadı: " + (e.code || e.message || "xəta"));
     }
-    else if(e.message === "NOT_OWNER") toast("Bu elan sənə aid deyil.");
-    else if(e.message === "AD_GONE")   toast("Elan tapılmadı.");
-    else toast("Alınmadı: " + (e.code || e.message || "xəta"));
+  }finally{
+    window._bumpActionBusy = false;
   }
 };
 
