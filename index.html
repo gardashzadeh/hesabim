@@ -4042,6 +4042,109 @@ select[id*="categor" i] option{
 }
 </style>
 
+
+<style id="mobile-top-actions-final">
+@media(max-width:700px){
+  /* Mobil üst paneldə yalnız: Sayt necə işləyir + Balans + Çıxış + Bildiriş qalır.
+     Kabinet və səbət aşağı naviqasiyada artıq mövcuddur. */
+
+  .actions{
+    width:100%!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+  }
+
+  /* Kabineti üst paneldən gizlət */
+  #loginBtn,
+  .actions #loginBtn{
+    display:none!important;
+  }
+
+  /* Səbəti üst paneldən gizlət */
+  .actions .cart,
+  .actions .header-cart,
+  .actions .cart-btn{
+    display:none!important;
+  }
+
+  /* Sayt necə işləyir */
+  .mobile-howto-btn{
+    display:inline-flex!important;
+    order:1!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 10px!important;
+    border-radius:8px!important;
+    font-size:11px!important;
+    white-space:nowrap!important;
+  }
+
+  /* Balans */
+  .actions .header-balance{
+    order:2!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 10px!important;
+    border:1px solid #2c2e2e!important;
+    border-radius:8px!important;
+    background:#101111!important;
+    box-shadow:none!important;
+  }
+
+  /* Çıxış */
+  #registerBtn{
+    order:3!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 14px!important;
+    border-radius:8px!important;
+    font-size:11px!important;
+  }
+
+  /* Bildiriş */
+  .actions .notify-btn{
+    order:4!important;
+    flex:0 0 40px!important;
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    min-height:40px!important;
+  }
+
+  /* Telefon ekranı dar olanda hamısı yenə bir sətirdə qalsın */
+  @media(max-width:390px){
+    .mobile-howto-btn{
+      padding:0 7px!important;
+      font-size:10px!important;
+    }
+    .actions .header-balance{
+      padding:0 7px!important;
+      font-size:10px!important;
+    }
+    #registerBtn{
+      padding:0 9px!important;
+      font-size:10px!important;
+    }
+    .actions .notify-btn{
+      flex-basis:36px!important;
+      width:36px!important;
+      height:36px!important;
+      min-width:36px!important;
+      min-height:36px!important;
+    }
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -4139,7 +4242,7 @@ select[id*="categor" i] option{
     .hero-next{right:14px}
     .hero-dots{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:5;display:flex;gap:8px}
     .hero-dot{width:9px;height:9px;border-radius:50%;border:none;padding:0;cursor:pointer;background:rgba(255,255,255,.35);transition:.25s}
-    .hero-dot.active{background:#ff5100;width:24px;border-radius:5px}
+    .hero-dot.active{background:#ff5100;width:9px;border-radius:50%}
     @media(max-width:768px){
       .hero-arrow{width:34px;height:34px;font-size:20px}
     }
@@ -17239,6 +17342,39 @@ body.light-mode .market-search-wrap input{color:#0f172a}
   transition:color .15s,background .15s;
 }
 .add-tg-notice__close:hover{color:#e2e8f0;background:#1c2330;}
+</style>
+
+<style id="mobile-hero-dots-final">
+@media (max-width:900px){
+  /* Böyük narıncı/boz keçid işarəsi görünməsin */
+  .hero-mockup .hero-bg-left,
+  .hero-mockup .hero-bg-right{display:none!important}
+
+  /* Slayd keçidi: yalnız kiçik nöqtələr */
+  .hero-slider .hero-dots{
+    display:flex!important;
+    position:absolute!important;
+    left:50%!important;
+    bottom:8px!important;
+    transform:translateX(-50%)!important;
+    gap:5px!important;
+    z-index:20!important;
+  }
+  .hero-slider .hero-dot,
+  .hero-slider .hero-dot.active{
+    width:5px!important;
+    height:5px!important;
+    min-width:5px!important;
+    min-height:5px!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:50%!important;
+    box-shadow:none!important;
+  }
+  .hero-slider .hero-dot{background:rgba(255,255,255,.38)!important}
+  .hero-slider .hero-dot.active{background:#ff5100!important}
+}
 </style>
 </body>
 </html>
