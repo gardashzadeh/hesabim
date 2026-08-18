@@ -14701,12 +14701,12 @@ async function requestPayout(id){
 
 /* ===== İRƏLİ ÇƏK (BUMP) — kredit paketi + 6 saat cooldown =====
    Model: satıcı elana kredit alır (balansından çıxılır), sonra hər krediti
-   istədiyi an işlədib elanı siyahının başına çəkir.
+   istədiyi an işlədib elanı siyahının başına çəkir. İki çəkmə arasında
+   BUMP_COOLDOWN_HOURS saat gözləmə var.
    MODEL: kreditlər İSTİFADƏÇİ profilində (wallets/{uid}.bumpCredits)
    saxlanılır — elana bağlı DEYİL. Elan silinsə/satılsa kredit yanmır,
    qalan kreditlər istənilən başqa elana sərf edilə bilər.
-   Cooldown isə KONKRET ELAN səviyyəsindədir: həmin elan 6 saatdan sonra
-   yenidən irəli çəkilə bilər. Başqa elanlar dərhal çəkilə bilər.
+   Cooldown istifadəçi səviyyəsindədir: son çəkmədən 6 saat sonra.
    DİQQƏT: Firestore Rules tələb olunur. Rules olmadan balans azalması
    "permission-denied" verəcək. */
 const BUMP_PACKAGES = [
@@ -14748,9 +14748,7 @@ window.openBumpModal = async function(adId){
     const w = await ensureWallet(currentUser.uid, currentUser.email);
     const credits = Number(w.bumpCredits||0);
     const bal     = Number(w.balance||0);
-
-    // Cooldown ARTİQ istifadəçiyə yox, konkret elana aiddir.
-    // Beləliklə A elanını çəkdikdən sonra B elanını dərhal çəkmək mümkündür.
+    // Cooldown konkret ELANA aiddir; wallet lastBump* yalnız transaction möhürüdür.
     const lastMs  = bumpTsToMs(a.bumpedAt);
     const cdLeft  = lastMs ? Math.max(0, BUMP_COOLDOWN_MS - (Date.now() - lastMs)) : 0;
 
@@ -14778,7 +14776,7 @@ window.openBumpModal = async function(adId){
         '<b style="color:#ff5100;font-size:22px">'+credits+'</b>'+
       '</div>'+
       useBtn+
-      '<div style="font-size:11px;color:#5b6678;margin:8px 0 18px;line-height:1.5">Kreditlər hesabına yazılır — istədiyin elana sərf edə bilərsən. Elan silinsə kredit itmir. Eyni elan üçün '+BUMP_COOLDOWN_HOURS+' saat gözləmə var; digər elanları dərhal irəli çəkə bilərsən.</div>'+
+      '<div style="font-size:11px;color:#5b6678;margin:8px 0 18px;line-height:1.5">Kreditlər hesabına yazılır — istədiyin elana sərf edə bilərsən. Elan silinsə kredit itmir. İki çəkmə arasında '+BUMP_COOLDOWN_HOURS+' saat gözləmə var.</div>'+
       '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Kredit al</div>'+
       '<div style="display:flex;gap:8px">'+pkgs+'</div>'+
       '<p style="font-size:12px;color:#64748b;margin:14px 0 0;text-align:center">Balansın: <b style="color:#e2e8f0">'+bal.toFixed(2)+' ₼</b></p>';
@@ -14849,20 +14847,18 @@ window.useBumpCredit = async function(adId){
       const w = wSnap.exists() ? (wSnap.data()||{}) : {};
       const credits = Number(w.bumpCredits||0);
       if(credits < 1) throw new Error("NO_CREDITS");
-
-      // Cooldown konkret ELANA görə yoxlanılır.
-      // A elanının cooldown-u B elanının irəli çəkilməsinə mane olmur.
+      // Cooldown yalnız bu elanın bumpedAt sahəsindən hesablanır.
       const lastMs = bumpTsToMs(a.bumpedAt);
       if(lastMs && (Date.now() - lastMs) < BUMP_COOLDOWN_MS) throw new Error("COOLDOWN::"+lastMs);
 
-      // 1) Profildən yalnız 1 kredit çıxılır
+      // 1) Profildən kredit çıxır + hansı elana sərf olunduğu möhürlənir
       tx.set(walletRef, {
         bumpCredits: credits - 1,
+        lastBumpUsedAdId: adId,
+        lastBumpUsedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }, {merge:true});
-
-      // 2) Yalnız bu elanın bumpedAt-ı yenilənir.
-      // Statusa və moderasiyaya toxunulmur.
+      // 2) Elanda YALNIZ bumpedAt dəyişir → status toxunulmur, moderasiya yox
       tx.set(adRef, { bumpedAt: serverTimestamp() }, {merge:true});
     });
     toast("Elan irəli çəkildi 🚀");
