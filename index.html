@@ -5826,6 +5826,7 @@ window.renderMarketAds = function renderMarketAds(){
     price: Number(a.price || 0).toFixed(2) + " ₼",
     priceValue: Number(a.price || 0),
     originalPrice: Number(a.originalPrice || 0),
+    createdAt: a.createdAt || null,
     createdAtMs: a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds*1000 : 0),
     bumpedAtMs: a.bumpedAt && typeof a.bumpedAt.toMillis === "function" ? a.bumpedAt.toMillis() : (a.bumpedAt && a.bumpedAt.seconds ? a.bumpedAt.seconds*1000 : 0),
     rawDesc:safeText(a.desc || ""),
@@ -5927,6 +5928,7 @@ window.renderMarketAds = function renderMarketAds(){
       rank: btn.dataset.rank,
       level: btn.dataset.level,
       views: Number(btn.dataset.views||0),
+      createdAtMs: Number(btn.dataset.createdat||0),
       stock: (btn.dataset.stock === undefined || btn.dataset.stock === "") ? 1 : Number(btn.dataset.stock),
       originalPrice: Number(btn.dataset.originalprice||0),
       contact: btn.dataset.contact,
@@ -5995,6 +5997,7 @@ window.renderMarketAds = function renderMarketAds(){
         + 'data-rank="'+attr(a.rank)+'" '
         + 'data-level="'+attr(a.level)+'" '
         + 'data-views="'+Number(a.views||0)+'" '
+        + 'data-createdat="'+Number(a.createdAtMs||0)+'" '
         + 'data-stock="'+Number(a.stock == null ? 1 : a.stock)+'" '
         + 'data-originalprice="'+Number(a.originalPrice||0)+'" '
         + 'data-contact="'+attr(a.contact)+'" '
@@ -15633,6 +15636,8 @@ function _adDocToProduct(id, a){
     seller: a.sellerUserId || (a.sellerEmail||"").split("@")[0] || "Satıcı",
     sellerUid: a.sellerUid||"", sellerEmail: a.sellerEmail||"",
     adId: id, adNumber: a.adNumber||"", views: a.views||0,
+    createdAt: a.createdAt || null,
+    createdAtMs: a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds*1000 : 0),
     imageUrls: a.imageUrls||[], stock: Number(a.stock||1),
     contactMode: a.contactMode||"platform", deliveryMode: a.deliveryMode||"",
     deliveryEta: Number(a.deliveryEta||0), warranty: a.warranty||"forever", icon: iconHtml
@@ -15713,6 +15718,8 @@ window.openReportTarget = async function(type, targetId){
       seller: a.sellerUserId || (a.sellerEmail||"").split("@")[0] || "Satıcı",
       sellerUid: a.sellerUid||"", sellerEmail: a.sellerEmail||"",
       adId: targetId, adNumber: a.adNumber||"", views: a.views||0,
+      createdAt: a.createdAt || null,
+      createdAtMs: a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds*1000 : 0),
       imageUrls: a.imageUrls||[], stock: Number(a.stock||1),
       contactMode: a.contactMode||"platform", deliveryMode: a.deliveryMode||"",
       deliveryEta: Number(a.deliveryEta||0), warranty: a.warranty||"forever", icon: iconHtml
