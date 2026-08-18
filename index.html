@@ -376,6 +376,32 @@ body.light-mode .howto-btn:hover span{color:#ff5100}
 .tabs{display:flex;gap:10px;padding:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tab{padding:9px 18px;background:#191a1a;border-radius:6px;font-size:13px;font-weight:600;letter-spacing:.15px;white-space:nowrap;user-select:none}
 .tab.active{background:linear-gradient(#ff5100,#ff005b);color:#fff}
+.tab-create-ad{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:1px solid rgba(255,81,0,.42);
+  background:linear-gradient(90deg,#ff5100,#ff005b)!important;
+  color:#fff!important;
+  font-weight:800;
+  transition:.18s ease;
+  box-shadow:0 4px 14px rgba(255,81,0,.20);
+}
+.tab-create-ad svg{width:16px;height:16px;flex:0 0 16px}
+.tab-create-ad:hover{
+  background:linear-gradient(90deg,#ff5c14,#ff1765)!important;
+  border-color:transparent;
+  color:#fff!important;
+  transform:translateY(-1px);
+  box-shadow:0 5px 16px rgba(255,81,0,.28);
+}
+body.light-mode .tab-create-ad{
+  background:rgba(255,81,0,.07);
+  border-color:rgba(255,81,0,.28);
+  color:#e85a12;
+}
+body.light-mode .tab-create-ad:hover{color:#fff}
 .ads{display:grid;grid-template-columns:repeat(1,1fr);gap:12px;padding:0 12px 12px}
 @media(min-width:900px){.ads{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1400px){.ads{grid-template-columns:repeat(5,1fr);gap:10px}}
@@ -3896,6 +3922,13 @@ body.light-mode .product-detail-box{border:1px solid #dde1e7!important;box-shado
     </div>
   </div>
   <div class="tabs">
+    <button type="button" class="tab tab-create-ad" onclick="openAddListingFromMarket()" aria-label="Elan yarat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3.5" y="3.5" width="17" height="17" rx="3"></rect>
+        <path d="M12 8v8M8 12h8"></path>
+      </svg>
+      <span>Elan yerləşdir</span>
+    </button>
     <button class="tab active" onclick="filterCategory('Hamısı')">Hamısı</button>
     <button class="tab" onclick="filterCategory('Hesab')">Hesab</button>
     <button class="tab" onclick="filterCategory('Skin')">Skin</button>
@@ -9966,6 +9999,15 @@ window.sendPasswordResetFromProfile = async function(){
   try{ await sendPasswordResetEmail(auth,currentUser.email); toast("Şifrə bərpa linki emailə göndərildi"); }
   catch(e){ console.error(e); toast("Bərpa linki göndərilmədi."); }
 }
+
+// Ana səhifə → Elan bazarı → Elan yarat
+// Kabinetdəki mövcud "Elan yerləşdir" bölməsini açır; ayrıca elan forması yaratmır.
+window.openAddListingFromMarket = async function(){
+  await openCabinet();
+  if(currentUser && currentUser.emailVerified){
+    window.showTab("add");
+  }
+};
 
 async function openCabinet(){
   await refreshUser();
