@@ -4298,7 +4298,7 @@ select[id*="categor" i] option{
   </script>
 
   <section class="panel">
-    <div class="panel-head"><h2>POPULYAR OYUNLAR</h2><button onclick="filterCategory('Hamısı');document.getElementById('ads')?.scrollIntoView({behavior:'smooth'})">Hamısına Bax</button></div>
+    <div class="panel-head"><h2></h2><button onclick="filterCategory('Hamısı');document.getElementById('ads')?.scrollIntoView({behavior:'smooth'})">Hamısına Bax</button></div>
     <div class="games games-oneline" id="games">
       <div class="skel-game skel"></div><div class="skel-game skel"></div><div class="skel-game skel"></div>
       <div class="skel-game skel"></div><div class="skel-game skel"></div><div class="skel-game skel"></div>
@@ -5795,7 +5795,7 @@ function renderPdPlatformBadge(product){
 }
 
 const games=[
-  [SVGS.dota||SVGS.valorant,"Dota 2","0 elan","Oyun","dota"],
+  ['<img src="/img/games/dota.webp" alt="Dota 2" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">',"Dota 2","0 elan","Oyun","dota"],
   [SVGS.pubg,"PUBG Mobile","0 elan","Oyun","pubg"],
   [SVGS.valorant,"Valorant","0 elan","Oyun","valorant"],
   [SVGS.lol,"League of Legends","0 elan","Oyun","lol"],
