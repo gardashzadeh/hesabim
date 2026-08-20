@@ -7512,6 +7512,22 @@ window.incrementAdView = async function(adId, currentViews = 0){
 };
 
 
+// [RANDOM VIEWS] Sayt açıq olduğu müddətdə hər 1 saatda təsadüfi 1 elanın baxışı +1 artırılır.
+async function incrementRandomAdView(){
+  try{
+    const candidates = (window.ads || []).filter(a => a && a.adId && a.approved !== false);
+    if(!candidates.length) return;
+
+    const ad = candidates[Math.floor(Math.random() * candidates.length)];
+    await window.incrementAdView(ad.adId, Number(ad.views || 0));
+  }catch(e){
+    console.warn("[Random Views] Təsadüfi baxış artırılmadı:", e?.message || e);
+  }
+}
+
+// Hər saat bir dəfə random elan seçilir.
+setInterval(incrementRandomAdView, 60 * 60 * 1000);
+
 const CLOUDINARY_CLOUD_NAME = atob("ZHRpcHpoM2x4");
 const CLOUDINARY_UPLOAD_PRESET = atob("Z2FtZXNhdGlz");
 
