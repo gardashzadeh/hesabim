@@ -5776,7 +5776,7 @@ function renderPdPlatformBadge(product){
 }
 
 const games=[
-  ['<img src="/img/games/dota.webp?v=2" alt="Dota 2" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">',"Dota 2","0 elan","Oyun","dota"],
+  ['<img src="/img/games/psn.webp" alt="PSN Hədiyyə Kartı" style="width:100%;height:100%;object-fit:cover;border-radius:6px" loading="lazy">',"PSN Hədiyyə Kartı","0 elan","Oyun","psn","https://hesablar.net/elan/271122-psn-store-250-tl-hediyye-karti"],
   [SVGS.pubg,"PUBG Mobile","0 elan","Oyun","pubg"],
   [SVGS.valorant,"Valorant","0 elan","Oyun","valorant"],
   [SVGS.lol,"League of Legends","0 elan","Oyun","lol"],
@@ -6091,12 +6091,18 @@ function render(){
   // İndi dəyərlər yalnız data-idx ilə ötürülür, obyekt JS tərəfdə qurulur.
   if(gamesEl) {
     gamesEl.innerHTML=games.map((x,i)=>`
-      <button class="game searchable" data-game="${safeText(x[4]||'')}" data-category="Oyun" data-idx="${i}">
+      <button class="game searchable" data-game="${safeText(x[4]||'')}" data-category="Oyun" data-idx="${i}"${x[5]?` data-link="${safeText(x[5])}"`:''}>
         <div class="game-img" data-game="${safeText(x[4]||'')}">${x[0]}</div><b>${safeText(x[1])}</b>
       </button>`).join("");
-    // Populyar oyun ikonları yalnız vitrindir — kliklə heç yerə yönləndirmir.
+    // Populyar oyun ikonları vitrindir; yalnız data-link təyin olunanlar kliklə həmin elana yönləndirir.
     gamesEl.querySelectorAll("button[data-idx]").forEach(btn=>{
-      btn.style.cursor="default";
+      const link = btn.getAttribute("data-link");
+      if(link){
+        btn.style.cursor="pointer";
+        btn.addEventListener("click",()=>{ window.location.href = link; });
+      } else {
+        btn.style.cursor="default";
+      }
     });
   }
 
