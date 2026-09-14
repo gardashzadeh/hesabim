@@ -4204,17 +4204,29 @@ select[id*="categor" i] option{
   }
 
   // Google <select class="goog-te-combo"> elementini asinxron yaradır —
-  // hazır olana qədər qısa aralıqlarla yoxlayırıq (maks. 8 saniyə).
+  // hazır olana qədər qısa aralıqlarla yoxlayırıq (mobil data üçün maks. 30 saniyə).
   function _waitForCombo(triesLeft){
-    triesLeft = (triesLeft == null) ? 40 : triesLeft;
+    triesLeft = (triesLeft == null) ? 150 : triesLeft;
     const sel = document.querySelector('#google_translate_element select.goog-te-combo');
     if(sel){
       window.__gtCombo = sel;
+      _resetFlagButtons();
       _applyPendingLang();
       _updateActiveFlag();
       return;
     }
     if(triesLeft > 0) setTimeout(function(){ _waitForCombo(triesLeft-1); }, 200);
+  }
+
+  // Mühərrik gec (məs. yavaş mobil internetdə) yüklənsə belə, düymələri
+  // normal görünüşünə və işlək vəziyyətinə qaytarır.
+  function _resetFlagButtons(){
+    document.querySelectorAll('.lang-flag').forEach(function(btn){
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      btn.title = btn.dataset.lang === 'az' ? 'Azərbaycan dili'
+                : btn.dataset.lang === 'en' ? 'English' : 'Русский';
+    });
   }
 
   function _currentGtLang(){
@@ -4256,7 +4268,8 @@ select[id*="categor" i] option{
   function _doTranslate(lang){
     _setGtCookie(lang);
     if(!window.__gtCombo){
-      // Mühərrik hələ hazır deyil — cookie qoyulub, hazır olan kimi tətbiq ediləcək
+      // Mühərrik hələ hazır deyil (yavaş internet və s.) — seçim yadda saxlanılır,
+      // mühərrik hazır olan kimi (_waitForCombo davam edir) avtomatik tətbiq olunacaq.
       window.__gtPendingLang = lang;
       return;
     }
@@ -4279,18 +4292,18 @@ select[id*="categor" i] option{
 
   document.addEventListener('DOMContentLoaded', _updateActiveFlag);
 
-  // Mühərrik 8 saniyəyə yüklənməzsə (ad-blocker və s.), bayraqları qeyri-aktiv
-  // göstər — brauzerin öz Translate təklifi (lang="az" atributu sayəsində) işə düşür.
+  // Mühərrik 10 saniyəyə yüklənməsə (ad-blocker, VPN-based bloklayıcı və s.),
+  // düymələri VİZUAL olaraq solğunlaşdırır — AMMA klik funksiyasını söndürmür.
+  // Mühərrik bir az gec (məs. yavaş mobil şəbəkədə) yüklənsə, seçim yenə tətbiq
+  // olunacaq (_waitForCombo 30 saniyəyə qədər cəhd edir və avtomatik bərpa edir).
   setTimeout(function(){
-    if(!window.__gtLoaded || !window.__gtCombo){
+    if(!window.__gtCombo){
       document.querySelectorAll('.lang-flag').forEach(function(btn){
-        btn.style.opacity = '.25';
-        btn.style.cursor = 'default';
-        btn.title = 'Tərcümə xidməti mövcud deyil — brauzerinizin Translate funksiyasından istifadə edin';
-        btn.onclick = null;
+        btn.style.opacity = '.4';
+        btn.title = 'Tərcümə yüklənir və ya bloklanıb (VPN/AdBlock yoxlayın) — yenə də klikləyə bilərsiniz';
       });
     }
-  }, 8000);
+  }, 10000);
 </script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 <!-- ============= /Dil seçici ============= -->
