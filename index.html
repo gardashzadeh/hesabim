@@ -4647,11 +4647,48 @@ select[id*="categor" i] option{
         ctx.translate(cx,cy);
         ctx.rotate(start + segAngle/2);
         ctx.textAlign = "right";
+
+        // İkon üçün premium "medalyon" fon — kiçik parıltılı dairə
+        const iconX = r - 46, iconY = -14, iconR = 30;
+        const iconBg = ctx.createRadialGradient(iconX,iconY,2,iconX,iconY,iconR);
+        iconBg.addColorStop(0, "rgba(255,255,255,.95)");
+        iconBg.addColorStop(1, "rgba(255,255,255,.55)");
+        ctx.beginPath();
+        ctx.arc(iconX, iconY, iconR, 0, Math.PI*2);
+        ctx.fillStyle = iconBg;
+        ctx.shadowColor = "rgba(0,0,0,.45)";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = "rgba(255,255,255,.9)";
+        ctx.stroke();
+
+        ctx.textAlign = "center";
+        ctx.font = "40px 'DM Sans', Arial, sans-serif";
+        ctx.fillText(PRIZES[i].icon || "🎁", iconX, iconY + 14);
+
+        ctx.textAlign = "right";
         ctx.fillStyle = "#fff";
-        ctx.font = "26px 'DM Sans', Arial, sans-serif";
-        ctx.fillText(PRIZES[i].icon || "🎁", r - 16, -8);
-        ctx.font = "bold 15px 'DM Sans', Arial, sans-serif";
-        ctx.fillText(PRIZES[i].name, r - 16, 14);
+        ctx.shadowColor = "rgba(0,0,0,.6)";
+        ctx.shadowBlur = 4;
+        ctx.font = "800 21px 'DM Sans', Arial, sans-serif";
+        const nm = PRIZES[i].name;
+        if(nm.length > 11){
+          // uzun adları iki sətrə böl (orta boşluğa ən yaxın)
+          const words = nm.split(" ");
+          let l1 = "", l2 = "";
+          if(words.length > 1){
+            const mid = Math.ceil(words.length/2);
+            l1 = words.slice(0,mid).join(" ");
+            l2 = words.slice(mid).join(" ");
+          }else{ l1 = nm; }
+          ctx.fillText(l1, r - 16, 24);
+          if(l2) ctx.fillText(l2, r - 16, 47);
+        }else{
+          ctx.fillText(nm, r - 16, 34);
+        }
+        ctx.shadowBlur = 0;
         ctx.restore();
       }
     }
@@ -4693,7 +4730,11 @@ select[id*="categor" i] option{
           if(statusText) statusText.textContent = "";
           stopCountdown();
         }
-      }catch(e){}
+      }catch(e){
+        console.error("[wheel] refreshBtnState:", e);
+        spinBtn.disabled = false;
+        spinBtn.textContent = "Fırlat →";
+      }
     }
 
     if(spinBtn){
@@ -4745,7 +4786,9 @@ select[id*="categor" i] option{
           }, 4600);
 
         }catch(e){
+          console.error("[wheel] spin:", e);
           if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
+          spinBtn.textContent = "Fırlat →";
           spinBtn.disabled = false;
         }
       });
