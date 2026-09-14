@@ -4627,9 +4627,12 @@ select[id*="categor" i] option{
     function drawWheel(highlightIdx){
       const cx = canvas.width/2, cy = canvas.height/2, r = canvas.width/2 - 6;
       ctx.clearRect(0,0,canvas.width,canvas.height);
+      const dimming = (highlightIdx !== undefined && highlightIdx !== null);
       for(let i=0;i<N;i++){
         const start = i*segAngle - Math.PI/2;
         const end = start + segAngle;
+        const isWinner = highlightIdx === i;
+        ctx.globalAlpha = (dimming && !isWinner) ? 0.28 : 1;
         ctx.beginPath();
         ctx.moveTo(cx,cy);
         ctx.arc(cx,cy,r,start,end);
@@ -4646,22 +4649,24 @@ select[id*="categor" i] option{
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        if(highlightIdx === i){
+        if(isWinner){
           ctx.save();
           ctx.strokeStyle = "#ffe066";
-          ctx.lineWidth = 7;
+          ctx.lineWidth = 8;
           ctx.shadowColor = "#ffe066";
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = 22;
           ctx.stroke();
+          ctx.stroke(); // ikinci keçid — haşiyəni daha da qalınlaşdırır
           ctx.restore();
         }
 
+        ctx.globalAlpha = 1;
         ctx.save();
         ctx.translate(cx,cy);
         ctx.rotate(start + segAngle/2);
         ctx.textAlign = "right";
 
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = (dimming && !isWinner) ? "rgba(255,255,255,.55)" : "#fff";
         ctx.shadowColor = "rgba(0,0,0,.6)";
         ctx.shadowBlur = 4;
         ctx.font = "800 42px 'DM Sans', Arial, sans-serif";
@@ -4680,6 +4685,7 @@ select[id*="categor" i] option{
         ctx.shadowBlur = 0;
         ctx.restore();
       }
+      ctx.globalAlpha = 1;
     }
     drawWheel();
 
