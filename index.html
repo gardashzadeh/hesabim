@@ -4432,13 +4432,26 @@ select[id*="categor" i] option{
     @media(max-width:768px){
       .hero-arrow{width:34px;height:34px;font-size:20px}
     }
-    .wheel-slide-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;background:linear-gradient(90deg,rgba(6,7,8,.75),rgba(6,7,8,.35));padding:20px}
-    .wheel-slide-overlay h2{color:#fff;font-size:28px;margin:0;font-family:'DM Sans',Arial,sans-serif}
-    .wheel-slide-overlay p{color:#e2e8f0;margin:0;font-size:15px}
-    .wheel-spin-btn{margin-top:6px;padding:12px 32px;font-size:16px;font-weight:700;color:#fff;background:#ff5100;border:none;border-radius:30px;cursor:pointer;transition:.2s}
+    .wheel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:36px;background:radial-gradient(circle at 30% 50%,#141a22,#0b0d10);padding:20px 40px}
+    .wheel-slide-left{max-width:320px;text-align:left}
+    .wheel-slide-left h2{color:#fff;font-size:26px;margin:0 0 8px;font-family:'DM Sans',Arial,sans-serif}
+    .wheel-slide-left p{color:#94a3b8;margin:0 0 16px;font-size:14px}
+    .wheel-spin-btn{padding:12px 32px;font-size:16px;font-weight:700;color:#fff;background:#ff5100;border:none;border-radius:30px;cursor:pointer;transition:.2s}
     .wheel-spin-btn:hover{background:#ff6a26}
-    .wheel-spin-btn:disabled{background:#4b4b4b;cursor:not-allowed}
-    .wheel-result-text{margin-top:6px;font-size:17px;font-weight:700;color:#ff5100;min-height:22px}
+    .wheel-spin-btn:disabled{background:#3a3d42;cursor:not-allowed}
+    .wheel-result-text{margin-top:12px;font-size:16px;font-weight:700;color:#ff5100;min-height:20px}
+    .wheel-status-text{margin-top:2px;font-size:12px;color:#64748b;min-height:16px}
+    .wheel-slide-right{flex-shrink:0}
+    .wheel-wrap{position:relative;width:260px;height:260px}
+    .wheel-pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:20px solid #ff5100;z-index:5;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+    #wheelCanvas{width:100%;height:100%;border-radius:50%;box-shadow:0 0 0 5px #14171c,0 0 24px rgba(255,81,0,.25);transition:transform 4.5s cubic-bezier(.15,.68,.16,1)}
+    @media(max-width:768px){
+      .wheel-slide{flex-direction:column;justify-content:center;gap:14px;padding:16px}
+      .wheel-slide-left{max-width:none;text-align:center}
+      .wheel-slide-left h2{font-size:20px}
+      .wheel-wrap{width:170px;height:170px}
+    }
+  </style>
     @media(max-width:768px){
       .wheel-slide-overlay h2{font-size:20px}
       .wheel-slide-overlay p{font-size:13px}
@@ -4448,12 +4461,20 @@ select[id*="categor" i] option{
   <div class="hero-slider" id="heroSlider">
    <div class="hero-track" id="heroTrack">
     <div class="hero-slide">
-      <img src="https://picsum.photos/seed/hesablarwheel/1200/500" alt="Gündəlik Çarx" class="hero-slide-img">
-      <div class="wheel-slide-overlay">
-        <h2>Gündəlik Çarxı Fırlat 🎡</h2>
-        <p>Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
-        <button id="wheelSpinBtn" class="wheel-spin-btn" onclick="window.spinDailyWheel()">Fırlat</button>
-        <p id="wheelResultText" class="wheel-result-text"></p>
+      <div class="wheel-slide">
+        <div class="wheel-slide-left">
+          <h2>Gündəlik Çarxı Fırlat 🎡</h2>
+          <p>Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
+          <button id="spinBtn" class="wheel-spin-btn">Fırlat</button>
+          <p id="resultText" class="wheel-result-text"></p>
+          <p id="statusText" class="wheel-status-text"></p>
+        </div>
+        <div class="wheel-slide-right">
+          <div class="wheel-wrap">
+            <div class="wheel-pointer"></div>
+            <canvas id="wheelCanvas" width="600" height="600"></canvas>
+          </div>
+        </div>
       </div>
     </div><!-- /slayd - carx -->
     <div class="hero-slide">
@@ -4507,91 +4528,154 @@ select[id*="categor" i] option{
   (async function(){
     const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
     const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-    const { getFirestore, doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } =
+    const { getFirestore, doc, getDoc, setDoc, serverTimestamp } =
       await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
 
     const apps = getApps();
-    if(!apps.length) return; // əsas firebase init hələ olmayıb
+    if(!apps.length) return;
     const app = apps[0];
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     // ==== HƏDİYYƏ SİYAHISI — faizlərin cəmi 100 olmalıdır ====
-    const WHEEL_PRIZES = [
-      { name: "Boş",            chance: 40 },
-      { name: "5 AZN endirim",  chance: 20 },
-      { name: "10 AZN endirim", chance: 15 },
-      { name: "Pulsuz hesap",   chance: 5  },
-      { name: "50 bonus bal",   chance: 15 },
-      { name: "100 bonus bal",  chance: 5  },
+    // (faizlər yalnız burada, çarxın üzərində görünmür)
+    const PRIZES = [
+      { name: "10$ Wallet Kodu",    chance: 0.01 },
+      { name: "Gemini Pro 18 Ay",   chance: 1    },
+      { name: "Netflix Hesab",      chance: 2    },
+      { name: "Steam Oyunu",        chance: 3    },
+      { name: "Canva Pro",          chance: 4    },
+      { name: "Hədiyyəsiz",         chance: 89.99},
     ];
+    const COLORS = ["#ff5100","#1c2330","#ff5100","#1c2330","#ff5100","#1c2330"];
 
-    const btn = document.getElementById("wheelSpinBtn");
-    const resultEl = document.getElementById("wheelResultText");
+    const canvas = document.getElementById("wheelCanvas");
+    if(!canvas) return; // slayd DOM-da yoxdursa sakitcə çıx
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    const resultText = document.getElementById("resultText");
+    const statusText = document.getElementById("statusText");
+
+    const N = PRIZES.length;
+    const segAngle = (2*Math.PI)/N;
+    let currentRotation = 0;
+
+    function drawWheel(){
+      const cx = canvas.width/2, cy = canvas.height/2, r = canvas.width/2 - 6;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let i=0;i<N;i++){
+        const start = i*segAngle - Math.PI/2;
+        const end = start + segAngle;
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,start,end);
+        ctx.closePath();
+        ctx.fillStyle = COLORS[i % COLORS.length];
+        ctx.fill();
+        ctx.strokeStyle = "#0b0d10";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx,cy);
+        ctx.rotate(start + segAngle/2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 20px 'DM Sans', Arial, sans-serif";
+        ctx.fillText(PRIZES[i].name, r - 20, 6);
+        ctx.restore();
+      }
+    }
+    drawWheel();
 
     function todayStr(){ return new Date().toISOString().split("T")[0]; }
 
-    function pickPrize(){
-      const total = WHEEL_PRIZES.reduce((s,p)=>s+p.chance,0);
-      let r = Math.random()*total;
-      for(const p of WHEEL_PRIZES){ if(r<p.chance) return p; r-=p.chance; }
-      return WHEEL_PRIZES[0];
+    function pickPrizeIndex(){
+      const total = PRIZES.reduce((s,p)=>s+p.chance,0);
+      let rnd = Math.random()*total;
+      for(let i=0;i<N;i++){
+        if(rnd < PRIZES[i].chance) return i;
+        rnd -= PRIZES[i].chance;
+      }
+      return N-1;
     }
 
     async function refreshBtnState(){
       const user = auth.currentUser;
-      if(!btn) return;
+      if(!spinBtn) return;
       if(!user){
-        btn.disabled = false;
-        btn.textContent = "Fırlat";
+        spinBtn.disabled = false;
+        spinBtn.textContent = "Daxil ol və fırlat";
+        if(statusText) statusText.textContent = "";
         return;
       }
       try{
-        const snap = await getDoc(doc(db,"users",user.uid));
-        const lastSpin = snap.exists() ? snap.data().lastSpinDate : null;
-        if(lastSpin === todayStr()){
-          btn.disabled = true;
-          btn.textContent = "Sabah yenə gəl";
-        } else {
-          btn.disabled = false;
-          btn.textContent = "Fırlat";
+        const spinRef = doc(db,"spins", user.uid + "_" + todayStr());
+        const snap = await getDoc(spinRef);
+        if(snap.exists()){
+          spinBtn.disabled = true;
+          spinBtn.textContent = "Sabah yenə gəl";
+          if(statusText) statusText.textContent = "Bugünkü fırlatma haqqını istifadə etmisən.";
+        }else{
+          spinBtn.disabled = false;
+          spinBtn.textContent = "Fırlat";
+          if(statusText) statusText.textContent = "";
         }
       }catch(e){}
     }
 
-    window.spinDailyWheel = async function(){
-      const user = auth.currentUser;
-      if(!user){
-        if(resultEl) resultEl.textContent = "Zəhmət olmasa əvvəlcə daxil olun.";
-        return;
-      }
-      if(!btn || btn.disabled) return;
-      btn.disabled = true;
-      try{
-        const userRef = doc(db,"users",user.uid);
-        const snap = await getDoc(userRef);
-        const today = todayStr();
-        if(snap.exists() && snap.data().lastSpinDate === today){
-          btn.textContent = "Sabah yenə gəl";
-          if(resultEl) resultEl.textContent = "Bugün artıq fırlatmısınız.";
+    if(spinBtn){
+      spinBtn.addEventListener("click", async ()=>{
+        const user = auth.currentUser;
+        if(!user){
+          if(window.openModal) window.openModal("loginModal");
+          else if(statusText) statusText.textContent = "Zəhmət olmasa əvvəlcə daxil ol.";
           return;
         }
-        const prize = pickPrize();
-        await updateDoc(userRef, { lastSpinDate: today });
-        await addDoc(collection(db,"spins"), {
-          userId: user.uid, prizeName: prize.name, date: today, timestamp: serverTimestamp()
-        });
-        if(resultEl){
-          resultEl.textContent = prize.name === "Boş"
-            ? "Bu dəfə uğursuz oldu 😔"
-            : "Təbriklər! Qazandın: " + prize.name + " 🎉";
+        if(spinBtn.disabled) return;
+        spinBtn.disabled = true;
+        if(resultText) resultText.textContent = "";
+        if(statusText) statusText.textContent = "";
+
+        const today = todayStr();
+        const spinRef = doc(db,"spins", user.uid + "_" + today);
+
+        try{
+          const snap = await getDoc(spinRef);
+          if(snap.exists()){
+            spinBtn.textContent = "Sabah yenə gəl";
+            if(statusText) statusText.textContent = "Bugün artıq fırlatmısan.";
+            return;
+          }
+
+          const idx = pickPrizeIndex();
+          const prize = PRIZES[idx];
+
+          const targetSegmentCenter = idx*segAngle + segAngle/2;
+          const extraSpins = 5 + Math.floor(Math.random()*3);
+          const targetDeg = extraSpins*360 + (360 - (targetSegmentCenter*180/Math.PI));
+          currentRotation += targetDeg;
+          canvas.style.transform = "rotate(" + currentRotation + "deg)";
+
+          await setDoc(spinRef, {
+            userId: user.uid, prizeName: prize.name, date: today, timestamp: serverTimestamp()
+          });
+
+          setTimeout(()=>{
+            if(resultText){
+              resultText.textContent = prize.name === "Hədiyyəsiz"
+                ? "Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
+                : "Təbriklər! Qazandın: " + prize.name + " 🎉";
+            }
+            spinBtn.textContent = "Sabah yenə gəl";
+          }, 4600);
+
+        }catch(e){
+          if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
+          spinBtn.disabled = false;
         }
-        btn.textContent = "Sabah yenə gəl";
-      }catch(e){
-        if(resultEl) resultEl.textContent = "Xəta baş verdi, yenidən cəhd et.";
-        btn.disabled = false;
-      }
-    };
+      });
+    }
 
     onAuthStateChanged(auth, ()=>{ refreshBtnState(); });
     refreshBtnState();
