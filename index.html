@@ -4117,6 +4117,21 @@ select[id*="categor" i] option{
     min-height:40px!important;
   }
 
+  /* Dil seçici (bayraqlar) — bildirişin yanında, kompakt */
+  .actions .lang-switch{
+    order:5!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    height:40px!important;
+    gap:3px!important;
+  }
+  .actions .lang-switch .lang-flag{
+    width:26px!important;
+    height:34px!important;
+    font-size:14px!important;
+    border-radius:6px!important;
+  }
+
   /* Telefon ekranı dar olanda hamısı yenə bir sətirdə qalsın */
   @media(max-width:390px){
     .mobile-howto-btn{
@@ -4138,32 +4153,39 @@ select[id*="categor" i] option{
       min-width:36px!important;
       min-height:36px!important;
     }
+    .actions .lang-switch{ gap:2px!important; }
+    .actions .lang-switch .lang-flag{
+      width:22px!important;
+      height:30px!important;
+      font-size:12px!important;
+    }
   }
 }
 </style>
 
 
-<!-- ============= Google Translate Widget (AZ + EN + RU) =============
-     Saytın öz mətnlərinə/DB status sözlərinə TOXUNMUR — vizual qatda
-     tərcümə edir (brauzerin "Translate" funksiyası kimi, sadəcə saytın
-     öz interfeysində). Rules/kod məntiqinə heç bir təsiri yoxdur. -->
+<!-- ============= Dil seçici: bayraqlı düymələr + Google Translate mühərriki =============
+     Saytın öz mətnlərinə/DB status sözlərinə TOXUNMUR — vizual qatda tərcümə
+     edir (brauzerin "Translate" funksiyası kimi). Rules/kod məntiqinə təsiri yoxdur.
+     Bayraq düymələri header-də (bildiriş zəngi 🔔-nin yanında) görünür,
+     Google-un öz mühərriki (#google_translate_element) isə gizlidir — yalnız
+     arxa planda işləyir. -->
 <style>
-  #google_translate_element{ display:inline-flex; align-items:center; }
-  /* Google-un default "Powered by" banner-i və iframe overlay-ini gizlət */
   .goog-te-banner-frame, .skiptranslate > iframe{ display:none !important; }
   body{ top:0 !important; }
-  #google_translate_element .goog-te-gadget{ font-family:inherit; font-size:0; color:transparent; }
-  #google_translate_element .goog-te-gadget > span{ display:none; }
-  #google_translate_element .goog-te-combo{
-    font-size:13px; font-weight:600; padding:6px 10px; border-radius:8px;
-    border:1px solid #1c2330; background:#0f141b; color:#e2e8f0; cursor:pointer;
-    height:36px; max-width:96px;
+
+  .lang-switch{ display:inline-flex; align-items:center; gap:4px; margin-right:2px; }
+  .lang-flag{
+    width:30px; height:30px; padding:0; display:inline-flex; align-items:center; justify-content:center;
+    font-size:16px; line-height:1; border-radius:6px; border:1px solid #1c2330;
+    background:#0f141b; cursor:pointer; opacity:.55; filter:grayscale(35%);
+    transition:opacity .15s, border-color .15s, filter .15s;
   }
-  #google_translate_element .goog-te-combo:hover{ border-color:#ff5100; }
+  .lang-flag:hover{ opacity:.9; border-color:#ff5100; }
+  .lang-flag.active{ opacity:1; filter:none; border-color:#ff5100; background:rgba(255,81,0,.12); }
 </style>
 <script>
-  // Widget 3 saniyəyə yüklənməzsə (ad-blocker və s.), sadəcə gizli qalır —
-  // brauzerin öz Translate təklifi (lang="az" atributu sayəsində) işə düşür.
+  // ── Google Translate mühərriki (gizli, yalnız arxa planda) ──
   window.__gtLoaded = false;
   function googleTranslateElementInit(){
     window.__gtLoaded = true;
@@ -4172,16 +4194,53 @@ select[id*="categor" i] option{
         layout: google.translate.TranslateElement.InlineLayout.SIMPLE },
       'google_translate_element'
     );
+    // Mühərrik hazır olan kimi cari dilə uyğun bayrağı işıqlandır
+    _updateActiveFlag();
   }
+
+  function _currentGtLang(){
+    // googtrans cookie formatı: "/az/en" və ya "/auto/ru"
+    const m = document.cookie.match(/googtrans=\/[^/]+\/([a-z-]+)/);
+    return m ? m[1] : 'az';
+  }
+
+  function _updateActiveFlag(){
+    const cur = _currentGtLang();
+    document.querySelectorAll('.lang-flag').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.lang === cur);
+    });
+  }
+
+  // Bayrağa klik: googtrans cookie-ni təyin edib səhifəni yeniləyir —
+  // Google Translate widget-in özünün istifadə etdiyi standart mexanizmdir.
+  window.setSiteLang = function(lang){
+    if(lang === 'az'){
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
+    } else {
+      document.cookie = 'googtrans=/az/' + lang + '; path=/';
+      document.cookie = 'googtrans=/az/' + lang + '; path=/; domain=' + location.hostname;
+    }
+    location.reload();
+  };
+
+  document.addEventListener('DOMContentLoaded', _updateActiveFlag);
+
+  // Mühərrik 3 saniyəyə yüklənməzsə (ad-blocker və s.), bayraqları qeyri-aktiv
+  // göstər — brauzerin öz Translate təklifi (lang="az" atributu sayəsində) işə düşür.
   setTimeout(function(){
     if(!window.__gtLoaded){
-      var el = document.getElementById('google_translate_element');
-      if(el) el.style.display = 'none';
+      document.querySelectorAll('.lang-flag').forEach(function(btn){
+        btn.style.opacity = '.25';
+        btn.style.cursor = 'default';
+        btn.title = 'Tərcümə xidməti mövcud deyil — brauzerinizin Translate funksiyasından istifadə edin';
+        btn.onclick = null;
+      });
     }
   }, 3000);
 </script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
-<!-- ============= /Google Translate Widget ============= -->
+<!-- ============= /Dil seçici ============= -->
 
 </head>
 <body>
@@ -4200,6 +4259,11 @@ select[id*="categor" i] option{
       </button>
     </div>
     <div class="actions">
+      <div class="lang-switch" id="langSwitch" title="Dili dəyiş / Change language / Изменить язык">
+        <button type="button" class="lang-flag" data-lang="az" onclick="setSiteLang('az')" title="Azərbaycan dili" aria-label="Azərbaycan dili">🇦🇿</button>
+        <button type="button" class="lang-flag" data-lang="en" onclick="setSiteLang('en')" title="English" aria-label="English">🇬🇧</button>
+        <button type="button" class="lang-flag" data-lang="ru" onclick="setSiteLang('ru')" title="Русский" aria-label="Русский">🇷🇺</button>
+      </div>
       <button id="notifyBtn" class="notify-btn" type="button" title="Bildirişlər" onclick="openNotifications()">🔔<b id="notifyBadge" style="display:none">0</b></button>
       <div id="notifDropdown" class="notif-dropdown"></div>
       <button id="mobileHowtoBtn" class="mobile-howto-btn" type="button" title="Sayt necə işləyir?" onclick="openLegal('qaydalar')">
@@ -4210,7 +4274,7 @@ select[id*="categor" i] option{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor"/></svg>
         <span id="headerBalanceAmount">0.00 ₼</span>
       </button>
-      <div id="google_translate_element" class="lang-switch" title="Dili dəyiş / Change language / Изменить язык"></div>
+      <div id="google_translate_element" style="display:none"></div>
       <button id="themeToggleBtn" class="theme-toggle" type="button" title="Light / Dark mode" onclick="toggleTheme()">🌙</button>
       <button id="loginBtn" class="hbtn" type="button">Giriş et</button>
       <button id="registerBtn" class="hbtn orange" type="button">Qeydiyyat</button>
