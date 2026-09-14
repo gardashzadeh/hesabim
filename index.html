@@ -4142,6 +4142,47 @@ select[id*="categor" i] option{
 }
 </style>
 
+
+<!-- ============= Google Translate Widget (AZ + EN + RU) =============
+     Saytın öz mətnlərinə/DB status sözlərinə TOXUNMUR — vizual qatda
+     tərcümə edir (brauzerin "Translate" funksiyası kimi, sadəcə saytın
+     öz interfeysində). Rules/kod məntiqinə heç bir təsiri yoxdur. -->
+<style>
+  #google_translate_element{ display:inline-flex; align-items:center; }
+  /* Google-un default "Powered by" banner-i və iframe overlay-ini gizlət */
+  .goog-te-banner-frame, .skiptranslate > iframe{ display:none !important; }
+  body{ top:0 !important; }
+  #google_translate_element .goog-te-gadget{ font-family:inherit; font-size:0; color:transparent; }
+  #google_translate_element .goog-te-gadget > span{ display:none; }
+  #google_translate_element .goog-te-combo{
+    font-size:13px; font-weight:600; padding:6px 10px; border-radius:8px;
+    border:1px solid #1c2330; background:#0f141b; color:#e2e8f0; cursor:pointer;
+    height:36px; max-width:96px;
+  }
+  #google_translate_element .goog-te-combo:hover{ border-color:#ff5100; }
+</style>
+<script>
+  // Widget 3 saniyəyə yüklənməzsə (ad-blocker və s.), sadəcə gizli qalır —
+  // brauzerin öz Translate təklifi (lang="az" atributu sayəsində) işə düşür.
+  window.__gtLoaded = false;
+  function googleTranslateElementInit(){
+    window.__gtLoaded = true;
+    new google.translate.TranslateElement(
+      { pageLanguage:'az', includedLanguages:'en,ru', autoDisplay:false,
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE },
+      'google_translate_element'
+    );
+  }
+  setTimeout(function(){
+    if(!window.__gtLoaded){
+      var el = document.getElementById('google_translate_element');
+      if(el) el.style.display = 'none';
+    }
+  }, 3000);
+</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+<!-- ============= /Google Translate Widget ============= -->
+
 </head>
 <body>
 
@@ -4169,6 +4210,7 @@ select[id*="categor" i] option{
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor"/></svg>
         <span id="headerBalanceAmount">0.00 ₼</span>
       </button>
+      <div id="google_translate_element" class="lang-switch" title="Dili dəyiş / Change language / Изменить язык"></div>
       <button id="themeToggleBtn" class="theme-toggle" type="button" title="Light / Dark mode" onclick="toggleTheme()">🌙</button>
       <button id="loginBtn" class="hbtn" type="button">Giriş et</button>
       <button id="registerBtn" class="hbtn orange" type="button">Qeydiyyat</button>
