@@ -4048,10 +4048,11 @@ select[id*="categor" i] option{
   .actions{
     width:100%!important;
     display:flex!important;
-    flex-wrap:nowrap!important;
+    flex-wrap:wrap!important;
     align-items:center!important;
     justify-content:center!important;
     gap:6px!important;
+    row-gap:6px!important;
   }
 
   /* Kabineti üst paneldən gizlət */
@@ -4117,13 +4118,16 @@ select[id*="categor" i] option{
     min-height:40px!important;
   }
 
-  /* Dil seçici (bayraqlar) — bildirişin yanında, kompakt */
+  /* Dil seçici (bayraqlar) — bildirişin yanında, öz sətrində (heç vaxt kəsilməsin) */
   .actions .lang-switch{
     order:5!important;
     flex:0 0 auto!important;
+    flex-basis:100%!important;
     width:auto!important;
     height:40px!important;
     gap:3px!important;
+    justify-content:center!important;
+    margin-top:2px!important;
   }
   .actions .lang-switch .lang-flag{
     width:26px!important;
@@ -4187,6 +4191,8 @@ select[id*="categor" i] option{
 <script>
   // ── Google Translate mühərriki (gizli, yalnız arxa planda) ──
   window.__gtLoaded = false;
+  window.__gtCombo  = null;   // Google-un yaratdığı gizli <select> elementi
+
   function googleTranslateElementInit(){
     window.__gtLoaded = true;
     new google.translate.TranslateElement(
@@ -4194,8 +4200,21 @@ select[id*="categor" i] option{
         layout: google.translate.TranslateElement.InlineLayout.SIMPLE },
       'google_translate_element'
     );
-    // Mühərrik hazır olan kimi cari dilə uyğun bayrağı işıqlandır
-    _updateActiveFlag();
+    _waitForCombo();
+  }
+
+  // Google <select class="goog-te-combo"> elementini asinxron yaradır —
+  // hazır olana qədər qısa aralıqlarla yoxlayırıq (maks. 8 saniyə).
+  function _waitForCombo(triesLeft){
+    triesLeft = (triesLeft == null) ? 40 : triesLeft;
+    const sel = document.querySelector('#google_translate_element select.goog-te-combo');
+    if(sel){
+      window.__gtCombo = sel;
+      _applyPendingLang();
+      _updateActiveFlag();
+      return;
+    }
+    if(triesLeft > 0) setTimeout(function(){ _waitForCombo(triesLeft-1); }, 200);
   }
 
   function _currentGtLang(){
@@ -4211,9 +4230,7 @@ select[id*="categor" i] option{
     });
   }
 
-  // Bayrağa klik: googtrans cookie-ni təyin edib səhifəni yeniləyir —
-  // Google Translate widget-in özünün istifadə etdiyi standart mexanizmdir.
-  window.setSiteLang = function(lang){
+  function _setGtCookie(lang){
     if(lang === 'az'){
       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
@@ -4221,15 +4238,51 @@ select[id*="categor" i] option{
       document.cookie = 'googtrans=/az/' + lang + '; path=/';
       document.cookie = 'googtrans=/az/' + lang + '; path=/; domain=' + location.hostname;
     }
-    location.reload();
+  }
+
+  window.__gtPendingLang = null;
+  function _applyPendingLang(){
+    if(window.__gtPendingLang){
+      const lang = window.__gtPendingLang;
+      window.__gtPendingLang = null;
+      _doTranslate(lang);
+    }
+  }
+
+  // Combo-nu birbaşa dəyişib 'change' hadisəsini süni işə salır — Google-un
+  // öz mühərriki bunu tutub səhifəni RELOAD OLMADAN tərcümə edir.
+  // Bu, cookie+reload üsulundan qat-qat etibarlıdır (bəzi Chrome
+  // versiyalarında/Incognito-da cookie üsulu tərcüməni işə salmır).
+  function _doTranslate(lang){
+    _setGtCookie(lang);
+    if(!window.__gtCombo){
+      // Mühərrik hələ hazır deyil — cookie qoyulub, hazır olan kimi tətbiq ediləcək
+      window.__gtPendingLang = lang;
+      return;
+    }
+    if(lang === 'az'){
+      // Orijinala qaytarmaq üçün ən etibarlı yol: cookie silinib səhifə yenilənir
+      location.reload();
+      return;
+    }
+    window.__gtCombo.value = lang;
+    window.__gtCombo.dispatchEvent(new Event('change'));
+    _updateActiveFlag();
+  }
+
+  window.setSiteLang = function(lang){
+    document.querySelectorAll('.lang-flag').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    _doTranslate(lang);
   };
 
   document.addEventListener('DOMContentLoaded', _updateActiveFlag);
 
-  // Mühərrik 3 saniyəyə yüklənməzsə (ad-blocker və s.), bayraqları qeyri-aktiv
+  // Mühərrik 8 saniyəyə yüklənməzsə (ad-blocker və s.), bayraqları qeyri-aktiv
   // göstər — brauzerin öz Translate təklifi (lang="az" atributu sayəsində) işə düşür.
   setTimeout(function(){
-    if(!window.__gtLoaded){
+    if(!window.__gtLoaded || !window.__gtCombo){
       document.querySelectorAll('.lang-flag').forEach(function(btn){
         btn.style.opacity = '.25';
         btn.style.cursor = 'default';
@@ -4237,7 +4290,7 @@ select[id*="categor" i] option{
         btn.onclick = null;
       });
     }
-  }, 3000);
+  }, 8000);
 </script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 <!-- ============= /Dil seçici ============= -->
