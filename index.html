@@ -4624,7 +4624,7 @@ select[id*="categor" i] option{
     const segAngle = (2*Math.PI)/N;
     let currentRotation = 0;
 
-    function drawWheel(){
+    function drawWheel(highlightIdx){
       const cx = canvas.width/2, cy = canvas.height/2, r = canvas.width/2 - 6;
       ctx.clearRect(0,0,canvas.width,canvas.height);
       for(let i=0;i<N;i++){
@@ -4645,6 +4645,16 @@ select[id*="categor" i] option{
         ctx.strokeStyle = "#0b0d10";
         ctx.lineWidth = 3;
         ctx.stroke();
+
+        if(highlightIdx === i){
+          ctx.save();
+          ctx.strokeStyle = "#ffe066";
+          ctx.lineWidth = 7;
+          ctx.shadowColor = "#ffe066";
+          ctx.shadowBlur = 18;
+          ctx.stroke();
+          ctx.restore();
+        }
 
         ctx.save();
         ctx.translate(cx,cy);
@@ -4734,7 +4744,8 @@ select[id*="categor" i] option{
       setTimeout(onDone, 4600);
     }
 
-    function showPrizeResult(prize){
+    function showPrizeResult(prize, idx){
+      drawWheel(idx);
       if(resultText){
         resultText.textContent = prize.name === "Hədiyyəsiz"
           ? "🎁 Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
@@ -4778,13 +4789,14 @@ select[id*="categor" i] option{
           const idx = pickPrizeIndex();
           const prize = PRIZES[idx];
 
+          drawWheel();
           spinToIndex(idx, ()=>{});
 
           await setDoc(spinRef, {
             userId: user.uid, prizeName: prize.name, lastSpinAt: serverTimestamp()
           });
 
-          setTimeout(()=>{ showPrizeResult(prize); }, 4600);
+          setTimeout(()=>{ showPrizeResult(prize, idx); }, 4600);
 
         }catch(e){
           console.error("[wheel] spin:", e);
@@ -4837,8 +4849,9 @@ select[id*="categor" i] option{
             });
           });
 
+          drawWheel();
           spinToIndex(idx, ()=>{});
-          setTimeout(()=>{ showPrizeResult(prize); }, 4600);
+          setTimeout(()=>{ showPrizeResult(prize, idx); }, 4600);
 
         }catch(e){
           console.error("[wheel] paid spin:", e);
