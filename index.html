@@ -4432,7 +4432,7 @@ select[id*="categor" i] option{
     @media(max-width:768px){
       .hero-arrow{width:34px;height:34px;font-size:20px}
     }
-    .wheel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden;
+    .wheel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:56px;overflow:hidden;
       background:
         radial-gradient(circle at 78% 50%, rgba(255,81,0,.22), transparent 55%),
         radial-gradient(circle at 15% 20%, rgba(255,81,0,.08), transparent 40%),
@@ -4444,7 +4444,7 @@ select[id*="categor" i] option{
     .wheel-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,81,0,.15);border:1px solid rgba(255,129,55,.4);
       color:#ff8a3d;font-size:12px;font-weight:700;letter-spacing:.06em;padding:6px 14px;border-radius:20px;margin-bottom:14px}
     .wheel-slide-left{position:relative;z-index:2;max-width:360px;text-align:left}
-    .wheel-slide-left h2{color:#fff;font-size:38px;line-height:1.08;margin:0 0 6px;font-family:'DM Sans',Arial,sans-serif;font-weight:800}
+    .wheel-slide-left h2{color:#fff;font-size:32px;line-height:1.15;margin:0 0 6px;font-family:'DM Sans',Arial,sans-serif;font-weight:800}
     .wheel-slide-left h2 span{display:block;color:#ff5100;text-shadow:0 0 24px rgba(255,81,0,.5)}
     .wheel-slide-left p.wheel-sub{color:#9aa4b2;margin:10px 0 20px;font-size:15px}
     .wheel-spin-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 30px;font-size:16px;font-weight:700;color:#fff;
@@ -4493,8 +4493,7 @@ select[id*="categor" i] option{
         <span class="wheel-gift g1">🎁</span>
         <span class="wheel-gift g2">🎁</span>
         <div class="wheel-slide-left">
-          <span class="wheel-badge">⚡ GÜNDƏLİK</span>
-          <h2>Gündəlik<span>Çarxı Fırlat 🎯</span></h2>
+          <h2>Çarxı Fırlat, Hədiyyə Qazan</h2>
           <p class="wheel-sub">Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
           <button id="spinBtn" class="wheel-spin-btn">Fırlat →</button>
           <p id="resultText" class="wheel-result-text"></p>
@@ -4596,13 +4595,11 @@ select[id*="categor" i] option{
       if(countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; }
       if(countdownText) countdownText.textContent = "";
     }
-    function startCountdown(){
+    function startCountdown(targetDate){
       stopCountdown();
       function tick(){
         const now = new Date();
-        const next = new Date(now);
-        next.setHours(24,0,0,0); // sabahın 00:00-ı (yerli saat)
-        let diff = next - now;
+        let diff = targetDate - now;
         if(diff <= 0){
           stopCountdown();
           refreshBtnState();
@@ -4648,45 +4645,42 @@ select[id*="categor" i] option{
         ctx.rotate(start + segAngle/2);
         ctx.textAlign = "right";
 
-        // İkon üçün premium "medalyon" fon — kiçik parıltılı dairə
-        const iconX = r - 46, iconY = -14, iconR = 30;
-        const iconBg = ctx.createRadialGradient(iconX,iconY,2,iconX,iconY,iconR);
+        // İkon üçün kiçik premium "medalyon" fon
+        const iconX = r - 30, iconY = -46, iconR = 18;
+        const iconBg = ctx.createRadialGradient(iconX,iconY,1,iconX,iconY,iconR);
         iconBg.addColorStop(0, "rgba(255,255,255,.95)");
         iconBg.addColorStop(1, "rgba(255,255,255,.55)");
         ctx.beginPath();
         ctx.arc(iconX, iconY, iconR, 0, Math.PI*2);
         ctx.fillStyle = iconBg;
         ctx.shadowColor = "rgba(0,0,0,.45)";
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 6;
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 1.5;
         ctx.strokeStyle = "rgba(255,255,255,.9)";
         ctx.stroke();
 
         ctx.textAlign = "center";
-        ctx.font = "40px 'DM Sans', Arial, sans-serif";
-        ctx.fillText(PRIZES[i].icon || "🎁", iconX, iconY + 14);
+        ctx.font = "22px 'DM Sans', Arial, sans-serif";
+        ctx.fillText(PRIZES[i].icon || "🎁", iconX, iconY + 8);
 
         ctx.textAlign = "right";
         ctx.fillStyle = "#fff";
         ctx.shadowColor = "rgba(0,0,0,.6)";
         ctx.shadowBlur = 4;
-        ctx.font = "800 21px 'DM Sans', Arial, sans-serif";
+        ctx.font = "800 42px 'DM Sans', Arial, sans-serif";
         const nm = PRIZES[i].name;
-        if(nm.length > 11){
-          // uzun adları iki sətrə böl (orta boşluğa ən yaxın)
-          const words = nm.split(" ");
-          let l1 = "", l2 = "";
-          if(words.length > 1){
-            const mid = Math.ceil(words.length/2);
-            l1 = words.slice(0,mid).join(" ");
-            l2 = words.slice(mid).join(" ");
-          }else{ l1 = nm; }
-          ctx.fillText(l1, r - 16, 24);
-          if(l2) ctx.fillText(l2, r - 16, 47);
+        const words = nm.split(" ");
+        if(words.length > 1){
+          // 2x böyük mətn üçün həmişə iki sətrə böl (orta boşluğa ən yaxın)
+          const mid = Math.ceil(words.length/2);
+          const l1 = words.slice(0,mid).join(" ");
+          const l2 = words.slice(mid).join(" ");
+          ctx.fillText(l1, r - 16, 20);
+          ctx.fillText(l2, r - 16, 66);
         }else{
-          ctx.fillText(nm, r - 16, 34);
+          ctx.fillText(nm, r - 16, 40);
         }
         ctx.shadowBlur = 0;
         ctx.restore();
@@ -4695,6 +4689,7 @@ select[id*="categor" i] option{
     drawWheel();
 
     function todayStr(){ return new Date().toISOString().split("T")[0]; }
+    const COOLDOWN_MS = 24*60*60*1000;
 
     function pickPrizeIndex(){
       const total = PRIZES.reduce((s,p)=>s+p.chance,0);
@@ -4717,19 +4712,23 @@ select[id*="categor" i] option{
         return;
       }
       try{
-        const spinRef = doc(db,"spins", user.uid + "_" + todayStr());
+        const spinRef = doc(db,"spins", user.uid);
         const snap = await getDoc(spinRef);
         if(snap.exists()){
-          spinBtn.disabled = true;
-          spinBtn.textContent = "Sabah yenə gəl";
-          if(statusText) statusText.textContent = "🎁 Bugünkü fırlatma haqqını istifadə etmisən.";
-          startCountdown();
-        }else{
-          spinBtn.disabled = false;
-          spinBtn.textContent = "Fırlat →";
-          if(statusText) statusText.textContent = "";
-          stopCountdown();
+          const lastSpinAt = snap.data().lastSpinAt?.toDate ? snap.data().lastSpinAt.toDate() : null;
+          const nextAt = lastSpinAt ? new Date(lastSpinAt.getTime() + COOLDOWN_MS) : null;
+          if(nextAt && nextAt > new Date()){
+            spinBtn.disabled = true;
+            spinBtn.textContent = "Sabah yenə gəl";
+            if(statusText) statusText.textContent = "🎁 Bugünkü fırlatma haqqını istifadə etmisən.";
+            startCountdown(nextAt);
+            return;
+          }
         }
+        spinBtn.disabled = false;
+        spinBtn.textContent = "Fırlat →";
+        if(statusText) statusText.textContent = "";
+        stopCountdown();
       }catch(e){
         console.error("[wheel] refreshBtnState:", e);
         spinBtn.disabled = false;
@@ -4750,15 +4749,19 @@ select[id*="categor" i] option{
         if(resultText) resultText.textContent = "";
         if(statusText) statusText.textContent = "";
 
-        const today = todayStr();
-        const spinRef = doc(db,"spins", user.uid + "_" + today);
+        const spinRef = doc(db,"spins", user.uid);
 
         try{
           const snap = await getDoc(spinRef);
           if(snap.exists()){
-            spinBtn.textContent = "Sabah yenə gəl";
-            if(statusText) statusText.textContent = "Bugün artıq fırlatmısan.";
-            return;
+            const lastSpinAt = snap.data().lastSpinAt?.toDate ? snap.data().lastSpinAt.toDate() : null;
+            const nextAt = lastSpinAt ? new Date(lastSpinAt.getTime() + COOLDOWN_MS) : null;
+            if(nextAt && nextAt > new Date()){
+              spinBtn.textContent = "Sabah yenə gəl";
+              if(statusText) statusText.textContent = "Növbəti fırlatmaya hələ vaxt var.";
+              startCountdown(nextAt);
+              return;
+            }
           }
 
           const idx = pickPrizeIndex();
@@ -4771,7 +4774,7 @@ select[id*="categor" i] option{
           canvas.style.transform = "rotate(" + currentRotation + "deg)";
 
           await setDoc(spinRef, {
-            userId: user.uid, prizeName: prize.name, date: today, timestamp: serverTimestamp()
+            userId: user.uid, prizeName: prize.name, lastSpinAt: serverTimestamp()
           });
 
           setTimeout(()=>{
@@ -4782,7 +4785,7 @@ select[id*="categor" i] option{
             }
             spinBtn.textContent = "Sabah yenə gəl";
             if(statusText) statusText.textContent = "";
-            startCountdown();
+            startCountdown(new Date(Date.now() + COOLDOWN_MS));
           }, 4600);
 
         }catch(e){
