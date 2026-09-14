@@ -4261,6 +4261,19 @@ select[id*="categor" i] option{
     }
   }
 
+  // Bloklanma halında (məs. reklam-bloklayıcı translate widget skriptini
+  // saxlayıb) istifadəçiyə GÖRÜNƏN, hərəkətə keçirən təlimat göstərir —
+  // mobil-də "title" tooltip-i işləmədiyi üçün bu, yeganə etibarlı yoldur.
+  let _gtBlockedNoticeShown = false;
+  function _showBlockedNotice(){
+    if(_gtBlockedNoticeShown) return;
+    _gtBlockedNoticeShown = true;
+    const msg = 'Tərcümə widget-i brauzerinizdə (AdBlock/VPN əlavəsi) bloklanıb. '
+              + 'Ekranın sağ üst küncündəki ⋮ menyusundan (və ya səhifəyə sağ klik edib) '
+              + '"Translate" / "Tərcümə et" seçin — bu, birbaşa brauzerin öz funksiyasıdır.';
+    if(typeof toast === 'function'){ toast(msg); } else { alert(msg); }
+  }
+
   // Combo-nu birbaşa dəyişib 'change' hadisəsini süni işə salır — Google-un
   // öz mühərriki bunu tutub səhifəni RELOAD OLMADAN tərcümə edir.
   // Bu, cookie+reload üsulundan qat-qat etibarlıdır (bəzi Chrome
@@ -4268,9 +4281,15 @@ select[id*="categor" i] option{
   function _doTranslate(lang){
     _setGtCookie(lang);
     if(!window.__gtCombo){
-      // Mühərrik hələ hazır deyil (yavaş internet və s.) — seçim yadda saxlanılır,
-      // mühərrik hazır olan kimi (_waitForCombo davam edir) avtomatik tətbiq olunacaq.
+      // Mühərrik hələ hazır deyil (yavaş internet və ya bloklanıb) — seçim
+      // yadda saxlanılır, mühərrik hazır olan kimi avtomatik tətbiq olunacaq.
       window.__gtPendingLang = lang;
+      // İstifadəçi REAL olaraq klikləyib — qısa müddət sonra hələ də hazır
+      // deyilsə (çox güman bloklanıb), YALNIZ İNDİ ona bildir (səhifə
+      // yüklənəndə hər kəsə avtomatik bildiriş çıxmır, yalnız klikdən sonra).
+      setTimeout(function(){
+        if(!window.__gtCombo) _showBlockedNotice();
+      }, 2000);
       return;
     }
     if(lang === 'az'){
@@ -4298,6 +4317,7 @@ select[id*="categor" i] option{
   // olunacaq (_waitForCombo 30 saniyəyə qədər cəhd edir və avtomatik bərpa edir).
   setTimeout(function(){
     if(!window.__gtCombo){
+      window.__gtBlockedSuspected = true;
       document.querySelectorAll('.lang-flag').forEach(function(btn){
         btn.style.opacity = '.4';
         btn.title = 'Tərcümə yüklənir və ya bloklanıb (VPN/AdBlock yoxlayın) — yenə də klikləyə bilərsiniz';
