@@ -4432,47 +4432,81 @@ select[id*="categor" i] option{
     @media(max-width:768px){
       .hero-arrow{width:34px;height:34px;font-size:20px}
     }
-    .wheel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:36px;background:radial-gradient(circle at 30% 50%,#141a22,#0b0d10);padding:20px 40px}
-    .wheel-slide-left{max-width:320px;text-align:left}
-    .wheel-slide-left h2{color:#fff;font-size:26px;margin:0 0 8px;font-family:'DM Sans',Arial,sans-serif}
-    .wheel-slide-left p{color:#94a3b8;margin:0 0 16px;font-size:14px}
-    .wheel-spin-btn{padding:12px 32px;font-size:16px;font-weight:700;color:#fff;background:#ff5100;border:none;border-radius:30px;cursor:pointer;transition:.2s}
-    .wheel-spin-btn:hover{background:#ff6a26}
-    .wheel-spin-btn:disabled{background:#3a3d42;cursor:not-allowed}
-    .wheel-result-text{margin-top:12px;font-size:16px;font-weight:700;color:#ff5100;min-height:20px}
-    .wheel-status-text{margin-top:2px;font-size:12px;color:#64748b;min-height:16px}
-    .wheel-slide-right{flex-shrink:0}
-    .wheel-wrap{position:relative;width:260px;height:260px}
-    .wheel-pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:20px solid #ff5100;z-index:5;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
-    #wheelCanvas{width:100%;height:100%;border-radius:50%;box-shadow:0 0 0 5px #14171c,0 0 24px rgba(255,81,0,.25);transition:transform 4.5s cubic-bezier(.15,.68,.16,1)}
-    @media(max-width:768px){
-      .wheel-slide{flex-direction:column;justify-content:center;gap:14px;padding:16px}
-      .wheel-slide-left{max-width:none;text-align:center}
-      .wheel-slide-left h2{font-size:20px}
-      .wheel-wrap{width:170px;height:170px}
+    .wheel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;gap:24px;overflow:hidden;
+      background:
+        radial-gradient(circle at 78% 50%, rgba(255,81,0,.22), transparent 55%),
+        radial-gradient(circle at 15% 20%, rgba(255,81,0,.08), transparent 40%),
+        #0a0b0d;
+      padding:20px 56px}
+    .wheel-slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+      background:repeating-conic-gradient(from 0deg at 82% 50%, rgba(255,120,40,.05) 0deg 6deg, transparent 6deg 18deg);
+      mix-blend-mode:screen;opacity:.5}
+    .wheel-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,81,0,.15);border:1px solid rgba(255,129,55,.4);
+      color:#ff8a3d;font-size:12px;font-weight:700;letter-spacing:.06em;padding:6px 14px;border-radius:20px;margin-bottom:14px}
+    .wheel-slide-left{position:relative;z-index:2;max-width:360px;text-align:left}
+    .wheel-slide-left h2{color:#fff;font-size:38px;line-height:1.08;margin:0 0 6px;font-family:'DM Sans',Arial,sans-serif;font-weight:800}
+    .wheel-slide-left h2 span{display:block;color:#ff5100;text-shadow:0 0 24px rgba(255,81,0,.5)}
+    .wheel-slide-left p.wheel-sub{color:#9aa4b2;margin:10px 0 20px;font-size:15px}
+    .wheel-spin-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 30px;font-size:16px;font-weight:700;color:#fff;
+      background:linear-gradient(135deg,#ff6a26,#ff5100);border:none;border-radius:30px;cursor:pointer;transition:.2s;
+      box-shadow:0 8px 24px rgba(255,81,0,.35)}
+    .wheel-spin-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+    .wheel-spin-btn:disabled{background:#2a2d33;color:#7c828c;box-shadow:none;cursor:not-allowed;transform:none}
+    .wheel-result-text{margin-top:14px;font-size:15px;font-weight:700;color:#ff8a3d;min-height:20px}
+    .wheel-status-text{margin-top:4px;font-size:13px;color:#7c8590;min-height:16px}
+    .wheel-countdown{margin-top:4px;font-size:13px;color:#9aa4b2;min-height:16px}
+    .wheel-countdown b{color:#ff8a3d;font-variant-numeric:tabular-nums}
+    .wheel-slide-right{position:relative;z-index:2;flex-shrink:0}
+    .wheel-wrap{position:relative;width:300px;height:300px}
+    .wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;
+      border-left:15px solid transparent;border-right:15px solid transparent;border-top:26px solid #ff5100;
+      z-index:6;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+    .wheel-base{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);width:70%;height:18px;
+      background:radial-gradient(ellipse at center, rgba(255,81,0,.45), transparent 70%);filter:blur(4px)}
+    #wheelCanvas{width:100%;height:100%;border-radius:50%;
+      box-shadow:0 0 0 8px #15171b,0 0 0 9px rgba(255,129,55,.5),0 0 40px rgba(255,81,0,.35);
+      transition:transform 4.5s cubic-bezier(.15,.68,.16,1)}
+    .wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:15%;height:15%;border-radius:50%;
+      background:radial-gradient(circle at 35% 30%,#2a2d33,#0b0d10);border:2px solid rgba(255,129,55,.6);
+      display:flex;align-items:center;justify-content:center;color:#ff5100;font-weight:900;font-size:15px;z-index:5;
+      box-shadow:0 0 16px rgba(255,81,0,.5)}
+    .wheel-gift{position:absolute;font-size:34px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));animation:wheelGiftFloat 3.4s ease-in-out infinite;z-index:1}
+    .wheel-gift.g1{top:8%;right:2%;animation-delay:0s}
+    .wheel-gift.g2{bottom:10%;left:2%;animation-delay:1.2s;font-size:28px}
+    @keyframes wheelGiftFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+    @media(max-width:900px){
+      .wheel-gift{display:none}
     }
-  </style>
     @media(max-width:768px){
-      .wheel-slide-overlay h2{font-size:20px}
-      .wheel-slide-overlay p{font-size:13px}
-      .wheel-spin-btn{padding:10px 24px;font-size:14px}
+      .wheel-slide{flex-direction:column;justify-content:center;gap:10px;padding:18px 16px;text-align:center}
+      .wheel-slide-left{max-width:none;text-align:center}
+      .wheel-slide-left h2{font-size:26px}
+      .wheel-badge{margin-left:auto;margin-right:auto}
+      .wheel-wrap{width:190px;height:190px}
+      .wheel-spin-btn{padding:11px 24px;font-size:14px}
     }
   </style>
   <div class="hero-slider" id="heroSlider">
    <div class="hero-track" id="heroTrack">
     <div class="hero-slide">
       <div class="wheel-slide">
+        <span class="wheel-gift g1">🎁</span>
+        <span class="wheel-gift g2">🎁</span>
         <div class="wheel-slide-left">
-          <h2>Gündəlik Çarxı Fırlat 🎡</h2>
-          <p>Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
-          <button id="spinBtn" class="wheel-spin-btn">Fırlat</button>
+          <span class="wheel-badge">⚡ GÜNDƏLİK</span>
+          <h2>Gündəlik<span>Çarxı Fırlat 🎯</span></h2>
+          <p class="wheel-sub">Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
+          <button id="spinBtn" class="wheel-spin-btn">Fırlat →</button>
           <p id="resultText" class="wheel-result-text"></p>
           <p id="statusText" class="wheel-status-text"></p>
+          <p id="countdownText" class="wheel-countdown"></p>
         </div>
         <div class="wheel-slide-right">
           <div class="wheel-wrap">
             <div class="wheel-pointer"></div>
+            <div class="wheel-base"></div>
             <canvas id="wheelCanvas" width="600" height="600"></canvas>
+            <div class="wheel-hub">H</div>
           </div>
         </div>
       </div>
@@ -4540,12 +4574,12 @@ select[id*="categor" i] option{
     // ==== HƏDİYYƏ SİYAHISI — faizlərin cəmi 100 olmalıdır ====
     // (faizlər yalnız burada, çarxın üzərində görünmür)
     const PRIZES = [
-      { name: "10$ Wallet Kodu",    chance: 0.01 },
-      { name: "Gemini Pro 18 Ay",   chance: 1    },
-      { name: "Netflix Hesab",      chance: 2    },
-      { name: "Steam Oyunu",        chance: 3    },
-      { name: "Canva Pro",          chance: 4    },
-      { name: "Hədiyyəsiz",         chance: 89.99},
+      { name: "10$ Wallet Kodu",    chance: 0.01, icon: "💳" },
+      { name: "Gemini Pro 18 Ay",   chance: 1,    icon: "✨" },
+      { name: "Netflix Hesab",      chance: 2,    icon: "🎬" },
+      { name: "Steam Oyunu",        chance: 3,    icon: "🎮" },
+      { name: "Canva Pro",          chance: 4,    icon: "🎨" },
+      { name: "Hədiyyəsiz",         chance: 89.99,icon: "😔" },
     ];
     const COLORS = ["#ff5100","#1c2330","#ff5100","#1c2330","#ff5100","#1c2330"];
 
@@ -4555,6 +4589,33 @@ select[id*="categor" i] option{
     const spinBtn = document.getElementById("spinBtn");
     const resultText = document.getElementById("resultText");
     const statusText = document.getElementById("statusText");
+    const countdownText = document.getElementById("countdownText");
+
+    let countdownTimer = null;
+    function stopCountdown(){
+      if(countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; }
+      if(countdownText) countdownText.textContent = "";
+    }
+    function startCountdown(){
+      stopCountdown();
+      function tick(){
+        const now = new Date();
+        const next = new Date(now);
+        next.setHours(24,0,0,0); // sabahın 00:00-ı (yerli saat)
+        let diff = next - now;
+        if(diff <= 0){
+          stopCountdown();
+          refreshBtnState();
+          return;
+        }
+        const h = String(Math.floor(diff/3600000)).padStart(2,"0");
+        const m = String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
+        const s = String(Math.floor((diff%60000)/1000)).padStart(2,"0");
+        if(countdownText) countdownText.innerHTML = "Növbəti çarxa: <b>"+h+":"+m+":"+s+"</b>";
+      }
+      tick();
+      countdownTimer = setInterval(tick, 1000);
+    }
 
     const N = PRIZES.length;
     const segAngle = (2*Math.PI)/N;
@@ -4570,10 +4631,16 @@ select[id*="categor" i] option{
         ctx.moveTo(cx,cy);
         ctx.arc(cx,cy,r,start,end);
         ctx.closePath();
-        ctx.fillStyle = COLORS[i % COLORS.length];
+        const grad = ctx.createRadialGradient(cx,cy,r*0.15,cx,cy,r);
+        if(i % 2 === 0){
+          grad.addColorStop(0,"#ff7a33"); grad.addColorStop(1,"#ff5100");
+        }else{
+          grad.addColorStop(0,"#22262d"); grad.addColorStop(1,"#14161a");
+        }
+        ctx.fillStyle = grad;
         ctx.fill();
         ctx.strokeStyle = "#0b0d10";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
 
         ctx.save();
@@ -4581,8 +4648,10 @@ select[id*="categor" i] option{
         ctx.rotate(start + segAngle/2);
         ctx.textAlign = "right";
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 20px 'DM Sans', Arial, sans-serif";
-        ctx.fillText(PRIZES[i].name, r - 20, 6);
+        ctx.font = "26px 'DM Sans', Arial, sans-serif";
+        ctx.fillText(PRIZES[i].icon || "🎁", r - 16, -8);
+        ctx.font = "bold 15px 'DM Sans', Arial, sans-serif";
+        ctx.fillText(PRIZES[i].name, r - 16, 14);
         ctx.restore();
       }
     }
@@ -4607,6 +4676,7 @@ select[id*="categor" i] option{
         spinBtn.disabled = false;
         spinBtn.textContent = "Daxil ol və fırlat";
         if(statusText) statusText.textContent = "";
+        stopCountdown();
         return;
       }
       try{
@@ -4615,11 +4685,13 @@ select[id*="categor" i] option{
         if(snap.exists()){
           spinBtn.disabled = true;
           spinBtn.textContent = "Sabah yenə gəl";
-          if(statusText) statusText.textContent = "Bugünkü fırlatma haqqını istifadə etmisən.";
+          if(statusText) statusText.textContent = "🎁 Bugünkü fırlatma haqqını istifadə etmisən.";
+          startCountdown();
         }else{
           spinBtn.disabled = false;
-          spinBtn.textContent = "Fırlat";
+          spinBtn.textContent = "Fırlat →";
           if(statusText) statusText.textContent = "";
+          stopCountdown();
         }
       }catch(e){}
     }
@@ -4664,10 +4736,12 @@ select[id*="categor" i] option{
           setTimeout(()=>{
             if(resultText){
               resultText.textContent = prize.name === "Hədiyyəsiz"
-                ? "Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
-                : "Təbriklər! Qazandın: " + prize.name + " 🎉";
+                ? "🎁 Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
+                : "🎉 Təbriklər! Qazandın: " + prize.name + " 🎉";
             }
             spinBtn.textContent = "Sabah yenə gəl";
+            if(statusText) statusText.textContent = "";
+            startCountdown();
           }, 4600);
 
         }catch(e){
