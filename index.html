@@ -4456,6 +4456,10 @@ select[id*="categor" i] option{
     .wheel-status-text{margin-top:4px;font-size:13px;color:#7c8590;min-height:16px}
     .wheel-countdown{margin-top:4px;font-size:13px;color:#9aa4b2;min-height:16px}
     .wheel-countdown b{color:#ff8a3d;font-variant-numeric:tabular-nums}
+    .wheel-paid-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:9px 20px;font-size:13px;font-weight:700;
+      color:#ff8a3d;background:transparent;border:1.5px solid rgba(255,129,55,.55);border-radius:24px;cursor:pointer;transition:.2s}
+    .wheel-paid-btn:hover{background:rgba(255,81,0,.12);border-color:#ff5100}
+    .wheel-paid-btn:disabled{opacity:.5;cursor:not-allowed}
     .wheel-slide-right{position:relative;z-index:2;flex-shrink:0}
     .wheel-wrap{position:relative;width:300px;height:300px}
     .wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;
@@ -4499,6 +4503,7 @@ select[id*="categor" i] option{
           <p id="resultText" class="wheel-result-text"></p>
           <p id="statusText" class="wheel-status-text"></p>
           <p id="countdownText" class="wheel-countdown"></p>
+          <button id="paidSpinBtn" class="wheel-paid-btn" style="display:none">0.3 ₼-lə əlavə fırlat</button>
         </div>
         <div class="wheel-slide-right">
           <div class="wheel-wrap">
@@ -4561,7 +4566,7 @@ select[id*="categor" i] option{
   (async function(){
     const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
     const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-    const { getFirestore, doc, getDoc, setDoc, serverTimestamp } =
+    const { getFirestore, doc, getDoc, setDoc, collection, runTransaction, serverTimestamp } =
       await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
 
     const apps = getApps();
@@ -4586,6 +4591,7 @@ select[id*="categor" i] option{
     if(!canvas) return; // slayd DOM-da yoxdursa sakitcə çıx
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spinBtn");
+    const paidSpinBtn = document.getElementById("paidSpinBtn");
     const resultText = document.getElementById("resultText");
     const statusText = document.getElementById("statusText");
     const countdownText = document.getElementById("countdownText");
@@ -4645,27 +4651,6 @@ select[id*="categor" i] option{
         ctx.rotate(start + segAngle/2);
         ctx.textAlign = "right";
 
-        // İkon üçün kiçik premium "medalyon" fon
-        const iconX = r - 30, iconY = -46, iconR = 18;
-        const iconBg = ctx.createRadialGradient(iconX,iconY,1,iconX,iconY,iconR);
-        iconBg.addColorStop(0, "rgba(255,255,255,.95)");
-        iconBg.addColorStop(1, "rgba(255,255,255,.55)");
-        ctx.beginPath();
-        ctx.arc(iconX, iconY, iconR, 0, Math.PI*2);
-        ctx.fillStyle = iconBg;
-        ctx.shadowColor = "rgba(0,0,0,.45)";
-        ctx.shadowBlur = 6;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = "rgba(255,255,255,.9)";
-        ctx.stroke();
-
-        ctx.textAlign = "center";
-        ctx.font = "22px 'DM Sans', Arial, sans-serif";
-        ctx.fillText(PRIZES[i].icon || "🎁", iconX, iconY + 8);
-
-        ctx.textAlign = "right";
         ctx.fillStyle = "#fff";
         ctx.shadowColor = "rgba(0,0,0,.6)";
         ctx.shadowBlur = 4;
@@ -4677,10 +4662,10 @@ select[id*="categor" i] option{
           const mid = Math.ceil(words.length/2);
           const l1 = words.slice(0,mid).join(" ");
           const l2 = words.slice(mid).join(" ");
-          ctx.fillText(l1, r - 16, 20);
-          ctx.fillText(l2, r - 16, 66);
+          ctx.fillText(l1, r - 16, -6);
+          ctx.fillText(l2, r - 16, 40);
         }else{
-          ctx.fillText(nm, r - 16, 40);
+          ctx.fillText(nm, r - 16, 16);
         }
         ctx.shadowBlur = 0;
         ctx.restore();
@@ -4709,6 +4694,7 @@ select[id*="categor" i] option{
         spinBtn.textContent = "Daxil ol və fırlat";
         if(statusText) statusText.textContent = "";
         stopCountdown();
+        if(paidSpinBtn) paidSpinBtn.style.display = "none";
         return;
       }
       try{
@@ -4722,6 +4708,7 @@ select[id*="categor" i] option{
             spinBtn.textContent = "Sabah yenə gəl";
             if(statusText) statusText.textContent = "🎁 Bugünkü fırlatma haqqını istifadə etmisən.";
             startCountdown(nextAt);
+            if(paidSpinBtn){ paidSpinBtn.style.display = "inline-flex"; paidSpinBtn.disabled = false; }
             return;
           }
         }
@@ -4729,11 +4716,34 @@ select[id*="categor" i] option{
         spinBtn.textContent = "Fırlat →";
         if(statusText) statusText.textContent = "";
         stopCountdown();
+        if(paidSpinBtn) paidSpinBtn.style.display = "none";
       }catch(e){
         console.error("[wheel] refreshBtnState:", e);
         spinBtn.disabled = false;
         spinBtn.textContent = "Fırlat →";
       }
+    }
+
+    // Çarxı verilmiş indeksə tərəf fırladır və animasiya bitəndə callback çağırır
+    function spinToIndex(idx, onDone){
+      const targetSegmentCenter = idx*segAngle + segAngle/2;
+      const extraSpins = 5 + Math.floor(Math.random()*3);
+      const targetDeg = extraSpins*360 + (360 - (targetSegmentCenter*180/Math.PI));
+      currentRotation += targetDeg;
+      canvas.style.transform = "rotate(" + currentRotation + "deg)";
+      setTimeout(onDone, 4600);
+    }
+
+    function showPrizeResult(prize){
+      if(resultText){
+        resultText.textContent = prize.name === "Hədiyyəsiz"
+          ? "🎁 Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
+          : "🎉 Təbriklər! Qazandın: " + prize.name + " 🎉";
+      }
+      spinBtn.textContent = "Sabah yenə gəl";
+      if(statusText) statusText.textContent = "";
+      startCountdown(new Date(Date.now() + COOLDOWN_MS));
+      if(paidSpinBtn){ paidSpinBtn.style.display = "inline-flex"; paidSpinBtn.disabled = false; }
     }
 
     if(spinBtn){
@@ -4760,6 +4770,7 @@ select[id*="categor" i] option{
               spinBtn.textContent = "Sabah yenə gəl";
               if(statusText) statusText.textContent = "Növbəti fırlatmaya hələ vaxt var.";
               startCountdown(nextAt);
+              if(paidSpinBtn){ paidSpinBtn.style.display = "inline-flex"; paidSpinBtn.disabled = false; }
               return;
             }
           }
@@ -4767,32 +4778,76 @@ select[id*="categor" i] option{
           const idx = pickPrizeIndex();
           const prize = PRIZES[idx];
 
-          const targetSegmentCenter = idx*segAngle + segAngle/2;
-          const extraSpins = 5 + Math.floor(Math.random()*3);
-          const targetDeg = extraSpins*360 + (360 - (targetSegmentCenter*180/Math.PI));
-          currentRotation += targetDeg;
-          canvas.style.transform = "rotate(" + currentRotation + "deg)";
+          spinToIndex(idx, ()=>{});
 
           await setDoc(spinRef, {
             userId: user.uid, prizeName: prize.name, lastSpinAt: serverTimestamp()
           });
 
-          setTimeout(()=>{
-            if(resultText){
-              resultText.textContent = prize.name === "Hədiyyəsiz"
-                ? "🎁 Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
-                : "🎉 Təbriklər! Qazandın: " + prize.name + " 🎉";
-            }
-            spinBtn.textContent = "Sabah yenə gəl";
-            if(statusText) statusText.textContent = "";
-            startCountdown(new Date(Date.now() + COOLDOWN_MS));
-          }, 4600);
+          setTimeout(()=>{ showPrizeResult(prize); }, 4600);
 
         }catch(e){
           console.error("[wheel] spin:", e);
           if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
           spinBtn.textContent = "Fırlat →";
           spinBtn.disabled = false;
+        }
+      });
+    }
+
+    // ==== ÖDƏNİŞLİ ƏLAVƏ FIRLATMA (0.5 AZN) ====
+    const PAID_SPIN_COST = 0.3;
+    if(paidSpinBtn){
+      paidSpinBtn.addEventListener("click", async ()=>{
+        const user = auth.currentUser;
+        if(!user){
+          if(window.openModal) window.openModal("loginModal");
+          return;
+        }
+        if(paidSpinBtn.disabled) return;
+        paidSpinBtn.disabled = true;
+        if(statusText) statusText.textContent = "";
+        if(resultText) resultText.textContent = "";
+
+        try{
+          const idx = pickPrizeIndex();
+          const prize = PRIZES[idx];
+
+          const walletRef = doc(db, "wallets", user.uid);
+          const spinRef = doc(db, "spins", user.uid);
+          const paidSpinRef = doc(collection(db, "paidSpins"));
+
+          await runTransaction(db, async (tx)=>{
+            const walletSnap = await tx.get(walletRef);
+            const balance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
+            if(balance < PAID_SPIN_COST - 0.001){
+              throw new Error("insufficient-balance");
+            }
+            tx.set(paidSpinRef, {
+              userId: user.uid, amount: PAID_SPIN_COST, createdAt: serverTimestamp()
+            });
+            tx.update(walletRef, {
+              balance: balance - PAID_SPIN_COST,
+              lastPaidSpinId: paidSpinRef.id,
+              lastPaidSpinAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            tx.set(spinRef, {
+              userId: user.uid, prizeName: prize.name, lastSpinAt: serverTimestamp()
+            });
+          });
+
+          spinToIndex(idx, ()=>{});
+          setTimeout(()=>{ showPrizeResult(prize); }, 4600);
+
+        }catch(e){
+          console.error("[wheel] paid spin:", e);
+          if(e && e.message === "insufficient-balance"){
+            if(statusText) statusText.textContent = "Balansda kifayət qədər vəsait yoxdur.";
+          }else{
+            if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
+          }
+          paidSpinBtn.disabled = false;
         }
       });
     }
