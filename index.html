@@ -4537,29 +4537,29 @@ select[id*="categor" i] option{
     const dotsWrap=document.getElementById("heroDots");
     if(!track||!sliderEl) return;
     const total=track.children.length;
-    let idx=0, timer=null;
+    let idx=0;
     function go(i){
       idx=(i+total)%total;
       track.style.transform="translateX(-"+(idx*100)+"%)";
       if(dotsWrap) dotsWrap.querySelectorAll(".hero-dot").forEach((d,j)=>d.classList.toggle("active",j===idx));
     }
-    function start(){ stop(); timer=setInterval(()=>go(idx+1),4000); }
-    function stop(){ if(timer){ clearInterval(timer); timer=null; } }
-    window.heroSlide=function(dir){ go(idx+dir); start(); };
+    // Avtomatik keçid ləğv edildi — slayd yalnız ox düymələri/nöqtələrlə (manual) dəyişir.
+    window.heroSlide=function(dir){ go(idx+dir); };
+    // Köhnə çağırışlarla (çarx skripti və s.) uyğunluq üçün saxlanılır, artıq heç nə etmir.
+    window.heroSliderPause = function(){};
+    window.heroSliderResume = function(){};
     if(dotsWrap){
       for(let i=0;i<total;i++){
         const d=document.createElement("button");
         d.className="hero-dot"+(i===0?" active":"");
         d.setAttribute("aria-label","Slayd "+(i+1));
-        d.addEventListener("click",()=>{ go(i); start(); });
+        d.addEventListener("click",()=>{ go(i); });
         dotsWrap.appendChild(d);
       }
     }
-    sliderEl.addEventListener("mouseenter",stop);
-    sliderEl.addEventListener("mouseleave",start);
-    start();
   })();
   </script>
+
 
   <script type="module">
   (async function(){
@@ -4764,10 +4764,17 @@ select[id*="categor" i] option{
     // uyğunsuzluğu ola bilirdi, bu üsul dəqiq və etibarlıdır)
     function spinToIndex(idx, onDone){
       const targetSegmentCenter = idx*segAngle + segAngle/2;
+      const targetSegmentCenterDeg = targetSegmentCenter*180/Math.PI;
+      // Çarxın DÜZGÜN sektorda dayanması üçün mütləq hədəf bucağı deyil,
+      // çarxın HAZIRKI bucağından həmin hədəfə qədər olan FƏRQ (delta) hesablanmalıdır.
+      // (currentRotation hər fırlanmadan sonra sıfırlanmır, ona görə mütləq bucağı
+      // birbaşa üzərinə əlavə etmək hər ikinci fırlanmanı bir sektor qədər sürüşdürürdü.)
+      const desiredMod = ((360 - targetSegmentCenterDeg) % 360 + 360) % 360;
+      const currentMod = ((currentRotation % 360) + 360) % 360;
+      const deltaToAlign = ((desiredMod - currentMod) % 360 + 360) % 360;
       const extraSpins = 5 + Math.floor(Math.random()*3);
-      const targetDeg = extraSpins*360 + (360 - (targetSegmentCenter*180/Math.PI));
       const fromDeg = currentRotation;
-      currentRotation += targetDeg;
+      currentRotation += extraSpins*360 + deltaToAlign;
       const toDeg = currentRotation;
 
       canvas.style.transition = "none";
@@ -4792,6 +4799,8 @@ select[id*="categor" i] option{
       if(statusText) statusText.textContent = "";
       startCountdown(new Date(Date.now() + COOLDOWN_MS));
       if(paidSpinBtn){ paidSpinBtn.style.display = "inline-flex"; paidSpinBtn.disabled = false; }
+      // Nəticəni oxumaq üçün bir neçə saniyə vaxt ver, sonra slaydın avtomatik keçidini davam etdir
+      if(window.heroSliderResume) setTimeout(window.heroSliderResume, 4000);
     }
 
     if(spinBtn){
@@ -4806,6 +4815,7 @@ select[id*="categor" i] option{
         spinBtn.disabled = true;
         if(resultText) resultText.textContent = "";
         if(statusText) statusText.textContent = "";
+        if(window.heroSliderPause) window.heroSliderPause();
 
         const spinRef = doc(db,"spins", user.uid);
 
@@ -4819,6 +4829,7 @@ select[id*="categor" i] option{
               if(statusText) statusText.textContent = "Növbəti fırlatmaya hələ vaxt var.";
               startCountdown(nextAt);
               if(paidSpinBtn){ paidSpinBtn.style.display = "inline-flex"; paidSpinBtn.disabled = false; }
+              if(window.heroSliderResume) window.heroSliderResume();
               return;
             }
           }
@@ -4838,6 +4849,7 @@ select[id*="categor" i] option{
           if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
           spinBtn.textContent = "Fırlat →";
           spinBtn.disabled = false;
+          if(window.heroSliderResume) window.heroSliderResume();
         }
       });
     }
@@ -4855,6 +4867,7 @@ select[id*="categor" i] option{
         paidSpinBtn.disabled = true;
         if(statusText) statusText.textContent = "";
         if(resultText) resultText.textContent = "";
+        if(window.heroSliderPause) window.heroSliderPause();
 
         try{
           const idx = pickPrizeIndex();
@@ -4895,6 +4908,7 @@ select[id*="categor" i] option{
             if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
           }
           paidSpinBtn.disabled = false;
+          if(window.heroSliderResume) window.heroSliderResume();
         }
       });
     }
