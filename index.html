@@ -4568,17 +4568,10 @@ select[id*="categor" i] option{
 
   <script type="module">
   (async function(){
-    const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-    const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-    const { getFirestore, doc, getDoc, setDoc, addDoc, collection, runTransaction, serverTimestamp } =
-      await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
-
-    const apps = getApps();
-    if(!apps.length) return;
-    const app = apps[0];
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
+    // ==== ÇARXIN STATİK QRAFİKASI — Firebase-dən ASILI DEYİL ====
+    // Bu blok Firebase importlarından ƏVVƏL işləyir ki, şəbəkə/init gecikməsi
+    // olsa belə, çarxın özü (rənglər, yazılar) HƏMİŞƏ dərhal görünsün.
+    // Yalnız FIRLATMA (klik, Firestore) aşağıdakı Firebase-bağlı hissəyə bağlıdır.
     // ==== HƏDİYYƏ SİYAHISI — faizlərin cəmi 100 olmalıdır ====
     // (faizlər yalnız burada, çarxın üzərində görünmür)
     const PRIZES = [
@@ -4712,6 +4705,29 @@ select[id*="categor" i] option{
       ctx.globalAlpha = 1;
     }
     drawWheel();
+    const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+    const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+    const { getFirestore, doc, getDoc, setDoc, addDoc, collection, runTransaction, serverTimestamp } =
+      await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+
+    // Firebase tətbiqi (initializeApp) hələ işə düşməyibsə (yavaş mobil şəbəkə,
+    // script yüklənmə sırası və s.), BİR DƏFƏLİK yoxlayıb dərhal "return" etmək
+    // əvəzinə bir az gözləyib YENİDƏN yoxlayırıq. Əvvəlki versiya elə buradaca
+    // dərhal çıxırdı — nəticədə interaktiv hissə YOX, hətta çarxın statik şəkli
+    // BELƏ görünmürdü (çünki o da bu bloklardan sonra idi). İndi statik şəkil
+    // artıq yuxarıda, bu bloklardan ƏVVƏL çəkilir — bu gözləmə yalnız fırlatma
+    // funksionallığına aiddir.
+    let apps = getApps();
+    let _appTries = 0;
+    while(!apps.length && _appTries < 25){
+      await new Promise(res=>setTimeout(res, 200));
+      apps = getApps();
+      _appTries++;
+    }
+    if(!apps.length) return;
+    const app = apps[0];
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     function todayStr(){ return new Date().toISOString().split("T")[0]; }
     const COOLDOWN_MS = 24*60*60*1000;
