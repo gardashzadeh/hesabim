@@ -4479,19 +4479,25 @@ select[id*="categor" i] option{
     @keyframes wheelGiftFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
     @media(max-width:900px){
       .wheel-gift{display:none}
+      /* Digər slaydların (hero-mockup) bu enlərdə kiçilən hündürlüyü paylaşılan
+         slayder yüksekliyini də kiçildirdi — nəticədə çarx slaydının məzmunu
+         (xüsusən yazılar) sıxılıb görünməz olurdu. Çarx slaydına öz minimum
+         hündürlüyünü veririk ki, paylaşılan slayder hündürlüyü kifayət qədər olsun. */
+      .hero-slide-wheel{min-height:360px}
     }
     @media(max-width:768px){
-      .wheel-slide{flex-direction:column;justify-content:center;gap:10px;padding:18px 16px;text-align:center}
+      .wheel-slide{flex-direction:column;justify-content:center;gap:10px;padding:18px 16px 30px;text-align:center}
       .wheel-slide-left{max-width:none;text-align:center}
       .wheel-slide-left h2{font-size:26px}
       .wheel-badge{margin-left:auto;margin-right:auto}
       .wheel-wrap{width:190px;height:190px}
       .wheel-spin-btn{padding:11px 24px;font-size:14px}
+      .hero-slide-wheel{min-height:600px}
     }
   </style>
   <div class="hero-slider" id="heroSlider">
    <div class="hero-track" id="heroTrack">
-    <div class="hero-slide">
+    <div class="hero-slide hero-slide-wheel">
       <div class="wheel-slide">
         <span class="wheel-gift g1">🎁</span>
         <span class="wheel-gift g2">🎁</span>
