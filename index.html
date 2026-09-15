@@ -4432,12 +4432,17 @@ select[id*="categor" i] option{
     @media(max-width:768px){
       .hero-arrow{width:34px;height:34px;font-size:20px}
     }
-    .wheel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:56px;overflow:hidden;
+    /* Çarx artıq slayderin İÇİNDƏ deyil — özünün ayrıca bölməsidir, ona görə
+       "position:absolute;inset:0" (slayder daxilindəki qardaşlarla paylaşılan
+       hündürlüyə etibar edən köhnə üsul) əvəzinə normal blok kimi öz məzmununa
+       görə hündürlüyünü özü müəyyən edir — mobil/desktop hər ikisində sabit işləyir. */
+    .wheel-section{position:relative;border-radius:22px;overflow:hidden;margin-bottom:16px}
+    .wheel-slide{position:relative;display:flex;align-items:center;justify-content:center;gap:56px;overflow:hidden;
       background:
         radial-gradient(circle at 78% 50%, rgba(255,81,0,.22), transparent 55%),
         radial-gradient(circle at 15% 20%, rgba(255,81,0,.08), transparent 40%),
         #0a0b0d;
-      padding:20px 56px}
+      padding:28px 56px}
     .wheel-slide::before{content:"";position:absolute;inset:0;pointer-events:none;
       background:repeating-conic-gradient(from 0deg at 82% 50%, rgba(255,120,40,.05) 0deg 6deg, transparent 6deg 18deg);
       mix-blend-mode:screen;opacity:.5}
@@ -4479,47 +4484,41 @@ select[id*="categor" i] option{
     @keyframes wheelGiftFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
     @media(max-width:900px){
       .wheel-gift{display:none}
-      /* Digər slaydların (hero-mockup) bu enlərdə kiçilən hündürlüyü paylaşılan
-         slayder yüksekliyini də kiçildirdi — nəticədə çarx slaydının məzmunu
-         (xüsusən yazılar) sıxılıb görünməz olurdu. Çarx slaydına öz minimum
-         hündürlüyünü veririk ki, paylaşılan slayder hündürlüyü kifayət qədər olsun. */
-      .hero-slide-wheel{min-height:360px}
     }
     @media(max-width:768px){
-      .wheel-slide{flex-direction:column;justify-content:center;gap:10px;padding:18px 16px 30px;text-align:center}
+      .wheel-slide{flex-direction:column;justify-content:center;gap:10px;padding:22px 16px 34px;text-align:center}
       .wheel-slide-left{max-width:none;text-align:center}
       .wheel-slide-left h2{font-size:26px}
       .wheel-badge{margin-left:auto;margin-right:auto}
       .wheel-wrap{width:190px;height:190px}
       .wheel-spin-btn{padding:11px 24px;font-size:14px}
-      .hero-slide-wheel{min-height:600px}
     }
   </style>
-  <div class="hero-slider" id="heroSlider">
-   <div class="hero-track" id="heroTrack">
-    <div class="hero-slide hero-slide-wheel">
-      <div class="wheel-slide">
-        <span class="wheel-gift g1">🎁</span>
-        <span class="wheel-gift g2">🎁</span>
-        <div class="wheel-slide-left">
-          <h2>Çarxı Fırlat, Hədiyyə Qazan</h2>
-          <p class="wheel-sub">Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
-          <button id="spinBtn" class="wheel-spin-btn">Fırlat →</button>
-          <p id="resultText" class="wheel-result-text"></p>
-          <p id="statusText" class="wheel-status-text"></p>
-          <p id="countdownText" class="wheel-countdown"></p>
-          <button id="paidSpinBtn" class="wheel-paid-btn" style="display:none">0.3 ₼-lə əlavə fırlat</button>
-        </div>
-        <div class="wheel-slide-right">
-          <div class="wheel-wrap">
-            <div class="wheel-pointer"></div>
-            <div class="wheel-base"></div>
-            <canvas id="wheelCanvas" width="600" height="600"></canvas>
-            <div class="wheel-hub">H</div>
-          </div>
+  <div class="wheel-section" id="wheelSection">
+    <div class="wheel-slide">
+      <span class="wheel-gift g1">🎁</span>
+      <span class="wheel-gift g2">🎁</span>
+      <div class="wheel-slide-left">
+        <h2>Çarxı Fırlat, Hədiyyə Qazan</h2>
+        <p class="wheel-sub">Hər gün 1 dəfə fırlat, hədiyyə qazan!</p>
+        <button id="spinBtn" class="wheel-spin-btn">Fırlat →</button>
+        <p id="resultText" class="wheel-result-text"></p>
+        <p id="statusText" class="wheel-status-text"></p>
+        <p id="countdownText" class="wheel-countdown"></p>
+        <button id="paidSpinBtn" class="wheel-paid-btn" style="display:none">0.3 ₼-lə əlavə fırlat</button>
+      </div>
+      <div class="wheel-slide-right">
+        <div class="wheel-wrap">
+          <div class="wheel-pointer"></div>
+          <div class="wheel-base"></div>
+          <canvas id="wheelCanvas" width="600" height="600"></canvas>
+          <div class="wheel-hub">H</div>
         </div>
       </div>
-    </div><!-- /slayd - carx -->
+    </div>
+  </div><!-- /wheel-section -->
+  <div class="hero-slider" id="heroSlider">
+   <div class="hero-track" id="heroTrack">
     <div class="hero-slide">
   <section class="hero hero-mockup">
     <div class="hero-bg-left" id="heroBgLeft"></div>
@@ -8175,20 +8174,36 @@ window.incrementAdView = async function(adId, currentViews = 0){
 };
 
 
-// [RANDOM VIEWS] Sayt açıq olduğu müddətdə hər 1 saatda təsadüfi 1 elanın baxışı +1 artırılır.
+// [RANDOM VIEWS] Sayt açıq olduğu müddətdə hər 1 saatda son 10 elandan
+// təsadüfi seçilən 1-nin baxışı +2 artırılır.
+// QEYD: əvvəlki versiya "window.ads" adlı mövcud olmayan bir dəyişəni
+// oxuyurdu (heç vaxt təyin edilməmişdi) — ona görə bu funksiya faktiki
+// olaraq HEÇ VAXT işləmirdi. Əsl elan siyahısı window.approvedFirestoreAds-dır.
 async function incrementRandomAdView(){
   try{
-    const candidates = (window.ads || []).filter(a => a && a.adId && a.approved !== false);
-    if(!candidates.length) return;
+    const all = (window.approvedFirestoreAds || []).filter(a => a && a.id);
+    if(!all.length) return;
 
-    const ad = candidates[Math.floor(Math.random() * candidates.length)];
-    await window.incrementAdView(ad.adId, Number(ad.views || 0));
+    // Ən son əlavə edilmiş 10 elan (createdAt-a görə enən sıra)
+    const last10 = all.slice().sort((a,b)=>{
+      const tA = a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds*1000 : 0);
+      const tB = b.createdAt && typeof b.createdAt.toMillis === "function" ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds*1000 : 0);
+      return tB - tA;
+    }).slice(0, 10);
+    if(!last10.length) return;
+
+    const ad = last10[Math.floor(Math.random() * last10.length)];
+    await updateDoc(doc(db, "ads", ad.id), {
+      views: increment(2),
+      updatedAt: serverTimestamp()
+    });
+    console.info("[Random Views] +2 baxış:", ad.id);
   }catch(e){
     console.warn("[Random Views] Təsadüfi baxış artırılmadı:", e?.message || e);
   }
 }
 
-// Hər saat bir dəfə random elan seçilir.
+// Hər saat bir dəfə son 10 elandan random biri seçilir.
 setInterval(incrementRandomAdView, 60 * 60 * 1000);
 
 const CLOUDINARY_CLOUD_NAME = atob("ZHRpcHpoM2x4");
