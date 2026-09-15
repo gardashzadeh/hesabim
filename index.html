@@ -4565,7 +4565,7 @@ select[id*="categor" i] option{
   (async function(){
     const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
     const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-    const { getFirestore, doc, getDoc, setDoc, collection, runTransaction, serverTimestamp } =
+    const { getFirestore, doc, getDoc, setDoc, addDoc, collection, runTransaction, serverTimestamp } =
       await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
 
     const apps = getApps();
@@ -4844,6 +4844,28 @@ select[id*="categor" i] option{
             userId: user.uid, prizeName: prize.name, lastSpinAt: serverTimestamp()
           });
 
+          if(prize.name !== "Hədiyyəsiz"){
+            let winnerName = user.displayName || user.email || "";
+            try{
+              const uSnap = await getDoc(doc(db,"users",user.uid));
+              if(uSnap.exists()){
+                const ud = uSnap.data()||{};
+                winnerName = ud.fullName || ((ud.name||"")+" "+(ud.surname||"")).trim() || winnerName;
+              }
+            }catch(_){}
+            // wonAt MÜTLƏQ spins/{uid}-də indicə yazılmış lastSpinAt-in EYNİSİ olmalıdır
+            // (yeni serverTimestamp() YOX) — Firestore Rules bunu spins sənədi ilə
+            // müqayisə edərək, real fırlanma olmadan saxta qazanc yazılmasının qarşısını alır.
+            const freshSpinSnap = await getDoc(spinRef);
+            const realLastSpinAt = freshSpinSnap.exists() ? freshSpinSnap.data().lastSpinAt : null;
+            if(realLastSpinAt){
+              addDoc(collection(db,"wheelWins"), {
+                userId: user.uid, userName: winnerName, userEmail: user.email || "",
+                prizeName: prize.name, spinType: "free", wonAt: realLastSpinAt
+              }).catch(e=>console.error("[wheel] wheelWins log:", e));
+            }
+          }
+
         }catch(e){
           console.error("[wheel] spin:", e);
           if(statusText) statusText.textContent = "Xəta baş verdi, yenidən cəhd et.";
@@ -4899,6 +4921,25 @@ select[id*="categor" i] option{
 
           drawWheel();
           spinToIndex(idx, ()=>{ showPrizeResult(prize, idx); });
+
+          if(prize.name !== "Hədiyyəsiz"){
+            let winnerName = user.displayName || user.email || "";
+            try{
+              const uSnap = await getDoc(doc(db,"users",user.uid));
+              if(uSnap.exists()){
+                const ud = uSnap.data()||{};
+                winnerName = ud.fullName || ((ud.name||"")+" "+(ud.surname||"")).trim() || winnerName;
+              }
+            }catch(_){}
+            const freshSpinSnap = await getDoc(spinRef);
+            const realLastSpinAt = freshSpinSnap.exists() ? freshSpinSnap.data().lastSpinAt : null;
+            if(realLastSpinAt){
+              addDoc(collection(db,"wheelWins"), {
+                userId: user.uid, userName: winnerName, userEmail: user.email || "",
+                prizeName: prize.name, spinType: "paid", wonAt: realLastSpinAt
+              }).catch(e=>console.error("[wheel] wheelWins log:", e));
+            }
+          }
 
         }catch(e){
           console.error("[wheel] paid spin:", e);
@@ -13039,6 +13080,7 @@ function adminShell(){
     <button type="button" data-admincat="ads" onclick="showAdminCat('ads')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Elanlar</button>
     <button type="button" data-admincat="finance" onclick="showAdminCat('finance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>Maliyyə</button>
     <button type="button" data-admincat="users" onclick="showAdminCat('users')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 00-3-3.87M15 3.13A4 4 0 0115 11"/></svg>İstifadəçilər</button>
+    <button type="button" data-admincat="wheel" onclick="showAdminCat('wheel')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 3"/></svg>Çarx Hədiyyələri<span id="adminWheelBadge" style="display:none;margin-left:6px;background:#22c55e;color:#111;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="hesabat" onclick="showAdminCat('hesabat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Hesabat</button>
     <button type="button" data-admincat="nezaret" onclick="showAdminCat('nezaret')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/></svg>Nəzarət<span id="nezBadge" style="display:none;margin-left:6px;background:#f59e0b;color:#111;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
     <button type="button" data-admincat="reports" onclick="showAdminCat('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-2px;margin-right:6px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Şikayətlər<span id="adminReportsBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:800;">0</span></button>
@@ -13079,6 +13121,13 @@ function adminShell(){
   <div id="adminCatUsers" class="admin-cat" style="display:none">
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button type="button" class="approve-btn" onclick="_fetchUsersAdmin()">🔄 Yenilə</button></div>
     <div id="adminUsers" class="admin-section"></div>
+  </div>
+  <div id="adminCatWheel" class="admin-cat" style="display:none">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <input id="adminWheelSearch" placeholder="Ad / email / hədiyyə axtar..." oninput="clearTimeout(window.__awT);window.__awT=setTimeout(_renderWheelWinsAdmin,250)" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px">
+      <button type="button" class="approve-btn" onclick="_fetchWheelWinsAdmin()">🔄 Yenilə</button>
+    </div>
+    <div id="adminWheelWins" class="admin-section"></div>
   </div>
   <div id="adminCatHesabat" class="admin-cat" style="display:none">
     <div class="rep-toolbar">
@@ -13568,7 +13617,7 @@ window.adminNezaretCSV = function(){
 };
 
 window.showAdminCat = function(cat){
-  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", hesabat:"adminCatHesabat", nezaret:"adminCatNezaret", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
+  const cats = {orders:"adminCatOrders", deals:"adminCatDeals", ads:"adminCatAds", finance:"adminCatFinance", users:"adminCatUsers", wheel:"adminCatWheel", hesabat:"adminCatHesabat", nezaret:"adminCatNezaret", reports:"adminCatReports", supportcat:"adminCatSupportcat", msgs:"adminCatMsgs"};
   Object.entries(cats).forEach(([key,id])=>{
     const el=document.getElementById(id);
     if(el) el.style.display = key===cat ? "" : "none";
@@ -13584,6 +13633,7 @@ window.showAdminCat = function(cat){
     if(cat==="ads" && firstOpen){ _fetchPendingAds(); _fetchAllAdsAdmin(); }
     if(cat==="finance" && firstOpen) _fetchBalanceAdmin();
     if(cat==="users" && firstOpen) _fetchUsersAdmin();
+    if(cat==="wheel" && firstOpen) _fetchWheelWinsAdmin();
     if(cat==="hesabat" && firstOpen) adminReportInit();
     if(cat==="nezaret") adminNezaretRun(firstOpen);
     if(cat==="supportcat"){
@@ -14238,6 +14288,34 @@ async function _fetchUsersAdmin(){
     el.querySelectorAll("[data-user-block]").forEach(b=>b.onclick=async()=>{await toggleUserBlock(b.dataset.userBlock,b.dataset.val==="1");_fetchUsersAdmin();});
     el.querySelectorAll("[data-user-track]").forEach(b=>b.onclick=()=>openUserActivity(b.dataset.userTrack,b.dataset.userEmail||""));
   }catch(e){ console.error("_fetchUsersAdmin:",e); }
+}
+
+let _wheelWinsCache = [];
+async function _fetchWheelWinsAdmin(){
+  const el=document.getElementById("adminWheelWins"); if(!el||!isAdmin()) return;
+  try{
+    const snap = await getDocs(query(collection(db,"wheelWins"), orderBy("wonAt","desc"), limit(300)));
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    _wheelWinsCache = arr;
+    setAdminStat("wheelWinsToday", arr.filter(w=>{
+      const d=w.wonAt?.toDate ? w.wonAt.toDate() : (w.wonAt?.seconds ? new Date(w.wonAt.seconds*1000) : null);
+      return d && (new Date() - d) < 24*60*60*1000;
+    }).length);
+    const badge=document.getElementById("adminWheelBadge");
+    if(badge){ badge.textContent = arr.length; badge.style.display = arr.length ? "inline-block" : "none"; }
+    _renderWheelWinsAdmin();
+  }catch(e){ console.error("_fetchWheelWinsAdmin:",e); }
+}
+function _renderWheelWinsAdmin(){
+  const el=document.getElementById("adminWheelWins"); if(!el) return;
+  const filter=(document.getElementById("adminWheelSearch")?.value||"").toLowerCase();
+  const rows=_wheelWinsCache.filter(w=>!filter || String((w.userName||"")+" "+(w.userEmail||"")+" "+(w.prizeName||"")).toLowerCase().includes(filter));
+  el.innerHTML = `<h3>Çarxdan hədiyyə qazananlar</h3><div class="admin-filter-row"><span class="admin-tag">${_wheelWinsCache.length} qazanc</span></div>`
+    + (rows.length
+      ? `<table class="cabinet-table"><thead><tr><th>Tarix</th><th>İstifadəçi</th><th>Hədiyyə</th><th>Fırlanma tipi</th></tr></thead><tbody>${rows.map(w=>
+          `<tr><td>${adminDateTime(w.wonAt)}</td><td><b>${esc(w.userName||"-")}</b><br><small>${esc(w.userEmail||"")}</small></td><td><b style="color:#22c55e">🎁 ${esc(w.prizeName||"-")}</b></td><td>${w.spinType==="paid"?"Ödənişli (0.3 ₼)":"Pulsuz"}</td></tr>`
+        ).join("")}</tbody></table>`
+      : '<div class="cabinet-empty">Hələ heç kim hədiyyə qazanmayıb.</div>');
 }
 
 
