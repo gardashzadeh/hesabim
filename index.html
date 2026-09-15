@@ -4668,7 +4668,23 @@ select[id*="categor" i] option{
         ctx.fillStyle = (dimming && !isWinner) ? "rgba(255,255,255,.55)" : "#fff";
         ctx.shadowColor = "rgba(0,0,0,.6)";
         ctx.shadowBlur = 4;
-        ctx.font = "800 42px 'DM Sans', Arial, sans-serif";
+
+        // Mətn hub-a (mərkəzə) çatıb digər tərəfə keçməsin deyə,
+        // uzun/bölünməyən sözlər üçün şrift ölçüsünü avtomatik kiçildirik.
+        const FONT_FAMILY = "'DM Sans', Arial, sans-serif";
+        const BASE_FONT = 42;
+        const MIN_FONT = 16;
+        const maxTextWidth = r * 0.6;
+        function fitFontSize(str){
+          let size = BASE_FONT;
+          ctx.font = "800 " + size + "px " + FONT_FAMILY;
+          while(ctx.measureText(str).width > maxTextWidth && size > MIN_FONT){
+            size -= 2;
+            ctx.font = "800 " + size + "px " + FONT_FAMILY;
+          }
+          return size;
+        }
+
         const nm = PRIZES[i].name;
         const words = nm.split(" ");
         if(words.length > 1){
@@ -4676,9 +4692,13 @@ select[id*="categor" i] option{
           const mid = Math.ceil(words.length/2);
           const l1 = words.slice(0,mid).join(" ");
           const l2 = words.slice(mid).join(" ");
+          const fitSize = Math.min(fitFontSize(l1), fitFontSize(l2));
+          ctx.font = "800 " + fitSize + "px " + FONT_FAMILY;
           ctx.fillText(l1, r - 16, -6);
           ctx.fillText(l2, r - 16, 40);
         }else{
+          const fitSize = fitFontSize(nm);
+          ctx.font = "800 " + fitSize + "px " + FONT_FAMILY;
           ctx.fillText(nm, r - 16, 16);
         }
         ctx.shadowBlur = 0;
