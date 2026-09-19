@@ -4865,25 +4865,32 @@ select[id*="categor" i] option{
             userId: user.uid, prizeName: prize.name, lastSpinAt: serverTimestamp()
           });
 
-          if(prize.name !== "Hədiyyəsiz"){
-            let winnerName = user.displayName || user.email || "";
+          {
+            let playerName = user.displayName || user.email || "";
             try{
               const uSnap = await getDoc(doc(db,"users",user.uid));
               if(uSnap.exists()){
                 const ud = uSnap.data()||{};
-                winnerName = ud.fullName || ((ud.name||"")+" "+(ud.surname||"")).trim() || winnerName;
+                playerName = ud.fullName || ((ud.name||"")+" "+(ud.surname||"")).trim() || playerName;
               }
             }catch(_){}
-            // wonAt MÜTLƏQ spins/{uid}-də indicə yazılmış lastSpinAt-in EYNİSİ olmalıdır
+            // wonAt/playedAt MÜTLƏQ spins/{uid}-də indicə yazılmış lastSpinAt-in EYNİSİ olmalıdır
             // (yeni serverTimestamp() YOX) — Firestore Rules bunu spins sənədi ilə
-            // müqayisə edərək, real fırlanma olmadan saxta qazanc yazılmasının qarşısını alır.
+            // müqayisə edərək, real fırlanma olmadan saxta yazının qarşısını alır.
             const freshSpinSnap = await getDoc(spinRef);
             const realLastSpinAt = freshSpinSnap.exists() ? freshSpinSnap.data().lastSpinAt : null;
             if(realLastSpinAt){
-              addDoc(collection(db,"wheelWins"), {
-                userId: user.uid, userName: winnerName, userEmail: user.email || "",
-                prizeName: prize.name, spinType: "free", wonAt: realLastSpinAt
-              }).catch(e=>console.error("[wheel] wheelWins log:", e));
+              // [WHEEL PLAYS] hər fırlanma (uduzsa da) — admin panelində "kim oynadı" statistikası üçün
+              addDoc(collection(db,"wheelPlays"), {
+                userId: user.uid, userName: playerName, userEmail: user.email || "",
+                prizeName: prize.name, spinType: "free", playedAt: realLastSpinAt
+              }).catch(e=>console.error("[wheel] wheelPlays log:", e));
+              if(prize.name !== "Hədiyyəsiz"){
+                addDoc(collection(db,"wheelWins"), {
+                  userId: user.uid, userName: playerName, userEmail: user.email || "",
+                  prizeName: prize.name, spinType: "free", wonAt: realLastSpinAt
+                }).catch(e=>console.error("[wheel] wheelWins log:", e));
+              }
             }
           }
 
@@ -4943,22 +4950,28 @@ select[id*="categor" i] option{
           drawWheel();
           spinToIndex(idx, ()=>{ showPrizeResult(prize, idx); });
 
-          if(prize.name !== "Hədiyyəsiz"){
-            let winnerName = user.displayName || user.email || "";
+          {
+            let playerName = user.displayName || user.email || "";
             try{
               const uSnap = await getDoc(doc(db,"users",user.uid));
               if(uSnap.exists()){
                 const ud = uSnap.data()||{};
-                winnerName = ud.fullName || ((ud.name||"")+" "+(ud.surname||"")).trim() || winnerName;
+                playerName = ud.fullName || ((ud.name||"")+" "+(ud.surname||"")).trim() || playerName;
               }
             }catch(_){}
             const freshSpinSnap = await getDoc(spinRef);
             const realLastSpinAt = freshSpinSnap.exists() ? freshSpinSnap.data().lastSpinAt : null;
             if(realLastSpinAt){
-              addDoc(collection(db,"wheelWins"), {
-                userId: user.uid, userName: winnerName, userEmail: user.email || "",
-                prizeName: prize.name, spinType: "paid", wonAt: realLastSpinAt
-              }).catch(e=>console.error("[wheel] wheelWins log:", e));
+              addDoc(collection(db,"wheelPlays"), {
+                userId: user.uid, userName: playerName, userEmail: user.email || "",
+                prizeName: prize.name, spinType: "paid", playedAt: realLastSpinAt
+              }).catch(e=>console.error("[wheel] wheelPlays log:", e));
+              if(prize.name !== "Hədiyyəsiz"){
+                addDoc(collection(db,"wheelWins"), {
+                  userId: user.uid, userName: playerName, userEmail: user.email || "",
+                  prizeName: prize.name, spinType: "paid", wonAt: realLastSpinAt
+                }).catch(e=>console.error("[wheel] wheelWins log:", e));
+              }
             }
           }
 
@@ -13160,9 +13173,14 @@ function adminShell(){
     <div id="adminUsers" class="admin-section"></div>
   </div>
   <div id="adminCatWheel" class="admin-cat" style="display:none">
+    <div id="adminWheelStats" class="admin-mini-grid" style="margin-bottom:12px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-      <input id="adminWheelSearch" placeholder="Ad / email / hədiyyə axtar..." oninput="clearTimeout(window.__awT);window.__awT=setTimeout(_renderWheelWinsAdmin,250)" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px">
-      <button type="button" class="approve-btn" onclick="_fetchWheelWinsAdmin()">🔄 Yenilə</button>
+      <div style="display:flex;gap:6px">
+        <button type="button" id="adminWheelTabWins" class="approve-btn" onclick="_setWheelAdminView('wins')" style="opacity:1">🎁 Qazananlar</button>
+        <button type="button" id="adminWheelTabPlays" class="approve-btn" onclick="_setWheelAdminView('plays')" style="opacity:.55">👥 Bütün oyunçular</button>
+      </div>
+      <input id="adminWheelSearch" placeholder="Ad / email / hədiyyə axtar..." oninput="clearTimeout(window.__awT);window.__awT=setTimeout(_renderWheelAdminActive,250)" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid #1c2330;background:#060810;color:#e2e8f0;font-size:12px">
+      <button type="button" class="approve-btn" onclick="_fetchWheelWinsAdmin();_fetchWheelPlaysAdmin()">🔄 Yenilə</button>
     </div>
     <div id="adminWheelWins" class="admin-section"></div>
   </div>
@@ -13670,7 +13688,7 @@ window.showAdminCat = function(cat){
     if(cat==="ads" && firstOpen){ _fetchPendingAds(); _fetchAllAdsAdmin(); }
     if(cat==="finance" && firstOpen) _fetchBalanceAdmin();
     if(cat==="users" && firstOpen) _fetchUsersAdmin();
-    if(cat==="wheel" && firstOpen) _fetchWheelWinsAdmin();
+    if(cat==="wheel" && firstOpen){ _fetchWheelWinsAdmin(); _fetchWheelPlaysAdmin(); }
     if(cat==="hesabat" && firstOpen) adminReportInit();
     if(cat==="nezaret") adminNezaretRun(firstOpen);
     if(cat==="supportcat"){
@@ -14329,7 +14347,7 @@ async function _fetchUsersAdmin(){
 
 let _wheelWinsCache = [];
 async function _fetchWheelWinsAdmin(){
-  const el=document.getElementById("adminWheelWins"); if(!el||!isAdmin()) return;
+  if(!isAdmin()) return;
   try{
     const snap = await getDocs(query(collection(db,"wheelWins"), orderBy("wonAt","desc"), limit(300)));
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
@@ -14340,9 +14358,52 @@ async function _fetchWheelWinsAdmin(){
     }).length);
     const badge=document.getElementById("adminWheelBadge");
     if(badge){ badge.textContent = arr.length; badge.style.display = arr.length ? "inline-block" : "none"; }
-    _renderWheelWinsAdmin();
+    _renderWheelStatsAdmin();
+    _renderWheelAdminActive();
   }catch(e){ console.error("_fetchWheelWinsAdmin:",e); }
 }
+
+// [WHEEL PLAYS] Hər fırlanma (uduzsa da) burada saxlanılır — "kimlər oynayıb" statistikası üçün.
+let _wheelPlaysCache = [];
+async function _fetchWheelPlaysAdmin(){
+  if(!isAdmin()) return;
+  try{
+    const snap = await getDocs(query(collection(db,"wheelPlays"), orderBy("playedAt","desc"), limit(300)));
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    _wheelPlaysCache = arr;
+    _renderWheelStatsAdmin();
+    _renderWheelAdminActive();
+  }catch(e){ console.error("_fetchWheelPlaysAdmin:",e); }
+}
+
+function _renderWheelStatsAdmin(){
+  const el=document.getElementById("adminWheelStats"); if(!el) return;
+  const plays=_wheelPlaysCache, wins=_wheelWinsCache;
+  const now=new Date();
+  const toDate=t=>t?.toDate ? t.toDate() : (t?.seconds ? new Date(t.seconds*1000) : null);
+  const todayPlays = plays.filter(p=>{ const d=toDate(p.playedAt); return d && (now-d) < 24*60*60*1000; }).length;
+  const uniquePlayers = new Set(plays.map(p=>p.userId).filter(Boolean)).size;
+  const winRate = plays.length ? Math.round((wins.length/plays.length)*1000)/10 : 0;
+  el.innerHTML = `
+    <div class="admin-mini-card"><span>Cəmi fırlanma</span><b>${plays.length}</b></div>
+    <div class="admin-mini-card"><span>Son 24 saat</span><b>${todayPlays}</b></div>
+    <div class="admin-mini-card"><span>Fərqli oyunçu</span><b>${uniquePlayers}</b></div>
+    <div class="admin-mini-card"><span>Qazanma faizi</span><b>${winRate}%</b></div>`;
+}
+
+window.__wheelAdminView = "wins";
+window._setWheelAdminView = function(view){
+  window.__wheelAdminView = view;
+  const tw=document.getElementById("adminWheelTabWins"), tp=document.getElementById("adminWheelTabPlays");
+  if(tw) tw.style.opacity = view==="wins" ? "1" : ".55";
+  if(tp) tp.style.opacity = view==="plays" ? "1" : ".55";
+  _renderWheelAdminActive();
+};
+window._renderWheelAdminActive = function(){
+  if(window.__wheelAdminView === "plays") _renderWheelPlaysAdmin();
+  else _renderWheelWinsAdmin();
+};
+
 function _renderWheelWinsAdmin(){
   const el=document.getElementById("adminWheelWins"); if(!el) return;
   const filter=(document.getElementById("adminWheelSearch")?.value||"").toLowerCase();
@@ -14353,6 +14414,19 @@ function _renderWheelWinsAdmin(){
           `<tr><td>${adminDateTime(w.wonAt)}</td><td><b>${esc(w.userName||"-")}</b><br><small>${esc(w.userEmail||"")}</small></td><td><b style="color:#22c55e">🎁 ${esc(w.prizeName||"-")}</b></td><td>${w.spinType==="paid"?"Ödənişli (0.3 ₼)":"Pulsuz"}</td></tr>`
         ).join("")}</tbody></table>`
       : '<div class="cabinet-empty">Hələ heç kim hədiyyə qazanmayıb.</div>');
+}
+
+function _renderWheelPlaysAdmin(){
+  const el=document.getElementById("adminWheelWins"); if(!el) return;
+  const filter=(document.getElementById("adminWheelSearch")?.value||"").toLowerCase();
+  const rows=_wheelPlaysCache.filter(p=>!filter || String((p.userName||"")+" "+(p.userEmail||"")+" "+(p.prizeName||"")).toLowerCase().includes(filter));
+  el.innerHTML = `<h3>Bütün oyunçular (kim, nə vaxt, nə çıxdı)</h3><div class="admin-filter-row"><span class="admin-tag">${_wheelPlaysCache.length} fırlanma</span></div>`
+    + (rows.length
+      ? `<table class="cabinet-table"><thead><tr><th>Tarix</th><th>İstifadəçi</th><th>Nəticə</th><th>Fırlanma tipi</th></tr></thead><tbody>${rows.map(p=>{
+          const won = p.prizeName && p.prizeName !== "Hədiyyəsiz";
+          return `<tr><td>${adminDateTime(p.playedAt)}</td><td><b>${esc(p.userName||"-")}</b><br><small>${esc(p.userEmail||"")}</small></td><td>${won?`<b style="color:#22c55e">🎁 ${esc(p.prizeName)}</b>`:'<span style="color:#7c8590">😔 Uğursuz</span>'}</td><td>${p.spinType==="paid"?"Ödənişli (0.3 ₼)":"Pulsuz"}</td></tr>`;
+        }).join("")}</tbody></table>`
+      : '<div class="cabinet-empty">Hələ heç kim fırlatmayıb.</div>');
 }
 
 
