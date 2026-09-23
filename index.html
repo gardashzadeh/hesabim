@@ -11579,6 +11579,8 @@ window.createOrdersFromCart = async function(items){
           // ── 1) OXUMALAR
           const wSnap = await tx.get(buyerRef);
           const adSnap = item.adId ? await tx.get(doc(db,"ads",item.adId)) : null;
+          const freeMarkerRef = item.adId ? doc(db,"ads",item.adId,"buyers",currentUser.uid) : null;
+          const freeMarkerSnap = freeMarkerRef ? await tx.get(freeMarkerRef) : null;
 
           const w = wSnap.exists() ? (wSnap.data()||{}) : {balance:0,totalSpent:0};
           const bal = Number(w.balance||0);
@@ -11588,6 +11590,14 @@ window.createOrdersFromCart = async function(items){
 
           if(!adSnap || !adSnap.exists()) throw new Error("AD_GONE::"+(item.name||item.adId));
           const a = adSnap.data()||{};
+
+          // [FREE-LIMIT] Pulsuz (0 ₼) elanlar limitsiz sayda sifariş edilə
+          // bilməsin deyə: eyni istifadəçi eyni pulsuz elanı YALNIZ 1 DƏFƏ
+          // ala bilər (marker: ads/{adId}/buyers/{uid}). Pullu elanlara
+          // toxunmur — balans onsuz da təbii məhdudiyyət yaradır.
+          if(price === 0 && freeMarkerSnap && freeMarkerSnap.exists()){
+            throw new Error("FREE_ALREADY_CLAIMED::"+(item.name||""));
+          }
 
           // Rules-un order-create şərtlərini eyni ilə təkrarla (opak deny yox,
           // konkret səbəb).
@@ -11682,6 +11692,16 @@ window.createOrdersFromCart = async function(items){
           }, {merge:true});
 
           tx.set(orderRef, orderPayload);
+
+          // [FREE-LIMIT] Pulsuz elan üçün "artıq alınıb" markerini elə bu
+          // əməliyyatda yaz — oxu(yoxlama) və yazı eyni transaction daxilində
+          // olduğundan iki paralel klik eyni anda "hələ yoxdur" görüb ikisi
+          // də keçə bilmir (Firestore transaction təkrar-cəhd təminatı).
+          if(price === 0 && freeMarkerRef){
+            tx.set(freeMarkerRef, {
+              uid: currentUser.uid, orderId: orderRef.id, createdAt: serverTimestamp()
+            });
+          }
 
           // Stoku azalt / son ədəddirsə satılmış işarələ
           // [STOCK-BIND] HAL 1 (stok qalır) artıq sifariş möhürü daşıyır:
@@ -11918,6 +11938,12 @@ window.createOrdersFromCart = async function(items){
     if(msg.startsWith("SELF_BUY::")){ toast("❌ Öz elanını ala bilməzsən: " + msg.split("::")[1]); return; }
     if(msg.startsWith("OUT_OF_STOCK::")){
       toast("❌ Stok kifayət etmir: " + msg.split("::")[1] + ". Səbətdəki sayı azalt.");
+      return;
+    }
+    if(msg.startsWith("FREE_ALREADY_CLAIMED::")){
+      toast("❌ Bu pulsuz elanı artıq almısan, təkrar ala bilməzsən: " + msg.split("::")[1]);
+      cart = cart.filter(x=>x.name !== msg.split("::")[1]);
+      localStorage.setItem("gs_cart", JSON.stringify(cart)); updateCart();
       return;
     }
     if(msg.startsWith("PRICE_CHANGED::")){
