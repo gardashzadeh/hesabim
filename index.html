@@ -11014,8 +11014,8 @@ async function renderProfile(){
     </table>
     <h3>Profil redaktəsi</h3>
     <div class="profile-form">
-      <input id="profileUserId" value="${esc(profile.userId || '')}" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off" style="text-transform:lowercase" ${profile.userIdChanged ? 'disabled title="ID yalnız 1 dəfə dəyişdirilə bilər"' : ''}>
-      ${profile.userIdChanged ? '<small style="color:#64748b;font-size:11px;grid-column:1/-1;margin-top:-6px">🔒 ID artıq dəyişdirilib. Yalnız 1 dəfə dəyişmək mümkündür.</small>' : '<small style="color:#ff5100;font-size:11px;grid-column:1/-1;margin-top:-6px">⚠️ ID yalnız 1 dəfə dəyişdirilə bilər.</small>'}
+      <input id="profileUserId" value="${esc(profile.userId || '')}" placeholder="İstifadəçi ID (məs: gamer123)" maxlength="20" autocomplete="off" style="text-transform:lowercase" ${(profile.userIdChanged && !isAdmin()) ? 'disabled title="ID yalnız 1 dəfə dəyişdirilə bilər"' : ''}>
+      ${(profile.userIdChanged && !isAdmin()) ? '<small style="color:#64748b;font-size:11px;grid-column:1/-1;margin-top:-6px">🔒 ID artıq dəyişdirilib. Yalnız 1 dəfə dəyişmək mümkündür.</small>' : '<small style="color:#ff5100;font-size:11px;grid-column:1/-1;margin-top:-6px">⚠️ ID yalnız 1 dəfə dəyişdirilə bilər.</small>'}
       <input id="profileName" value="${esc(profile.name || '')}" placeholder="Ad">
       <input id="profileSurname" value="${esc(profile.surname || '')}" placeholder="Soyad">
       <input class="full" id="profileBirthDate" type="date" value="${esc(profile.birthDate || '')}">
@@ -11114,7 +11114,7 @@ window.updateProfileInfo = async function(){
     // userId dəyişibsə — unikallığı yoxla və köhnəni sil
     if(newUserId !== oldUserId){
       // Yalnız 1 dəfə dəyişmək olar
-      if(userSnap && userSnap.exists() && userSnap.data()?.userIdChanged){
+      if(!_isAdmin && userSnap && userSnap.exists() && userSnap.data()?.userIdChanged){
         toast("ID artıq dəyişdirilib. Yalnız 1 dəfə dəyişmək mümkündür."); return;
       }
       const uSnap = await getDoc(doc(db,"usernames",newUserId)).catch(()=>null);
@@ -11136,11 +11136,18 @@ window.updateProfileInfo = async function(){
     // ID dəyişibsə — bütün öz elanlarında satıcı adını yenilə (ana səhifə/elan köhnə adı göstərməsin)
     if(newUserId !== oldUserId){
       try{
+        // [FIX] Əvvəl presence yazılır və lokal keş dərhal yenilənir — ekranda köhnə ad qalmasın
+        try{ await setDoc(doc(db,"presence",currentUser.uid),{userName:newUserId,updatedAt:serverTimestamp()},{merge:true}); }
+        catch(pe){ console.error("[ID] presence yazılmadı:", pe); toast("⚠️ Ad presence-ə yazılmadı: "+(pe.code||pe.message||"")); }
+        try{ cacheSellerStatus({uid:currentUser.uid, email:currentUser.email||"", userName:newUserId}); refreshSellerBadges(); }catch(_){}
         const adsSnap = await getDocs(query(collection(db,"ads"), where("sellerUid","==",currentUser.uid)));
+        let _adFail = 0, _adErr = "";
         for(const d of adsSnap.docs){
-          await updateDoc(doc(db,"ads",d.id),{seller:newUserId, sellerUserId:newUserId, updatedAt:serverTimestamp()}).catch(e=>console.warn("ad "+d.id+":",e));
+          try{ await updateDoc(doc(db,"ads",d.id),{seller:newUserId, sellerUserId:newUserId, updatedAt:serverTimestamp()}); }
+          catch(e){ _adFail++; _adErr = e.code||e.message||""; console.error("[ID] elan "+d.id+" yenilənmədi:", e); }
         }
-        try{ await setDoc(doc(db,"presence",currentUser.uid),{userName:newUserId,updatedAt:serverTimestamp()},{merge:true}); }catch(_){}
+        if(_adFail) toast("⚠️ "+_adFail+" elanda köhnə ad qaldı ("+_adErr+") — Firestore Rules seller/sellerUserId dəyişməyə icazə vermir.");
+        window._adNameSyncDone = false;
       }catch(e){ console.warn("elan adı sinxronu:", e); }
     }
 
@@ -16631,7 +16638,7 @@ window.openSellerProfile = async function(sellerUid, sellerEmail){
     const _pdName = (window.currentDetailProduct && window.currentDetailProduct.sellerUid === sellerUid)
       ? (window.currentDetailProduct.seller || "") : "";
     const _presenceName = (_pre && _pre.userName) ? _pre.userName : "";
-    const displayName = profile.userId || _adUserId || _pdName || _presenceName || "Satıcı";
+    const displayName = profile.userId || _presenceName || _adUserId || _pdName || "Satıcı"; // [FIX] canlı presence adı köhnə elan adından üstündür
     const initial = displayName.charAt(0).toUpperCase();
 
     // Qeydiyyat tarixi. users/{uid} yalnız sahibi/admin üçün oxunandır; kənar istifadəçi üçün
