@@ -4463,6 +4463,24 @@ select[id*="categor" i] option{
       color:#ff8a3d;background:transparent;border:1.5px solid rgba(255,129,55,.55);border-radius:24px;cursor:pointer;transition:.2s}
     .wheel-paid-btn:hover{background:rgba(255,81,0,.12);border-color:#ff5100}
     .wheel-paid-btn:disabled{opacity:.5;cursor:not-allowed}
+    .wheel-rules-link{display:block;margin-top:10px;padding:0;background:none;border:none;color:#7c8590;font-size:12.5px;
+      text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-family:inherit}
+    .wheel-rules-link:hover{color:#ff8a3d}
+    @media(max-width:768px){.wheel-rules-link{margin-left:auto;margin-right:auto}}
+    #wheelRulesModal .modal-box{max-width:520px;max-height:88vh;overflow-y:auto;position:relative}
+    .wr-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid #333636;
+      background:transparent;color:inherit;cursor:pointer;font-size:14px;line-height:1}
+    .wr-list{margin:0 0 18px;padding-left:20px;font-size:13.5px;line-height:1.65;color:#cbd5e1}
+    .wr-list li{margin-bottom:6px}
+    .wr-sub{margin:4px 0 8px;font-size:14px;font-weight:800;color:#ff8a3d}
+    .wr-table{width:100%!important;display:table!important;table-layout:auto;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+    .wr-table th,.wr-table td{padding:8px 10px;border-bottom:1px solid #262a30;text-align:left}
+    .wr-table th{color:#9aa4b2;font-weight:700;font-size:12px}
+    .wr-table td:not(:first-child),.wr-table th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+    .wr-note{font-size:12px;color:#7c8590;margin:0}
+    body.light-mode .wr-list{color:#334155}
+    body.light-mode .wr-table th,body.light-mode .wr-table td{border-color:#e3e8ef}
+    body.light-mode .wr-close{border-color:#dde1e7}
     .wheel-slide-right{position:relative;z-index:2;flex-shrink:0}
     .wheel-wrap{position:relative;width:300px;height:300px}
     .wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;
@@ -4504,6 +4522,7 @@ select[id*="categor" i] option{
         <p id="statusText" class="wheel-status-text"></p>
         <p id="countdownText" class="wheel-countdown"></p>
         <button id="paidSpinBtn" class="wheel-paid-btn" style="display:none">0.3 ₼-lə əlavə fırlat</button>
+        <button type="button" id="wheelRulesBtn" class="wheel-rules-link">Qaydalar və şanslar</button>
       </div>
       <div class="wheel-slide-right">
         <div class="wheel-wrap">
@@ -4576,9 +4595,18 @@ select[id*="categor" i] option{
       { name: "10$ Wallet Kodu",    chance: 0.01, icon: "💳" },
       { name: "Gemini Pro 18 Ay",   chance: 1,    icon: "✨" },
       { name: "Netflix Hesab",      chance: 2,    icon: "🎬" },
-      { name: "Steam Oyunu",        chance: 3,    icon: "🎮" },
+      { name: "Steam Hesabı",       chance: 3,    icon: "🎮" },
       { name: "Canva Pro",          chance: 4,    icon: "🎨" },
       { name: "Hədiyyəsiz",         chance: 89.99,icon: "😔" },
+    ];
+    // ==== ÖDƏNİŞLİ FIRLATMA ehtimalları — PRIZES ilə eyni sırada, cəmi 100 ====
+    const PAID_CHANCES = [
+      0.05,  // 10$ Wallet Kodu
+      2,     // Gemini Pro 18 Ay
+      2,     // Netflix Hesab
+      10,    // Steam Hesabı
+      15,    // Canva Pro
+      70.95  // Hədiyyəsiz
     ];
     const COLORS = ["#ff5100","#1c2330","#ff5100","#1c2330","#ff5100","#1c2330"];
 
@@ -4590,6 +4618,22 @@ select[id*="categor" i] option{
     const resultText = document.getElementById("resultText");
     const statusText = document.getElementById("statusText");
     const countdownText = document.getElementById("countdownText");
+
+    // ==== QAYDALAR VƏ ŞANSLAR — cədvəl PRIZES/PAID_CHANCES-dən qurulur ====
+    const rulesBtn = document.getElementById("wheelRulesBtn");
+    if(rulesBtn){
+      const fmtPct = v => (Math.round(v*100)/100).toString().replace(/\.0+$/,"") + "%";
+      rulesBtn.addEventListener("click", ()=>{
+        const body = document.getElementById("wheelOddsBody");
+        if(body){
+          body.innerHTML = PRIZES.map((p,i)=>
+            "<tr><td>"+p.icon+" "+p.name+"</td><td>"+fmtPct(p.chance)+"</td><td>"+fmtPct(PAID_CHANCES[i])+"</td></tr>"
+          ).join("");
+        }
+        if(typeof window.openModal === "function") window.openModal("wheelRulesModal");
+        else document.getElementById("wheelRulesModal")?.classList.add("show");
+      });
+    }
 
     let countdownTimer = null;
     function stopCountdown(){
@@ -4730,12 +4774,13 @@ select[id*="categor" i] option{
     function todayStr(){ return new Date().toISOString().split("T")[0]; }
     const COOLDOWN_MS = 24*60*60*1000;
 
-    function pickPrizeIndex(){
-      const total = PRIZES.reduce((s,p)=>s+p.chance,0);
+    function pickPrizeIndex(chances){
+      const list = chances || PRIZES.map(p=>p.chance);
+      const total = list.reduce((s,c)=>s+c,0);
       let rnd = Math.random()*total;
       for(let i=0;i<N;i++){
-        if(rnd < PRIZES[i].chance) return i;
-        rnd -= PRIZES[i].chance;
+        if(rnd < list[i]) return i;
+        rnd -= list[i];
       }
       return N-1;
     }
@@ -4812,7 +4857,7 @@ select[id*="categor" i] option{
       if(resultText){
         resultText.textContent = prize.name === "Hədiyyəsiz"
           ? "🎁 Bu dəfə uğursuz oldu 😔 Sabah yenə cəhd et!"
-          : "🎉 Təbriklər! Qazandın: " + prize.name + " 🎉";
+          : "🎉 Təbriklər! Qazandın: " + prize.name + " 🎉 Hədiyyəni almaq üçün Dəstək bölməsinə yaz.";
       }
       spinBtn.textContent = "Sabah yenə gəl";
       if(statusText) statusText.textContent = "";
@@ -4879,12 +4924,12 @@ select[id*="categor" i] option{
             const realLastSpinAt = freshSpinSnap.exists() ? freshSpinSnap.data().lastSpinAt : null;
             if(realLastSpinAt){
               // [WHEEL PLAYS] hər fırlanma (uduzsa da) — admin panelində "kim oynadı" statistikası üçün
-              addDoc(collection(db,"wheelPlays"), {
+              setDoc(doc(db,"wheelPlays", user.uid+"_"+realLastSpinAt.toMillis()), {
                 userId: user.uid, userName: playerName, userEmail: user.email || "",
                 prizeName: prize.name, spinType: "free", playedAt: realLastSpinAt
               }).catch(e=>console.error("[wheel] wheelPlays log:", e));
               if(prize.name !== "Hədiyyəsiz"){
-                addDoc(collection(db,"wheelWins"), {
+                setDoc(doc(db,"wheelWins", user.uid+"_"+realLastSpinAt.toMillis()), {
                   userId: user.uid, userName: playerName, userEmail: user.email || "",
                   prizeName: prize.name, spinType: "free", wonAt: realLastSpinAt
                 }).catch(e=>console.error("[wheel] wheelWins log:", e));
@@ -4902,7 +4947,7 @@ select[id*="categor" i] option{
       });
     }
 
-    // ==== ÖDƏNİŞLİ ƏLAVƏ FIRLATMA (0.5 AZN) ====
+    // ==== ÖDƏNİŞLİ ƏLAVƏ FIRLATMA (0.3 AZN) ====
     const PAID_SPIN_COST = 0.3;
     if(paidSpinBtn){
       paidSpinBtn.addEventListener("click", async ()=>{
@@ -4918,7 +4963,7 @@ select[id*="categor" i] option{
         if(window.heroSliderPause) window.heroSliderPause();
 
         try{
-          const idx = pickPrizeIndex();
+          const idx = pickPrizeIndex(PAID_CHANCES);
           const prize = PRIZES[idx];
 
           const walletRef = doc(db, "wallets", user.uid);
@@ -4960,12 +5005,12 @@ select[id*="categor" i] option{
             const freshSpinSnap = await getDoc(spinRef);
             const realLastSpinAt = freshSpinSnap.exists() ? freshSpinSnap.data().lastSpinAt : null;
             if(realLastSpinAt){
-              addDoc(collection(db,"wheelPlays"), {
+              setDoc(doc(db,"wheelPlays", user.uid+"_"+realLastSpinAt.toMillis()), {
                 userId: user.uid, userName: playerName, userEmail: user.email || "",
                 prizeName: prize.name, spinType: "paid", playedAt: realLastSpinAt
               }).catch(e=>console.error("[wheel] wheelPlays log:", e));
               if(prize.name !== "Hədiyyəsiz"){
-                addDoc(collection(db,"wheelWins"), {
+                setDoc(doc(db,"wheelWins", user.uid+"_"+realLastSpinAt.toMillis()), {
                   userId: user.uid, userName: playerName, userEmail: user.email || "",
                   prizeName: prize.name, spinType: "paid", wonAt: realLastSpinAt
                 }).catch(e=>console.error("[wheel] wheelWins log:", e));
@@ -6012,6 +6057,26 @@ select[id*="categor" i] option{
 <div class="toast" id="toast"></div>
 
 <!-- ÖZEL TƏSDİQ MODALI -->
+<!-- ===== ÇARX QAYDALARI MODALI ===== -->
+<div class="modal" id="wheelRulesModal">
+  <div class="modal-box">
+    <button class="wr-close" onclick="closeModal('wheelRulesModal')" aria-label="Bağla">✕</button>
+    <h3>Çarx qaydaları</h3>
+    <ol class="wr-list">
+      <li>Çarxı fırlatmaq üçün hesabınıza daxil olmalısınız.</li>
+      <li>Pulsuz fırlatma hər 24 saatda 1 dəfədir.</li>
+      <li>Əlavə fırlatma 0.3 ₼-dır və balansınızdan çıxılır.</li>
+      <li><b>Hədiyyə qazandıqda Dəstək bölməsinə yazın.</b></li>
+    </ol>
+    <div class="wr-sub">Qazanma şansları</div>
+    <table class="wr-table">
+      <thead><tr><th>Hədiyyə</th><th>Pulsuz</th><th>Əlavə (0.3 ₼)</th></tr></thead>
+      <tbody id="wheelOddsBody"></tbody>
+    </table>
+    <p class="wr-note">Hər fırlatmanın nəticəsi əvvəlkilərdən asılı deyil.</p>
+  </div>
+</div>
+
 <div class="modal" id="confirmModal" style="z-index:999999">
   <div class="modal-box" style="max-width:380px;text-align:center;padding:32px 28px">
     <div id="confirmIcon" style="font-size:32px;margin-bottom:12px">❓</div>
