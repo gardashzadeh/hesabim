@@ -4522,7 +4522,7 @@ select[id*="categor" i] option{
         <p id="statusText" class="wheel-status-text"></p>
         <p id="countdownText" class="wheel-countdown"></p>
         <button id="paidSpinBtn" class="wheel-paid-btn" style="display:none">0.3 ₼-lə əlavə fırlat</button>
-        <button type="button" id="wheelRulesBtn" class="wheel-rules-link">Qaydalar və şanslar</button>
+        <button type="button" id="wheelRulesBtn" class="wheel-rules-link">Qaydalar</button>
       </div>
       <div class="wheel-slide-right">
         <div class="wheel-wrap">
@@ -4602,11 +4602,11 @@ select[id*="categor" i] option{
     // ==== ÖDƏNİŞLİ FIRLATMA ehtimalları — PRIZES ilə eyni sırada, cəmi 100 ====
     const PAID_CHANCES = [
       0.05,  // 10$ Wallet Kodu
-      2,     // Gemini Pro 18 Ay
+      1,     // Gemini Pro 18 Ay
       2,     // Netflix Hesab
       10,    // Steam Hesabı
       15,    // Canva Pro
-      70.95  // Hədiyyəsiz
+      71.95  // Hədiyyəsiz
     ];
     const COLORS = ["#ff5100","#1c2330","#ff5100","#1c2330","#ff5100","#1c2330"];
 
@@ -4619,17 +4619,10 @@ select[id*="categor" i] option{
     const statusText = document.getElementById("statusText");
     const countdownText = document.getElementById("countdownText");
 
-    // ==== QAYDALAR VƏ ŞANSLAR — cədvəl PRIZES/PAID_CHANCES-dən qurulur ====
+    // ==== ÇARX QAYDALARI ====
     const rulesBtn = document.getElementById("wheelRulesBtn");
     if(rulesBtn){
-      const fmtPct = v => (Math.round(v*100)/100).toString().replace(/\.0+$/,"") + "%";
       rulesBtn.addEventListener("click", ()=>{
-        const body = document.getElementById("wheelOddsBody");
-        if(body){
-          body.innerHTML = PRIZES.map((p,i)=>
-            "<tr><td>"+p.icon+" "+p.name+"</td><td>"+fmtPct(p.chance)+"</td><td>"+fmtPct(PAID_CHANCES[i])+"</td></tr>"
-          ).join("");
-        }
         if(typeof window.openModal === "function") window.openModal("wheelRulesModal");
         else document.getElementById("wheelRulesModal")?.classList.add("show");
       });
@@ -6066,14 +6059,9 @@ select[id*="categor" i] option{
       <li>Çarxı fırlatmaq üçün hesabınıza daxil olmalısınız.</li>
       <li>Pulsuz fırlatma hər 24 saatda 1 dəfədir.</li>
       <li>Əlavə fırlatma 0.3 ₼-dır və balansınızdan çıxılır.</li>
+      <li>Pullu çarxda qazanma ehtimalı pulsuz çarxdan təxminən 3 dəfə çoxdur.</li>
       <li><b>Hədiyyə qazandıqda Dəstək bölməsinə yazın.</b></li>
     </ol>
-    <div class="wr-sub">Qazanma şansları</div>
-    <table class="wr-table">
-      <thead><tr><th>Hədiyyə</th><th>Pulsuz</th><th>Əlavə (0.3 ₼)</th></tr></thead>
-      <tbody id="wheelOddsBody"></tbody>
-    </table>
-    <p class="wr-note">Hər fırlatmanın nəticəsi əvvəlkilərdən asılı deyil.</p>
   </div>
 </div>
 
