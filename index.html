@@ -7393,6 +7393,7 @@ function openProductDetail(p){
   }
 
   // Satıcı online statusu yoxla
+  if(window.loadPresenceFor && currentDetailProduct.sellerUid) window.loadPresenceFor([currentDetailProduct.sellerUid]);
   if(window.updateProductDetailSellerOnline) window.updateProductDetailSellerOnline();
 
   // Ödəniş sistemi: yalnız admin öz məhsulları üçün (approved:false)
@@ -8562,7 +8563,7 @@ window.syncAdminBodyClass = syncAdminBodyClass;
 
 
 /* ONLINE STATUS SYSTEM - 1 dəqiqə yenilənmə */
-const ONLINE_ACTIVE_MS = 2 * 60 * 1000;
+const ONLINE_ACTIVE_MS = 6 * 60 * 1000;
 const sellerStatusCache = new Map();
 window.sellerStatusCache = sellerStatusCache;
 
@@ -8757,38 +8758,29 @@ window.getSellerStatus = getSellerStatus;
 // (permission-denied). Artıq sellerVerified statusu yalnız "presence" kolleksiyasından
 // gəlir — bu kolleksiya hər kəs üçün oxunaqlıdır (allow read: if true).
 
+// [KVOTA FIX] Əvvəl bütün "presence" kolleksiyası hər ziyarətçi üçün canlı dinlənirdi
+// (hər heartbeat bütün açıq tablara oxuma göndərirdi). İndi yalnız ekranda görünən
+// satıcıların presence sənədləri oxunur, 5 dəqiqəlik keşlə.
+const _presenceFetchedAt = new Map();
+const PRESENCE_TTL_MS = 5 * 60 * 1000;
+async function loadPresenceFor(uids){
+  const now = Date.now();
+  const todo = [...new Set(uids||[])].filter(u => u && (now - (_presenceFetchedAt.get(u)||0)) > PRESENCE_TTL_MS);
+  if(!todo.length) return;
+  todo.forEach(u => _presenceFetchedAt.set(u, now));
+  await Promise.all(todo.map(async uid => {
+    try{
+      const s = await getDoc(doc(db,"presence",uid));
+      if(s.exists()) cacheSellerStatus({uid, ...(s.data()||{})});
+    }catch(_){}
+  }));
+  try{ refreshSellerBadges(); }catch(_){}
+}
+window.loadPresenceFor = loadPresenceFor;
+
 function listenSellerOnlineStatuses(){
-  // [SAFE FIX] Yalnız bir global presence listener saxla.
-  if(window._sellerOnlineUnsub) return;
-  try{
-    window._sellerOnlineUnsub = onSnapshot(
-      collection(db,"presence"),
-      snap=>{
-        // Bütün kolleksiyanı hər dəfə yenidən cache-ləmirik.
-        // Yalnız dəyişən sənədləri emal edirik.
-        snap.docChanges().forEach(ch=>{
-          if(ch.type === "removed"){
-            try{
-              if(window._sellerStatusCache && window._sellerStatusCache[ch.doc.id]){
-                delete window._sellerStatusCache[ch.doc.id];
-              }
-            }catch(_){}
-            return;
-          }
-          cacheSellerStatus({uid:ch.doc.id, ...(ch.doc.data()||{})});
-        });
-        refreshSellerBadges();
-      },
-      err=>{
-        console.warn("online status listen:", err);
-        try{ if(window._sellerOnlineUnsub) window._sellerOnlineUnsub(); }catch(_){}
-        window._sellerOnlineUnsub = null;
-      }
-    );
-  }catch(e){
-    console.warn("online status init:", e);
-    window._sellerOnlineUnsub = null;
-  }
+  // Bütün kolleksiyanı dinləmək söndürüldü (kvota qənaəti). Bax: loadPresenceFor.
+  if(window.approvedFirestoreAds) loadPresenceFor(window.approvedFirestoreAds.map(a => a.sellerUid));
 }
 async function updateOwnOnlineStatus(isOnline=true){
   if(!currentUser) return;
@@ -8829,7 +8821,7 @@ function startOwnPresence(){
   cacheSellerStatus({uid: currentUser.uid, email: currentUser.email || "", online: true, lastSeen: Date.now()});
   updateOwnOnlineStatus(true);
   if(window._presenceInterval) clearInterval(window._presenceInterval);
-  window._presenceInterval = setInterval(()=>updateOwnOnlineStatus(true), 60 * 1000);
+  window._presenceInterval = setInterval(()=>updateOwnOnlineStatus(true), 5 * 60 * 1000);
   if(!window._presenceEventsBound){
     window._presenceEventsBound = true;
     document.addEventListener("visibilitychange", ()=>{
@@ -9945,7 +9937,7 @@ function startAdminPresence(){
   if(_adminPresenceInterval) clearInterval(_adminPresenceInterval);
   updateAdminPresence();
   // 30 san → 60 san: yazı kvotasına qənaət (admin brauzeri açıq qalanda sutkada ~2880 yazı idi)
-  _adminPresenceInterval = setInterval(updateAdminPresence, 60000);
+  _adminPresenceInterval = setInterval(updateAdminPresence, 5 * 60 * 1000);
 }
 function stopAdminPresence(){
   if(_adminPresenceInterval){ clearInterval(_adminPresenceInterval); _adminPresenceInterval = null; }
@@ -9997,7 +9989,7 @@ function listenAdminPresence(){
       const d = snap.data();
       const lastSeen = d?.lastSeen?.seconds || 0;
       const ageSec = (Date.now()/1000) - lastSeen;
-      SUP.adminOnline = ageSec < 90 && lastSeen > 0;
+      SUP.adminOnline = ageSec < 360 && lastSeen > 0;
       _supUpdateOnlineUI();
     });
   }catch(e){ console.warn("presence listen failed", e); }
@@ -16461,6 +16453,7 @@ function listenPublicAds(){
     });
     window.approvedFirestoreAds=arr;
     if(window.renderMarketAds) window.renderMarketAds();
+    if(window.loadPresenceFor) window.loadPresenceFor(arr.map(a => a.sellerUid));
   }, err=>{
     // [RETRY] Dinləyici xəta versə (şəbəkə/long-polling), skeleton ilişməsin.
     // 3 saniyə sonra bir dəfə təkrar bağlanır. Bu, "bəzən boş yüklənir"
