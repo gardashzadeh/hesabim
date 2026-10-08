@@ -257,7 +257,11 @@ input,select,textarea{font-family:inherit}
 .logo svg{width:150px;height:auto}
 .logo-sub{font-size:11px;color:#dedede;margin-top:4px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
 .search{flex:1;max-width:590px;min-width:280px;height:48px;background:#101111;border:1px solid #343636;border-radius:10px;display:flex;overflow:hidden}
-.howto-wrap{flex:1 1 auto;display:flex;justify-content:center;min-width:0;order:0}
+.howto-wrap{flex:1 1 auto;display:flex;justify-content:space-between;align-items:center;gap:16px;min-width:0;order:0}
+.contact-mail{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.1px;color:#f0f0f0;white-space:nowrap;text-decoration:none;transition:color .18s}
+.contact-mail svg{width:18px;height:18px;flex-shrink:0}
+.contact-mail:hover{color:#ff5100}
+body.light-mode .contact-mail{color:#4a5568}
 .howto-btn{display:inline-flex;align-items:center;gap:8px;padding:0;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.1px;color:#f0f0f0;white-space:nowrap;transition:color .18s}
 .howto-btn svg{width:18px;height:18px;flex-shrink:0}
 .howto-btn span{color:#f0f0f0}
@@ -4346,6 +4350,7 @@ select[id*="categor" i] option{
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" fill="#ff5100" opacity=".16"/><path d="M12 2.5l7.2 2.7v5.4c0 4.6-3.1 8.4-7.2 9.9-4.1-1.5-7.2-5.3-7.2-9.9V5.2L12 2.5z" stroke="#ff5100" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9" stroke="#ff5100" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Sayt necə işləyir?</span>
       </button>
+      <a class="contact-mail" href="mailto:contact@hesablar.net" title="Bizə yazın"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5100" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>contact@hesablar.net</span></a>
     </div>
     <div class="actions">
       <button id="notifyBtn" class="notify-btn" type="button" title="Bildirişlər" onclick="openNotifications()">🔔<b id="notifyBadge" style="display:none">0</b></button>
