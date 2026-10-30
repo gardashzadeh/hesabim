@@ -17264,9 +17264,19 @@ window.getCouponDiscount = function(){ return 0; };
 // THEME TOGGLE
 function toggleTheme(){
   /* Light = yeni görünüş, Dark = köhnə görünüş */
-  try{ sessionStorage.setItem("hn_ui", window.__uiOld ? "new" : "old"); }catch(e){}
-  var u = new URL(location.href); u.searchParams.delete("ui");
-  location.replace(u.toString());
+  var next = window.__uiOld ? "new" : "old";
+  try{ sessionStorage.setItem("hn_ui", next); }catch(e){}
+  // Əvvəl location.replace istifadə olunurdu: URL-də #wallet kimi hash olanda
+  // brauzer səhifəni YENİDƏN YÜKLƏMİRDİ — ona görə keçid gah işləyir, gah yox.
+  // İndi: ?ui= parametri varsa onu yeni dəyərlə əvəz edirik, yoxdursa həmişə reload.
+  var u = new URL(location.href);
+  if(u.searchParams.has("ui")){
+    u.searchParams.set("ui", next);
+    location.href = u.toString();
+    setTimeout(function(){ location.reload(); }, 50);
+  } else {
+    location.reload();
+  }
 }
 (function(){
   var b = document.getElementById("themeToggleBtn"); if(!b) return;
@@ -19580,6 +19590,64 @@ html.ui-old #themeToggleBtn:hover{border-color:#ff5100!important}
   html body .actions .cart{order:6!important}
   html #themeToggleBtn svg{width:18px;height:18px}
 }
+</style>
+
+<style id="fix-logo-hero">
+/* ==== LOQO: qara fonlu loqo açıq header-də — rəngləri tərsinə çevirib fonu ağa qatırıq ==== */
+html:not(.ui-old) .header .logo img,
+html:not(.ui-old) footer img[src*="sekil_01"]{
+  filter:invert(1) hue-rotate(180deg) saturate(1.25) contrast(1.05);
+  mix-blend-mode:multiply;
+  border-radius:0!important;background:transparent!important;
+}
+html:not(.ui-old) .header .logo{background:transparent!important;padding:0;border:0}
+
+/* ==== SLAYD 1: şəkillər tam rəngdə, kənardan mərkəzə yumşaq əriyir (tikiş yoxdur) ==== */
+html:not(.ui-old) body .hero-mockup{background:#fff!important}
+html:not(.ui-old) body .hero-mockup::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(520px 300px at 50% 120%, rgba(255,90,0,.16), transparent 70%);
+}
+html:not(.ui-old) body .hero-mockup .hero-bg-left,
+html:not(.ui-old) body .hero-mockup .hero-bg-right{
+  width:40%!important;background-size:cover;background-position:center;opacity:1;
+}
+html:not(.ui-old) body .hero-mockup .hero-bg-left{
+  background-image:url("/img/sekil_02.webp")!important;
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 35%,rgba(0,0,0,.55) 62%,transparent 100%);
+          mask-image:linear-gradient(90deg,#000 0%,#000 35%,rgba(0,0,0,.55) 62%,transparent 100%);
+}
+html:not(.ui-old) body .hero-mockup .hero-bg-right{
+  background-image:url("/img/sekil_03.webp")!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 0%,#000 35%,rgba(0,0,0,.55) 62%,transparent 100%);
+          mask-image:linear-gradient(270deg,#000 0%,#000 35%,rgba(0,0,0,.55) 62%,transparent 100%);
+}
+html:not(.ui-old) body .hero-mockup .hero-title{z-index:2}
+html:not(.ui-old) body .hero-mockup .hero-title::before{
+  content:"";position:absolute;left:50%;top:50%;width:620px;height:300px;transform:translate(-50%,-50%);z-index:-1;
+  background:radial-gradient(closest-side,rgba(255,255,255,.96),rgba(255,255,255,.85) 55%,transparent 100%);
+}
+/* Slayd 2 (kampaniya şəkli) tam doldursun */
+html:not(.ui-old) body .hero-slide-img{width:100%;height:100%;object-fit:cover;display:block}
+</style>
+
+<style id="fix-cabinet">
+/* Kabinet başlığı — qara banner yox, saytın ağ üslubu */
+html:not(.ui-old) body .cabinet-head,
+html:not(.ui-old) body .cabinet-modal.cab-fullscreen .cabinet-head{background:#fff!important;border-bottom:1px solid #E4E4E4!important}
+html:not(.ui-old) body .cabinet-head h3{color:#0B0B0B!important}
+html:not(.ui-old) body .cabinet-head .hbtn,
+html:not(.ui-old) body .cabinet-head button{background:#fff!important;border:1px solid #CFCFCF!important;color:#0B0B0B!important}
+html:not(.ui-old) body .cabinet-head .hbtn:hover,
+html:not(.ui-old) body .cabinet-head button:hover{background:#F4F4F4!important;border-color:#0B0B0B!important}
+@media(max-width:900px){html:not(.ui-old) body .cabinet-head{background:#fff!important}}
+
+/* Aktiv bölmə — narıncı fon, ağ yazı və ağ ikon */
+html:not(.ui-old) body .cabinet-menu button.active{background:#FF5A00!important;border-color:#FF5A00!important;color:#fff!important;box-shadow:0 8px 20px -12px rgba(255,90,0,.8)!important}
+html:not(.ui-old) body .cabinet-menu button.active:hover{background:#FF7A2E!important}
+html:not(.ui-old) body .cabinet-menu button.active::before{background-color:transparent!important;border-color:transparent!important;filter:brightness(0) invert(1)}
+html:not(.ui-old) body .cabinet-menu button.active svg{color:#fff!important;stroke:#fff!important}
+html:not(.ui-old) body .cab-menu-toggle{color:#FF5A00!important}
 </style>
 </body>
 </html>
