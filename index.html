@@ -19748,6 +19748,118 @@ body.pd-self-sell #productModal .pd-escrow{display:none!important}
   html body .wheel-section .wheel-base{display:none!important}
 }
 </style>
+
+<style id="fix-pd-image-fit">
+/* ELAN ŞƏKLİ: şaquli (telefon skrinşotu) və üfüqi şəkillər eyni qutuda,
+   kəsilmədən görünür; boş qalan yerləri şəklin özünün bulanıq versiyası doldurur */
+#pdImage.pd-has-photo{isolation:isolate}
+#pdImage.pd-has-photo::after{
+  content:"";position:absolute;inset:-30px;z-index:0;pointer-events:none;
+  background-image:var(--pd-photo);background-size:cover;background-position:center;
+  filter:blur(26px) saturate(1.2);transform:scale(1.1);opacity:.55;
+}
+#pdImage.pd-has-photo > img{position:relative;z-index:1}
+#pdImage.pd-has-photo > .pd-nav-arrow{z-index:2}
+
+/* Light görünüş: sabit kvadrat qutu, şəkil tam sığır (kəsilmir, uzanmır) */
+html:not(.ui-old) body #productModal .pd-gallery-col .product-detail-image.pd-has-photo{
+  aspect-ratio:1/1!important;min-height:0!important;height:auto!important;padding:0!important;background:#1A1A1A!important;
+}
+html:not(.ui-old) body #productModal .pd-gallery-col .product-detail-image.pd-has-photo > img{
+  width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;border-radius:0!important;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35))!important;
+}
+html:not(.ui-old) body #productModal .pd-gallery-col .product-detail-image.pd-has-photo:hover > img{transform:none!important}
+</style>
+<script>
+/* Şəkil dəyişəndə bulanıq fonu yenilə */
+(function(){
+  function sync(){
+    var w=document.getElementById("pdImage"); if(!w) return;
+    var img=w.querySelector(":scope > img");
+    var src=img && (img.currentSrc||img.src);
+    if(src && !/\.svg(\?|$)/i.test(src) && src.indexOf("data:image/svg")!==0){
+      w.classList.add("pd-has-photo");
+      w.style.setProperty("--pd-photo",'url("'+src.replace(/"/g,'%22')+'")');
+    } else {
+      w.classList.remove("pd-has-photo");
+      w.style.removeProperty("--pd-photo");
+    }
+  }
+  function init(){
+    var w=document.getElementById("pdImage"); if(!w) return;
+    new MutationObserver(sync).observe(w,{childList:true,subtree:true,attributes:true,attributeFilter:["src"]});
+    sync();
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
+</script>
+
+<style id="fix-mobile-bottom-nav">
+/* MOBİL ALT MENYU — həmişə görünür (elan, kabinet, giriş və digər pəncərələr açıq olanda da) */
+@media(max-width:900px){
+  html body .mobile-bottom-nav{z-index:1000100!important;display:grid!important}
+  /* Tam ekran pəncərələr alt menyunun üstündə bitir — məzmun onun altında qalmır */
+  html body #productModal,
+  html body #cabinetModal,
+  html body .cabinet-modal,
+  html body .modal{bottom:calc(60px + env(safe-area-inset-bottom,0px))!important;top:0!important;height:auto!important;max-height:none!important}
+  html body #productModal .product-detail-box,
+  html body #cabinetModal .cabinet-box{height:100%!important;max-height:100%!important}
+  html:not(.ui-old) body #productModal{inset:0 0 calc(60px + env(safe-area-inset-bottom,0px)) 0!important;height:auto!important}
+  html:not(.ui-old) body #productModal .product-detail-box{height:100%!important;max-height:100%!important}
+  /* Səbət və dəstək paneli açıq pəncərənin üstündə açılsın */
+  html body #cartPanel.show,html body .cart-panel.show{z-index:1000060!important;bottom:calc(68px + env(safe-area-inset-bottom,0px))!important}
+  html body #supportPanel{z-index:1000060!important}
+}
+</style>
+<script>
+/* Alt menyu düymələri pəncərə açıq olanda da işləsin */
+(function(){
+  function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }
+  function closeAll(keepCabinet){
+    try{ if(document.getElementById('productModal')?.classList.contains('show')) window.closeModal('productModal'); }catch(e){}
+    if(!keepCabinet){ try{ if(document.getElementById('cabinetModal')?.classList.contains('show')) window.closeModal('cabinetModal'); }catch(e){} }
+    document.querySelectorAll('.modal.show').forEach(function(m){ if(m.id && m.id!=='productModal'){ try{ window.closeModal(m.id); }catch(e){ m.classList.remove('show'); } } });
+    document.getElementById('cartPanel')?.classList.remove('show');
+  }
+  ready(function(){
+    setTimeout(function(){
+      var nav=document.querySelector('.mobile-bottom-nav'); if(!nav) return;
+      nav.addEventListener('click',function(e){
+        var b=e.target.closest('button'); if(!b) return;
+        var t=b.getAttribute('data-mob');
+        if(t==='home' || t==='market'){ closeAll(false); }
+        else if(t==='cabinet'){
+          var cabOpen=document.getElementById('cabinetModal')?.classList.contains('show');
+          closeAll(true);
+          if(cabOpen){ e.stopImmediatePropagation(); return; }
+        }
+        else if(t==='cart'){
+          var cp=document.getElementById('cartPanel'); var willOpen=cp && !cp.classList.contains('show');
+          document.querySelectorAll('.modal.show').forEach(function(m){ if(m.id && m.id!=='productModal'){ try{ window.closeModal(m.id); }catch(_){} } });
+        }
+        else if(t==='support'){
+          nav.querySelectorAll('button').forEach(function(x){x.classList.remove('active')}); b.classList.add('active');
+          var sp=document.getElementById('supportPanel');
+          if(sp && sp.classList.contains('open')){ document.getElementById('supportBtn')?.click(); }
+          else if(typeof window.openSupport==='function'){ window.openSupport(); }
+          else document.getElementById('supportBtn')?.click();
+          e.stopImmediatePropagation();
+        }
+      }, true);
+    }, 0);
+  });
+})();
+</script>
+
+<style id="fix-card-badges">
+/* Ana səhifə elan kartları: kateqoriya etiketi və "yadda saxla" ikonu göstərilmir (mobil + veb, dark + light) */
+.ads .ad .ad-cat-badge,
+.ads .ad .ad-fav-btn,
+#ads .ad .ad-cat-badge,
+#ads .ad .ad-fav-btn{display:none!important}
+</style>
 </body>
 </html>
 <!-- build:1783383769-h9to33xehz-perf-optimized -->
