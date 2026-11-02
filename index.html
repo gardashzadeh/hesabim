@@ -7156,7 +7156,7 @@ window.renderMarketAds = function renderMarketAds(){
       var _priceNum = parseFloat(String(a.price||"").replace(",", "."));
       var _discPct = (a.originalPrice > 0 && _priceNum > 0 && a.originalPrice > _priceNum) ? Math.round((1 - _priceNum/a.originalPrice)*100) : 0;
       var oldHtml = a.originalPrice > 0
-        ? '<div class="old">'+Number(a.originalPrice).toFixed(2)+' ₼</div>' + (_discPct > 0 ? '<span class="ad-disc">−'+_discPct+'%</span>' : '')
+        ? '<div class="old">'+Number(a.originalPrice).toFixed(2)+' ₼</div>'
         : "";
       var discBadgeHtml = _discPct > 0 ? '<span class="ad-disc-badge">−'+_discPct+'%</span>' : "";
       var waHtml = "";
@@ -19860,6 +19860,7 @@ html:not(.ui-old) body #productModal .pd-gallery-col .product-detail-image.pd-ha
 #ads .ad .ad-cat-badge,
 #ads .ad .ad-fav-btn{display:none!important}
 </style>
+<style id="fix-no-inline-disc">.ads .ad .ad-disc{display:none!important}</style>
 </body>
 </html>
 <!-- build:1783383769-h9to33xehz-perf-optimized -->
