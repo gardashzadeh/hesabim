@@ -11505,7 +11505,13 @@ window.submitAd = async function(){
       const termsChk = document.getElementById("adPlatformTerms");
       // [FIX] Redaktədə şərtlər artıq ilk yerləşdirmədə qəbul olunub — yenidən tələb etmə
       if(termsChk && !termsChk.checked && !editingId){
-        authStatus("Sayt vasitəsilə satmaq üçün qaydaları qəbul etməlisən.");
+        authStatus("Elanı göndərmək üçün \"Yuxarıdakı qaydaları oxudum və qəbul edirəm\" xanasını işarələ.");
+        try{
+          const box = termsChk.closest("label")?.parentElement || termsChk.parentElement;
+          box.scrollIntoView({behavior:"smooth", block:"center"});
+          box.classList.remove("terms-required"); void box.offsetWidth; box.classList.add("terms-required");
+          termsChk.addEventListener("change", ()=>box.classList.remove("terms-required"), {once:true});
+        }catch(_){}
         if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Elanı göndər"; }
         return;
       }
@@ -19879,6 +19885,21 @@ html:not(.ui-old) body #productModal .pd-gallery-col .product-detail-image.pd-ha
 #ads .ad .ad-fav-btn{display:none!important}
 </style>
 <style id="fix-no-inline-disc">.ads .ad .ad-disc{display:none!important}</style>
+
+<style id="fix-terms-alert">
+/* Qaydalar xanası işarələnməyəndə — qırmızı haşiyə + titrəmə */
+.terms-required{outline:2px solid #E53935!important;outline-offset:2px;border-radius:12px;animation:termsShake .45s ease 2}
+.terms-required label span{color:#E53935!important;font-weight:700}
+@keyframes termsShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+<script>
+/* #authStatus giriş pəncərəsinin İÇİNDƏ idi — giriş pəncərəsi bağlı olanda (məs. kabinetdən
+   elan göndərəndə) xəbərdarlıq görünmürdü. Onu body-yə köçürürük ki, hər yerdə görünsün. */
+(function(){
+  function move(){ var e=document.getElementById("authStatus"); if(e && e.parentElement!==document.body) document.body.appendChild(e); }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",move); else move();
+})();
+</script>
 </body>
 </html>
 <!-- build:1783383769-h9to33xehz-perf-optimized -->
