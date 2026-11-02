@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <script>
+/* [AUTH-FAST] Əvvəlki girişdə hesab açıq idisə, Firebase sessiyanı bərpa edənə qədər
+   "Giriş et / Qeydiyyat" göstərmə (yanlış "çıxış etmisən" görüntüsü olmasın) */
+(function(){
+  try{ if(localStorage.getItem("hn_auth_hint")==="1"){ document.documentElement.classList.add("auth-pending");
+    setTimeout(function(){ document.documentElement.classList.remove("auth-pending"); }, 6000); } }catch(e){}
+})();
+</script>
+<style>
+html.auth-pending #loginBtn,html.auth-pending #registerBtn{visibility:hidden!important}
+</style>
+<script>
 /* Görünüş seçimi: ?ui=old / ?ui=new və ya yadda saxlanmış seçim */
 (function(){
   var ui = null;
@@ -16658,9 +16669,16 @@ onAuthStateChanged(auth, async user=>{
   adminActiveChatId = null;
 
   currentUser=user||null;
+  // [AUTH-FAST] Header-i DƏRHAL yenilə. Əvvəl header yalnız reload + profil + rol +
+  // blok yoxlaması + cüzdan (5 ardıcıl şəbəkə sorğusu) bitəndən sonra yenilənirdi —
+  // bu vaxt ərzində sayt "Giriş et" göstərirdi, istifadəçi daxil olmuş olsa belə.
+  try{ localStorage.setItem("hn_auth_hint", (currentUser && currentUser.emailVerified) ? "1" : "0"); }catch(_){}
+  document.documentElement.classList.remove("auth-pending");
+  updateHeader();
   if(currentUser){
-    await reload(currentUser).catch(()=>{});
-    currentUser=auth.currentUser;
+    // reload() şəbəkədən gəlir və yavaş ola bilər — maksimum 3 saniyə gözlə
+    await Promise.race([ reload(currentUser).catch(()=>{}), new Promise(r=>setTimeout(r,3000)) ]);
+    currentUser=auth.currentUser || currentUser;
     await ensureUserProfile(currentUser).catch(()=>{});
     await loadCurrentUserRole();
     if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; currentUserRole="user"; toast("Hesabınız admin tərəfindən bloklanıb."); }
