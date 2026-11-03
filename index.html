@@ -8282,11 +8282,14 @@ async function ensureViewAuth(){
 // ══════════════════════════════════════════════════════════════════
 let db;
 try{
+  // [PERF] Long-polling MƏCBURİ idi: hər canlı dinləyici ayrıca HTTP sorğusu saxlayırdı,
+  // brauzer isə bir sayt üçün eyni anda ~6 bağlantıya icazə verir → sorğular növbəyə
+  // düşür, sayt "donur" (xüsusən uzaq ölkələrdən, məs. Türkiyə). İndi SDK özü yoxlayır:
+  // streaming işləyirsə onu, bloklanıbsa avtomatik long-polling işlədir.
   db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-    useFetchStreams: false
+    experimentalAutoDetectLongPolling: true
   });
-  console.info("[Firestore] long-polling rejimi aktivdir");
+  console.info("[Firestore] auto-detect long-polling");
 }catch(e){
   console.warn("initializeFirestore fallback:", e?.message||e);
   db = getFirestore(app);
@@ -8362,6 +8365,9 @@ window.incrementAdView = async function(adId, currentViews = 0){
 // oxuyurdu (heç vaxt təyin edilməmişdi) — ona görə bu funksiya faktiki
 // olaraq HEÇ VAXT işləmirdi. Əsl elan siyahısı window.approvedFirestoreAds-dır.
 async function incrementRandomAdView(){
+  // [PERF] Əvvəl bu, saytı açıq saxlayan HƏR istifadəçidə işləyirdi: 100 nəfər = saatda
+  // 100 yazı, hər yazı isə bütün açıq tablarda yenilənmə yaradırdı. İndi yalnız admin.
+  if(typeof currentUserRole === "undefined" || currentUserRole !== "admin") return;
   try{
     const all = (window.approvedFirestoreAds || []).filter(a => a && a.id);
     if(!all.length) return;
@@ -16585,6 +16591,18 @@ function listenSellerStats(){
   sellersEl.innerHTML = '<div class="cabinet-empty" style="font-size:12px;padding:12px">—</div>';
 }
 
+window.__scheduleAdsRender = function(){
+  clearTimeout(window.__adsRenderT);
+  window.__adsRenderT = setTimeout(function run(){
+    if(document.hidden){ window.__adsRenderPending = true; return; }
+    window.__adsRenderPending = false;
+    if(window.renderMarketAds) window.renderMarketAds();
+  }, window.__adsFirstRenderDone ? 400 : 0);
+  window.__adsFirstRenderDone = true;
+};
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden && window.__adsRenderPending){ window.__adsRenderPending=false; if(window.renderMarketAds) window.renderMarketAds(); }
+});
 function listenPublicAds(){
   if(unsubPublicAds) unsubPublicAds();
   // Kvota qənaəti: yalnız satılmamış elanlar, maksimum 150.
@@ -16598,7 +16616,23 @@ function listenPublicAds(){
       if(!isAdExpired(data) && (!data.sold || Number(data.stock || 0) > 0)) arr.push(data);
     });
     window.approvedFirestoreAds=arr;
-    if(window.renderMarketAds) window.renderMarketAds();
+    // [PERF] Əvvəl HƏR dəyişiklikdə (hətta kiminsə elana baxıb "views" +1 etməsində)
+    // bütün 150 kart yenidən çəkilirdi. Çox istifadəçi olanda bu, hər kəsdə
+    // saniyədə bir neçə dəfə tam yenidən çəkmə = donma demək idi.
+    // İndi: yalnız görünən məlumat dəyişəndə yenidən çəkilir; baxış sayı
+    // yerində yenilənir; çəkmə 400ms-ə birləşdirilir; gizli tabda gözləyir.
+    const sig = arr.map(a=>[a.id,a.title,a.price,a.originalPrice,a.stock,a.sold,a.imageUrl,(a.imageUrls||[])[0],a.category,a.bumpedAt&&a.bumpedAt.seconds,a.seller,a.sellerVerified,a.contactMode].join("|")).join("~");
+    if(sig === window.__adsSig){
+      try{
+        arr.forEach(a=>{
+          const card = document.querySelector('#ads .ad[data-adid="'+a.id+'"] .ad-views');
+          if(card) card.innerHTML = card.innerHTML.replace(/\d[\d.,]*\s*(k|K|min)?/, String(window.formatViewsCount ? window.formatViewsCount(a.views||0) : (a.views||0)));
+        });
+      }catch(_){}
+      return;
+    }
+    window.__adsSig = sig;
+    window.__scheduleAdsRender();
     if(window.loadPresenceFor) window.loadPresenceFor(arr.map(a => a.sellerUid));
   }, err=>{
     // [RETRY] Dinləyici xəta versə (şəbəkə/long-polling), skeleton ilişməsin.
@@ -16688,7 +16722,23 @@ onAuthStateChanged(auth, async user=>{
     await ensureUserProfile(currentUser).catch(()=>{});
     await loadCurrentUserRole();
     if(await isCurrentUserBlocked()){ await signOut(auth); currentUser=null; currentUserRole="user"; toast("Hesabınız admin tərəfindən bloklanıb."); }
-    else { await ensureWallet(currentUser.uid,currentUser.email).catch(()=>{}); }
+    else {
+      await ensureWallet(currentUser.uid,currentUser.email).catch(()=>{});
+      // [TG-MIGRATE] Profildə Telegram ID artıq varsa, onu avtomatik userNotify/{uid}-ə köçür —
+      // istifadəçilər ID-ni yenidən "Yadda saxla" etmək məcburiyyətində qalmasın.
+      (async()=>{
+        try{
+          const _u = await getDoc(doc(db,"users",currentUser.uid));
+          const _tg = String((_u.exists() && _u.data().telegramChatId) || "").trim();
+          if(!_tg) return;
+          window._userTelegramChatId = _tg;
+          const _n = await getDoc(doc(db,"userNotify",currentUser.uid)).catch(()=>null);
+          if(!_n || !_n.exists() || String(_n.data().telegramChatId||"") !== _tg){
+            await setDoc(doc(db,"userNotify",currentUser.uid),{ telegramChatId:_tg, updatedAt: serverTimestamp() });
+          }
+        }catch(e){ console.warn("[TG-MIGRATE]", e); }
+      })();
+    }
   } else {
     currentUserRole="user";
   }
@@ -19494,8 +19544,14 @@ html.ui-old:has(body.pd-open){overflow:hidden}
     document.documentElement.style.overflow = locked ? "hidden" : "";
   }
   var mo = new MutationObserver(sync);
-  mo.observe(document.documentElement, {attributes:true, attributeFilter:["class"], subtree:true});
-  document.addEventListener("DOMContentLoaded", sync);
+  function watch(){
+    mo.observe(document.body, {attributes:true, attributeFilter:["class"]});
+    document.querySelectorAll(".modal, .cabinet-modal, #supportPanel, #productModal").forEach(function(el){
+      mo.observe(el, {attributes:true, attributeFilter:["class"]});
+    });
+    sync();
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch); else watch();
 })();
 </script>
 
