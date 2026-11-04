@@ -8101,7 +8101,8 @@ import {
   onAuthStateChanged,
   reload,
   setPersistence,
-  inMemoryPersistence
+  inMemoryPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   getFirestore,
@@ -8229,7 +8230,10 @@ try{
   // Incognito/private rejimdə IndexedDB (default local persistence) bloklana
   // bilər və signInAnonymously fail olur. Bu app yalnız bir "baxış" hərəkəti
   // üçün istifadə olunur, sessiyanın saxlanmasına ehtiyac yoxdur → in-memory.
-  setPersistence(viewAuth, inMemoryPersistence).catch(()=>{});
+  // [ANON-FIX] Əvvəl in-memory idi: qonaq hər səhifə açılışında YENİ anonim hesab
+  // yaradırdı → Firebase Authentication siyahısı yüzlərlə boş "anonymous" hesabla dolurdu.
+  // İndi brauzerdə saxlanılır (bir brauzer = bir anonim hesab); incognito-da in-memory-yə düşür.
+  setPersistence(viewAuth, browserLocalPersistence).catch(()=>setPersistence(viewAuth, inMemoryPersistence).catch(()=>{}));
 
   // Ayrı app + ayrıca Firestore instansiyası: əsas login sessiyasını dəyişmir.
   try{
@@ -14548,18 +14552,18 @@ async function _fetchUsersAdmin(){
   try{
     const snap=await getDocs(query(collection(db,"users")));
     const users=[]; snap.forEach(d=>users.push({id:d.id,...d.data()}));
-    users.sort((a,b)=>String(a.email||"").localeCompare(String(b.email||"")));
+    // Qeydiyyat vaxtına görə: ən yeni yuxarıda. createdAt olmayan köhnə hesablar sonda.
+    const ts=u=>{ const c=u.createdAt; return c ? (c.toMillis ? c.toMillis() : (c.seconds ? c.seconds*1000 : (Date.parse(c)||0))) : 0; };
+    users.sort((x,y)=> ts(y)-ts(x) || String(x.email||"").localeCompare(String(y.email||"")));
     setAdminStat("users",users.length);
     setAdminStat("verifiedSellers",users.filter(u=>u.sellerVerified).length);
     setAdminStat("blockedUsers",users.filter(u=>u.blocked).length);
-    const filter=(document.getElementById("adminUserSearch")?.value||"").toLowerCase();
-    const rows=users.filter(u=>!filter||String(u.email||u.fullName||"").toLowerCase().includes(filter)).slice(0,80);
-    el.innerHTML=`<h3>İstifadəçi və satıcı idarəsi</h3><div class="admin-filter-row"><input id="adminUserSearch" placeholder="Email/ad üzrə axtar"><span class="admin-tag">${users.length} istifadəçi</span><span class="admin-tag">${adminStatsState.verifiedSellers} təsdiqli satıcı</span><span class="admin-tag">${adminStatsState.blockedUsers} bloklu</span></div>`+(rows.length?`<table class="cabinet-table"><thead><tr><th>İstifadəçi</th><th>Rol</th><th>Satıcı</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${rows.map(u=>`<tr><td><b>${esc(u.fullName||u.name||"-")}</b><br><small>${esc(u.email||"")}</small></td><td>${esc(u.role||"user")}</td><td>${u.sellerVerified?'<span class="status approved">Təsdiqli</span>':'<span class="status pending">Adi</span>'}</td><td>${u.blocked?'<span class="status rejected">Bloklu</span>':'<span class="status approved">Aktiv</span>'}</td><td><div class="action-row"><button class="verify-btn" data-user-verify="${u.id}" data-val="${u.sellerVerified?0:1}">${u.sellerVerified?'Təsdiqi sil':'Satıcı təsdiqlə'}</button><button class="block-btn" data-user-block="${u.id}" data-val="${u.blocked?0:1}">${u.blocked?'Bloku aç':'Blokla'}</button><button class="verify-btn" style="background:#1c1f24;border-color:#33373d" data-user-track="${u.id}" data-user-email="${esc(u.email||'')}">İzlə</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">İstifadəçi tapılmadı.</div>');
+    window._adminUsersCache = users;
+    const prev=(document.getElementById("adminUserSearch")?.value||"");
+    el.innerHTML=`<h3>İstifadəçi və satıcı idarəsi</h3><div class="admin-filter-row"><input id="adminUserSearch" placeholder="Email, ad, istifadəçi ID və ya telefon üzrə axtar"><span class="admin-tag">${users.length} istifadəçi</span><span class="admin-tag">${adminStatsState.verifiedSellers} təsdiqli satıcı</span><span class="admin-tag">${adminStatsState.blockedUsers} bloklu</span><span class="admin-tag" id="adminUsersShown"></span></div><div id="adminUsersTable"></div>`;
     const input=document.getElementById("adminUserSearch");
-    if(input){ input.value=filter; input.oninput=()=>listenUsersAdminRenderOnly(users); }
-    el.querySelectorAll("[data-user-verify]").forEach(b=>b.onclick=async()=>{await toggleSellerVerify(b.dataset.userVerify,b.dataset.val==="1");_fetchUsersAdmin();});
-    el.querySelectorAll("[data-user-block]").forEach(b=>b.onclick=async()=>{await toggleUserBlock(b.dataset.userBlock,b.dataset.val==="1");_fetchUsersAdmin();});
-    el.querySelectorAll("[data-user-track]").forEach(b=>b.onclick=()=>openUserActivity(b.dataset.userTrack,b.dataset.userEmail||""));
+    if(input){ input.value=prev; input.oninput=()=>listenUsersAdminRenderOnly(users); }
+    listenUsersAdminRenderOnly(users);
   }catch(e){ console.error("_fetchUsersAdmin:",e); }
 }
 
@@ -14649,17 +14653,17 @@ function _renderWheelPlaysAdmin(){
 
 
 function listenUsersAdminRenderOnly(users){
-  // oninput zamanı Firestore listener yaratmadan mövcud siyahını yenidən çəkir
-  const el=document.getElementById("adminUsers"); if(!el) return;
-  const filter=(document.getElementById("adminUserSearch")?.value||"").toLowerCase();
-  const rows=(users||[]).filter(u=>!filter || String(u.email||u.fullName||"").toLowerCase().includes(filter)).slice(0,80);
-  const currentFilter=filter;
-  el.innerHTML=`<h3>İstifadəçi və satıcı idarəsi</h3><div class="admin-filter-row"><input id="adminUserSearch" placeholder="Email/ad üzrə axtar"><span class="admin-tag">${users.length} istifadəçi</span><span class="admin-tag">${adminStatsState.verifiedSellers} təsdiqli satıcı</span><span class="admin-tag">${adminStatsState.blockedUsers} bloklu</span></div>`+(rows.length?`<table class="cabinet-table"><thead><tr><th>İstifadəçi</th><th>Rol</th><th>Satıcı</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${rows.map(u=>`<tr><td><b>${esc(u.fullName||u.name||"-")}</b><br><small>${esc(u.email||"")}</small></td><td>${esc(u.role||"user")}</td><td>${u.sellerVerified?'<span class="status approved">Təsdiqli</span>':'<span class="status pending">Adi</span>'}</td><td>${u.blocked?'<span class="status rejected">Bloklu</span>':'<span class="status approved">Aktiv</span>'}</td><td><div class="action-row"><button class="verify-btn" data-user-verify="${u.id}" data-val="${u.sellerVerified?0:1}">${u.sellerVerified?'Təsdiqi sil':'Satıcı təsdiqlə'}</button><button class="block-btn" data-user-block="${u.id}" data-val="${u.blocked?0:1}">${u.blocked?'Bloku aç':'Blokla'}</button><button class="verify-btn" style="background:#1c1f24;border-color:#33373d" data-user-track="${u.id}" data-user-email="${esc(u.email||'')}">İzlə</button></div></td></tr>`).join("")}</tbody></table>`:'<div class="cabinet-empty">İstifadəçi tapılmadı.</div>');
-  const input=document.getElementById("adminUserSearch");
-  if(input){ input.value=currentFilter; input.focus(); input.oninput=()=>listenUsersAdminRenderOnly(users); }
-  el.querySelectorAll("[data-user-verify]").forEach(b=>b.onclick=()=>toggleSellerVerify(b.dataset.userVerify,b.dataset.val==="1"));
-  el.querySelectorAll("[data-user-block]").forEach(b=>b.onclick=()=>toggleUserBlock(b.dataset.userBlock,b.dataset.val==="1"));
-  el.querySelectorAll("[data-user-track]").forEach(b=>b.onclick=()=>openUserActivity(b.dataset.userTrack,b.dataset.userEmail||""));
+  // Axtarış zamanı yalnız cədvəl yenidən çəkilir — axtarış xanası fokusunu itirmir.
+  const box=document.getElementById("adminUsersTable"); if(!box) return;
+  const filter=(document.getElementById("adminUserSearch")?.value||"").toLowerCase().trim();
+  const rows=(users||[]).filter(u=>!filter || [u.email,u.fullName,u.name,u.userId,u.phone,u.phoneNumber,u.id].map(x=>String(x||"").toLowerCase()).join(" ").includes(filter));
+  const shown=document.getElementById("adminUsersShown");
+  if(shown) shown.textContent = filter ? (rows.length+" nəticə") : "Qeydiyyat tarixinə görə (ən yeni yuxarıda)";
+  const total=(users||[]).length;
+  box.innerHTML = rows.length ? `<table class="cabinet-table"><thead><tr><th>#</th><th>Qeydiyyat</th><th>İstifadəçi</th><th>Rol</th><th>Satıcı</th><th>Status</th><th>Əməliyyat</th></tr></thead><tbody>${rows.map((u,i)=>`<tr><td>${total - (users.indexOf(u))}</td><td style="white-space:nowrap">${u.createdAt ? adminDateTime(u.createdAt) : '<span style="opacity:.6">—</span>'}</td><td><b>${esc(u.fullName||u.name||"-")}</b><br><small>${esc(u.email||"")}</small>${u.userId?`<br><small style="opacity:.7">@${esc(u.userId)}</small>`:""}</td><td>${esc(u.role||"user")}</td><td>${u.sellerVerified?'<span class="status approved">Təsdiqli</span>':'<span class="status pending">Adi</span>'}</td><td>${u.blocked?'<span class="status rejected">Bloklu</span>':'<span class="status approved">Aktiv</span>'}</td><td><div class="action-row"><button class="verify-btn" data-user-verify="${u.id}" data-val="${u.sellerVerified?0:1}">${u.sellerVerified?'Təsdiqi sil':'Satıcı təsdiqlə'}</button><button class="block-btn" data-user-block="${u.id}" data-val="${u.blocked?0:1}">${u.blocked?'Bloku aç':'Blokla'}</button><button class="verify-btn" style="background:#1c1f24;border-color:#33373d" data-user-track="${u.id}" data-user-email="${esc(u.email||'')}">İzlə</button></div></td></tr>`).join("")}</tbody></table>` : '<div class="cabinet-empty">İstifadəçi tapılmadı.</div>';
+  box.querySelectorAll("[data-user-verify]").forEach(b=>b.onclick=async()=>{await toggleSellerVerify(b.dataset.userVerify,b.dataset.val==="1");_fetchUsersAdmin();});
+  box.querySelectorAll("[data-user-block]").forEach(b=>b.onclick=async()=>{await toggleUserBlock(b.dataset.userBlock,b.dataset.val==="1");_fetchUsersAdmin();});
+  box.querySelectorAll("[data-user-track]").forEach(b=>b.onclick=()=>openUserActivity(b.dataset.userTrack,b.dataset.userEmail||""));
 }
 async function toggleSellerVerify(uid,val){
   try{
