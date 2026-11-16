@@ -4620,18 +4620,19 @@ select[id*="categor" i] option{
     // ==== HƏDİYYƏ SİYAHISI — faizlərin cəmi 100 olmalıdır ====
     // (faizlər yalnız burada, çarxın üzərində görünmür)
     const PRIZES = [
-      { name: "10$ Wallet Kodu",    chance: 0.01, icon: "💳" },
-      { name: "Gemini Pro 18 Ay",   chance: 1,    icon: "✨" },
-      { name: "Netflix Hesab",      chance: 2,    icon: "🎬" },
-      { name: "Steam Hesabı",       chance: 3,    icon: "🎮" },
-      { name: "Canva Pro",          chance: 4,    icon: "🎨" },
-      { name: "Hədiyyəsiz",         chance: 89.99,icon: "😔" },
+      // PULSUZ fırlatma ehtimalları (%), cəmi 100
+      { name: "10$ Wallet Kodu",    chance: 0.0005,  icon: "💳" },
+      { name: "Gemini Plus 12 Ay",  chance: 0.01,    icon: "✨" },
+      { name: "Windows Lisenziya",  chance: 0.1,     icon: "🪟" },
+      { name: "Steam Hesabı",       chance: 0.1,     icon: "🎮" },
+      { name: "Canva Pro",          chance: 0.5,     icon: "🎨" },
+      { name: "Hədiyyəsiz",         chance: 99.2895, icon: "😔" },
     ];
     // ==== ÖDƏNİŞLİ FIRLATMA ehtimalları — PRIZES ilə eyni sırada, cəmi 100 ====
     const PAID_CHANCES = [
       0.05,  // 10$ Wallet Kodu
-      1,     // Gemini Pro 18 Ay
-      2,     // Netflix Hesab
+      1,     // Gemini Plus 12 Ay
+      2,     // Windows Lisenziya
       10,    // Steam Hesabı
       15,    // Canva Pro
       71.95  // Hədiyyəsiz
@@ -6100,7 +6101,7 @@ select[id*="categor" i] option{
       <li>Çarxı fırlatmaq üçün hesabınıza daxil olmalısınız.</li>
       <li>Pulsuz fırlatma hər 24 saatda 1 dəfədir.</li>
       <li>Əlavə fırlatma 0.3 ₼-dır və balansınızdan çıxılır.</li>
-      <li>Pullu çarxda qazanma ehtimalı pulsuz çarxdan təxminən 3 dəfə çoxdur.</li>
+      <li>Pullu çarxda qazanma ehtimalı pulsuz çarxdan dəfələrlə çoxdur.</li>
       <li><b>Hədiyyə qazandıqda Dəstək bölməsinə yazın.</b></li>
     </ol>
   </div>
